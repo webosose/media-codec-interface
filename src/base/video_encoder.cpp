@@ -89,6 +89,11 @@ bool VideoEncoder::IsEncoderAvailable() {
   return false;
 }
 
+bool VideoEncoder::UpdateEncodingParams(const ENCODING_PARAMS_T* properties) {
+  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
+  return true;
+}
+
 bool VideoEncoder::UpdateEncodingResolution(uint32_t width, uint32_t height) {
   MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
   return false;

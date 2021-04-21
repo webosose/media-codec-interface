@@ -52,7 +52,7 @@ class VideoEncoder {
 
   virtual bool IsEncoderAvailable();
   virtual bool UpdateEncodingResolution(uint32_t width, uint32_t height);
-
+  virtual bool UpdateEncodingParams(const ENCODING_PARAMS_T* properties);
   void RegisterCbFunction(CALLBACK_T);
 
  private:

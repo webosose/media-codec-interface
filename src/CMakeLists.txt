@@ -27,9 +27,9 @@ include_directories(.)
 
 include_directories(./base)
 
-include_directories(./encoder)
+include_directories(./codec_impl)
 
-add_subdirectory(encoder)
+add_subdirectory(codec_impl)
 
 find_package(Threads REQUIRED)
 
@@ -47,7 +47,7 @@ set(MEDIA_CODEC_INTERFACE_SRC
 )
 
 add_library(${MEDIA_CODEC_INTERFACE_LIB} SHARED ${MEDIA_CODEC_INTERFACE_SRC})
-target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} video-encoder)
+target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} media-codec-impl)
 
 install(TARGETS ${MEDIA_CODEC_INTERFACE_LIB} DESTINATION lib)
 install(FILES ${MEDIA_CODEC_INTERFACE_HEADERS} DESTINATION include/mcil)

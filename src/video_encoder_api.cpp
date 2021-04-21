@@ -123,8 +123,12 @@ bool VideoEncoderAPI::UpdateEncodingResolution(uint32_t width, uint32_t height)
 
 bool VideoEncoderAPI::UpdateEncodingParams(const ENCODING_PARAMS_T* properties)
 {
-  //Dynamic updation of bitrate and framerate needs to be handled
-  return true;
+  if (!videoEncoder_) {
+    MCIL_INFO_PRINT(" Error: encoder (%p) ", videoEncoder_.get());
+    return false;
+  }
+
+  return videoEncoder_->UpdateEncodingParams(properties);
 }
 
 } // namespace encoder
