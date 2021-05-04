@@ -47,7 +47,7 @@ set(MEDIA_CODEC_INTERFACE_SRC
 )
 
 add_library(${MEDIA_CODEC_INTERFACE_LIB} SHARED ${MEDIA_CODEC_INTERFACE_SRC})
-target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} media-codec-impl)
+target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} video-encoder)
 
 install(TARGETS ${MEDIA_CODEC_INTERFACE_LIB} DESTINATION lib)
 install(FILES ${MEDIA_CODEC_INTERFACE_HEADERS} DESTINATION include/mcil)
