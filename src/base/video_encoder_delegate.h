@@ -14,40 +14,29 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef SRC_BASE_ENCODER_TYPES_H_
-#define SRC_BASE_ENCODER_TYPES_H_
+#ifndef SRC_BASE_VIDEO_ENCODER_DELEGATE_H_
+#define SRC_BASE_VIDEO_ENCODER_DELEGATE_H_
 
-#include "codec_types.h"
+#include "decoder_types.h"
 
 namespace mcil {
 
-/**
- * Class for encoding parameters
- */
-class EncodingParams {
- public:
-  EncodingParams() = default;
-  ~EncodingParams() = default;
+namespace encoder {
 
-  uint32_t bitRate;
-  uint32_t frameRate;
+// Video encoder delegate interface. This interface is implemented
+// by the components that uses the VideoEncoderAPI.
+class VideoEncoderDelegate {
+ public:
+  virtual void EncodedBufferReady(const uint8_t* buffer,
+                                  size_t buffer_size,
+                                  uint64_t timestamp,
+                                  bool is_key_frame) = 0;
+ protected:
+  virtual ~VideoEncoderDelegate() = default;
 };
 
-/* Encoder config data structure */
-class EncoderConfig {
- public:
-  EncoderConfig() = default;
-  ~EncoderConfig() = default;
-
-  uint32_t frameRate;
-  uint32_t bitRate;
-  uint32_t width;
-  uint32_t height;
-  VideoPixelFormat pixelFormat;
-  VideoCodecType codecType;
-  uint32_t bufferSize;
-};
+}  // namespace encoder
 
 }  // namespace mcil
 
-#endif  // SRC_BASE_ENCODER_TYPES_H_
+#endif  // SRC_BASE_VIDEO_ENCODER_DELEGATE_H_

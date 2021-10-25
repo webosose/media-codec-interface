@@ -14,57 +14,45 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-
 #ifndef SRC_BASE_VIDEO_ENCODER_H_
 #define SRC_BASE_VIDEO_ENCODER_H_
 
 #include "video_encoder_api.h"
-
-#include <functional>
-
-#include "base/encoder_types.h"
-
-using namespace std;
-using CALLBACK_T = std::function<void(const gint type, const gint64 numValue,
-        const gchar *strValue, void *udata)>;
+#include "encoder_types.h"
+#include "video_encoder_delegate.h"
 
 namespace mcil {
 
 namespace encoder {
 
 class VideoEncoder {
-  public:
-    static std::shared_ptr<VideoEncoder> Create(MCP_VIDEO_CODEC type);
+ public:
+  static std::shared_ptr<VideoEncoder> Create(VideoCodecType type);
 
-    VideoEncoder();
-    ~VideoEncoder();
+  static mcil::SupportedProfiles GetSupportedProfiles();
 
-    virtual bool Init(const ENCODER_INIT_DATA_T* loadData,
-                      NEWFRAME_CALLBACK_T new_frame_cb);
-    virtual bool Deinit();
-    virtual MCP_MEDIA_STATUS_T Feed(const uint8_t* bufferPtr, size_t bufferSize);
-    virtual MCP_MEDIA_STATUS_T Feed(const uint8_t* yBuf, size_t ySize,
-                                    const uint8_t* uBuf, size_t uSize,
-                                    const uint8_t* vBuf, size_t vSize,
-                                    uint64_t bufferTimestamp,
-                                    const bool requestKeyFrame);
+  VideoEncoder();
+  ~VideoEncoder();
 
-    virtual bool UpdateEncodingResolution(uint32_t width, uint32_t height);
+  virtual bool Initialize(const EncoderConfig* configData,
+                          VideoEncoderDelegate* delegate);
+  virtual bool Destroy();
+  virtual bool EncodeBuffers(const uint8_t* yBuf, size_t ySize,
+                             const uint8_t* uBuf, size_t uSize,
+                             const uint8_t* vBuf, size_t vSize,
+                             uint64_t bufferTimestamp,
+                             const bool requestKeyFrame);
 
-    void RegisterCbFunction(CALLBACK_T);
-    void RegisterCallBack(FunctorEncoder callback);
+  virtual bool IsEncoderAvailable();
+  virtual bool UpdateEncodingResolution(uint32_t width, uint32_t height);
+  virtual bool UpdateEncodingParams(const EncodingParams* properties);
 
-  private:
-    friend class GstVideoEncoder;
-    friend class LxVideoEncoder;
+ private:
+  friend class GstVideoEncoder;
+  friend class LxVideoEncoder;
 
-    ENCODED_BUFFER_T encdata_;
-    FunctorEncoder callback_;
-    CALLBACK_T cbFunction_ = nullptr;
-
-    ENCODER_INIT_DATA_T* initData_;
-
-    NEWFRAME_CALLBACK_T new_frame_cb_ = nullptr;
+  EncoderConfig* configData_;
+  VideoEncoderDelegate* delegate_ = nullptr;
 };
 
 }  // namespace encoder

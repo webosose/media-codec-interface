@@ -16,7 +16,7 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-project(g-media-pipeline)
+project(media-codec-interface)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
@@ -49,4 +49,3 @@ include_directories(${GSTREAMER_INCLUDE_DIRS})
 link_directories(${GSTREAMER_LIBRARIES})
 
 add_subdirectory(src)
-#add_subdirectory(files)

@@ -14,6 +14,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+include(webOS/webOS)
+webos_modules_init(1 6 3)
+
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(PMLOGLIB QUIET PmLogLib)
@@ -27,9 +30,9 @@ include_directories(.)
 
 include_directories(./base)
 
-include_directories(./encoder)
+include_directories(./codec_impl)
 
-add_subdirectory(encoder)
+add_subdirectory(codec_impl)
 
 find_package(Threads REQUIRED)
 
@@ -37,22 +40,36 @@ set(MEDIA_CODEC_INTERFACE_LIB media-codec-interface)
 
 set(MEDIA_CODEC_INTERFACE_HEADERS
     base/codec_types.h
+    base/decoder_types.h
     base/encoder_types.h
-    base/types.h
+    base/fourcc_value.h
+    base/optional.h
+    base/ref_counted.h
+    base/scoped_refptr.h
+    base/video_decoder.h
+    base/video_decoder_delegate.h
+    base/video_encoder_delegate.h
     base/video_encoder.h
+    video_decoder_api.h
     video_encoder_api.h)
 
 set(MEDIA_CODEC_INTERFACE_SRC
+    base/codec_types.cpp
+    base/decoder_types.cpp
+    base/fourcc_value.cpp
     base/log.cpp
+    base/video_decoder.cpp
+    video_decoder_api.cpp
     video_encoder_api.cpp
 )
 
 add_library(${MEDIA_CODEC_INTERFACE_LIB} SHARED ${MEDIA_CODEC_INTERFACE_SRC})
-target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} video-encoder)
+target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} media-codec-impl)
 
 install(TARGETS ${MEDIA_CODEC_INTERFACE_LIB} DESTINATION lib)
 install(FILES ${MEDIA_CODEC_INTERFACE_HEADERS} DESTINATION include/mcil)
 
 #install media-codec-interface.pc file
-install(FILES media-codec-interface.pc DESTINATION share/pkgconfig)
+configure_file(media-codec-interface.pc.in ${CMAKE_BINARY_DIR}/media-codec-interface.pc @ONLY)
+install(FILES ${CMAKE_BINARY_DIR}/media-codec-interface.pc DESTINATION share/pkgconfig)
 

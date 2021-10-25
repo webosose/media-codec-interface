@@ -29,116 +29,82 @@ namespace mcil {
 
 namespace encoder {
 
-bool VideoEncoderAPI::IsCodecSupported(MCP_VIDEO_CODEC videoCodec) {
-  MCP_INFO_PRINT("%d %s videoCodec(%d)", __LINE__, __FUNCTION__, videoCodec);
-  return (videoCodec == MCP_VIDEO_CODEC_H264);
+mcil::SupportedProfiles VideoEncoderAPI::GetSupportedProfiles() {
+  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
+  return mcil::encoder::VideoEncoder::GetSupportedProfiles();
 }
 
-VideoEncoderAPI::VideoEncoderAPI() {
-  MCP_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
+VideoEncoderAPI::VideoEncoderAPI(VideoEncoderDelegate* delegate)
+  : delegate_(delegate) {
+  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
 }
 
 VideoEncoderAPI::~VideoEncoderAPI() {
-  MCP_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
+  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
 }
 
-void VideoEncoderAPI::RegisterCallback(
-    ENCODER_CALLBACK_T callback, void *uData) {
-  MCP_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
-  callback_ = callback;
-  userData_ = uData;
-}
+bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
+  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
+  MCIL_INFO_PRINT("Load configData = %p", configData);
+  MCIL_INFO_PRINT("Load width = %d", configData->width);
+  MCIL_INFO_PRINT("Load height = %d", configData->height);
+  MCIL_INFO_PRINT("Load FrameRate = %d", configData->frameRate);
+  MCIL_INFO_PRINT("Load pixelFormat = %d", configData->pixelFormat);
 
-bool VideoEncoderAPI::Init(const ENCODER_INIT_DATA_T* loadData,
-                              NEWFRAME_CALLBACK_T new_frame_cb) {
-  MCP_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
-  MCP_INFO_PRINT("Load loadData = %p", loadData);
-  MCP_INFO_PRINT("Load width = %d", loadData->width);
-  MCP_INFO_PRINT("Load height = %d", loadData->height);
-  MCP_INFO_PRINT("Load FrameRate = %d", loadData->frameRate);
-  MCP_INFO_PRINT("Load pixelFormat = %d", loadData->pixelFormat);
-
-  videoEncoder_ = mcil::encoder::VideoEncoder::Create(loadData->codecType);
+  videoEncoder_ = mcil::encoder::VideoEncoder::Create(configData->codecType);
   if (!videoEncoder_) {
-    MCP_INFO_PRINT("Encoder Buffer not created");
+    MCIL_INFO_PRINT("Encoder Buffer not created");
     return false;
   }
-  bool ret = videoEncoder_ ->Init(loadData, new_frame_cb);
-  videoEncoder_->RegisterCbFunction (
-          std::bind(&VideoEncoderAPI::Notify, this ,
-              std::placeholders::_1, std::placeholders::_2,
-              std::placeholders::_3, std::placeholders::_4));
-  videoEncoder_ -> RegisterCallBack(
-          std::bind(&VideoEncoderAPI::OnEncodedDataAvailable, this,
-              std::placeholders::_1, std::placeholders::_2));
-
-  return ret;
+  return videoEncoder_ ->Initialize(configData, delegate_);
 }
 
-bool VideoEncoderAPI::Deinit() {
-  MCP_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
-  return videoEncoder_ ->Deinit();
+bool VideoEncoderAPI::Destroy() {
+  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
+  return videoEncoder_ ->Destroy();
 }
 
-MCP_MEDIA_STATUS_T VideoEncoderAPI::Encode(const uint8_t* bufferPtr,
-                                              size_t bufferSize) {
+bool VideoEncoderAPI::EncodeBuffers(const uint8_t* yBuf, size_t ySize,
+                                    const uint8_t* uBuf, size_t uSize,
+                                    const uint8_t* vBuf, size_t vSize,
+                                    uint64_t bufferTimestamp,
+                                    const bool requestKeyFrame) {
   if (!videoEncoder_) {
-    MCP_INFO_PRINT(" Error: encoder (%p) should Init", videoEncoder_.get());
-    return MCP_MEDIA_ERROR;
+    MCIL_INFO_PRINT(" Error: encoder (%p) ", videoEncoder_.get());
+    return false;
   }
-  return videoEncoder_->Feed(bufferPtr, bufferSize);
+
+  return videoEncoder_->EncodeBuffers(yBuf, ySize, uBuf, uSize, vBuf, vSize,
+                                      bufferTimestamp, requestKeyFrame);
 }
 
-MCP_MEDIA_STATUS_T VideoEncoderAPI::Encode(const uint8_t* yBuf, size_t ySize,
-                                              const uint8_t* uBuf, size_t uSize,
-                                              const uint8_t* vBuf, size_t vSize,
-                                              uint64_t bufferTimestamp,
-                                              const bool requestKeyFrame) {
+bool VideoEncoderAPI::IsEncoderAvailable() {
   if (!videoEncoder_) {
-    MCP_INFO_PRINT(" Error: encoder (%p) should Init", videoEncoder_.get());
-    return MCP_MEDIA_ERROR;
+    MCIL_INFO_PRINT(" Error: encoder (%p)", videoEncoder_.get());
+    return false;
   }
-  
-  return videoEncoder_->Feed(yBuf, ySize, uBuf, uSize, vBuf, vSize,
-                            bufferTimestamp, requestKeyFrame);
-}
 
-bool VideoEncoderAPI::OnEncodedDataAvailable(uint8_t* buffer,
-                                                ENCODED_BUFFER_T* encData) {
-  bool res;
-
-  if (nullptr != callback_) {
-    encData->encodedBuffer = buffer;
-    callback_(ENCODER_CB_BUFFER_ENCODED, encData, userData_);
-    return true;
-  }
-  return false;
-}
-
-void VideoEncoderAPI::Notify(const gint notification, const gint64 numValue,
-        const gchar *strValue, void *payload)
-{
-  MCP_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
-  if (nullptr != callback_) {
-    callback_(notification, payload, userData_);
-    return;
-  }
+  return videoEncoder_->IsEncoderAvailable();
 }
 
 bool VideoEncoderAPI::UpdateEncodingResolution(uint32_t width, uint32_t height)
 {
   if (!videoEncoder_) {
-    MCP_INFO_PRINT(" Error: encoder (%p) should Init", videoEncoder_.get());
+    MCIL_INFO_PRINT(" Error: encoder (%p) ", videoEncoder_.get());
     return false;
   }
 
   return videoEncoder_->UpdateEncodingResolution(width, height);
 }
 
-bool VideoEncoderAPI::UpdateEncodingParams(const ENCODING_PARAMS_T* properties)
+bool VideoEncoderAPI::UpdateEncodingParams(const EncodingParams* properties)
 {
-  //Dynamic updation of bitrate and framerate needs to be handled
-  return true;
+  if (!videoEncoder_) {
+    MCIL_INFO_PRINT(" Error: encoder (%p) ", videoEncoder_.get());
+    return false;
+  }
+
+  return videoEncoder_->UpdateEncodingParams(properties);
 }
 
 } // namespace encoder

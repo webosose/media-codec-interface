@@ -17,11 +17,11 @@
 #include "base/log.h"
 
 PmLogContext GetPmLogContext() {
-  static PmLogContext gmp_log_context = 0;
+  static PmLogContext mcil_log_context = 0;
 
-  if (0 == gmp_log_context) {
-    PmLogGetContext("g-media-pipeline", &gmp_log_context);
+  if (0 == mcil_log_context) {
+    PmLogGetContext("media-codec-interface", &mcil_log_context);
   }
 
-  return gmp_log_context;
+  return mcil_log_context;
 }

@@ -17,73 +17,164 @@
 #ifndef SRC_BASE_CODEC_TYPES_H_
 #define SRC_BASE_CODEC_TYPES_H_
 
-typedef enum {
-  MEDIA_OK = 0,
-  MEDIA_ERROR = -1,
-  MEDIA_NOT_IMPLEMENTED = -2,
-  MEDIA_NOT_SUPPORTED = -6,
-  MEDIA_BUFFER_FULL = -7,                         /**< function doesn't works cause buffer is full */
-  MEDIA_INVALID_PARAMS = -3,                      /**< Invalid parameters */
-  MEDIA_NOT_READY = -11,                          /**< API's resource is not ready */
-} MEDIA_STATUS_T;
+#include <stdint.h>
 
-typedef enum {
-  NOTIFY_LOAD_COMPLETED = 0,
-  NOTIFY_UNLOAD_COMPLETED,
-  NOTIFY_SOURCE_INFO,
-  NOTIFY_END_OF_STREAM,
-  NOTIFY_CURRENT_TIME,
-  NOTIFY_SEEK_DONE,
-  NOTIFY_PLAYING,
-  NOTIFY_PAUSED,
-  NOTIFY_NEED_DATA,
-  NOTIFY_ENOUGH_DATA,
-  NOTIFY_SEEK_DATA,
-  NOTIFY_ERROR,
-  NOTIFY_VIDEO_INFO,
-  NOTIFY_AUDIO_INFO,
-  NOTIFY_BUFFER_FULL,  // NOTIFY_BUFFERING_END? need to check the chromium media backend
-  NOTIFY_BUFFER_NEED,  // NOTIFY_BUFFERING_START?
-  NOTIFY_BUFFER_RANGE,
-  NOTIFY_BUFFERING_START,
-  NOTIFY_BUFFERING_END,
-  NOTIFY_ACTIVITY,
-  NOTIFY_ACQUIRE_RESOURCE,
-  NOTIFY_MAX
-} NOTIFY_TYPE_T;
+#include <cstring>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
-typedef enum MEDIA_MESSAGE {
-  MEDIA_MSG_MSG_NONE = 0x00,                         /**< no message */
-  MEDIA_MSG_ERR_LOAD = 0x0068,
-  MEDIA_MSG_ERR_POLICY = 0x0259,
-  MEDIA_MSG_ERR_PLAY = 0xf000,
-  MEDIA_CB_MSG_LAST
-} MEDIA_MESSAGE_T;
+using namespace std;
+
+namespace mcil {
 
 /**
- * video codec
+ * Video Codec Type enum
  */
-typedef enum {
-  MCP_VIDEO_CODEC_NONE,
-  MCP_VIDEO_CODEC_H264,
-  MCP_VIDEO_CODEC_VC1,
-  MCP_VIDEO_CODEC_MPEG2,
-  MCP_VIDEO_CODEC_MPEG4,
-  MCP_VIDEO_CODEC_THEORA,
-  MCP_VIDEO_CODEC_VP8,
-  MCP_VIDEO_CODEC_VP9,
-  MCP_VIDEO_CODEC_H265,
-  MCP_VIDEO_CODEC_MJPEG,
-  MCP_VIDEO_CODEC_MAX = MCP_VIDEO_CODEC_MJPEG,
-} MCP_VIDEO_CODEC;
+enum VideoCodecType {
+  VIDEO_CODEC_NONE,
+  VIDEO_CODEC_H264,
+  VIDEO_CODEC_VC1,
+  VIDEO_CODEC_MPEG2,
+  VIDEO_CODEC_MPEG4,
+  VIDEO_CODEC_THEORA,
+  VIDEO_CODEC_VP8,
+  VIDEO_CODEC_VP9,
+  VIDEO_CODEC_H265,
+  VIDEO_CODEC_MJPEG,
+  VIDEO_CODEC_MAX = VIDEO_CODEC_MJPEG,
+};
 
-/* video codec */
-typedef enum {
-  MCP_PIXEL_NONE,
-  MCP_PIXEL_I420,
-  MCP_PIXEL_YUY2,
-  MCP_PIXEL_YUYV,
-  MCP_PIXEL_RGB16,
-} MCP_PIXEL_FMT;
+/**
+ * Video Pixel Format enum
+ */
+enum VideoPixelFormat {
+  PIXEL_FMT_UNKNOWN = 0,
+  PIXEL_FMT_I420 = 1,
+  PIXEL_FMT_YV12 = 2,
+  PIXEL_FMT_I422 = 3,
+  PIXEL_FMT_I420A = 4,
+  PIXEL_FMT_I444 = 5,
+  PIXEL_FMT_NV12 = 6,
+  PIXEL_FMT_NV21 = 7,
+  PIXEL_FMT_UYVY = 8,
+  PIXEL_FMT_YUY2 = 9,
+  PIXEL_FMT_ARGB = 10,
+  PIXEL_FMT_XRGB = 11,
+  PIXEL_FMT_RGB24 = 12,
+  PIXEL_FMT_MJPEG = 14,
+  PIXEL_FMT_YUV420P9 = 16,
+  PIXEL_FMT_YUV420P10 = 17,
+  PIXEL_FMT_YUV422P9 = 18,
+  PIXEL_FMT_YUV422P10 = 19,
+  PIXEL_FMT_YUV444P9 = 20,
+  PIXEL_FMT_YUV444P10 = 21,
+  PIXEL_FMT_YUV420P12 = 22,
+  PIXEL_FMT_YUV422P12 = 23,
+  PIXEL_FMT_YUV444P12 = 24,
+  PIXEL_FMT_Y16 = 26,
+  PIXEL_FMT_ABGR = 27,
+  PIXEL_FMT_XBGR = 28,
+  PIXEL_FMT_P016LE = 29,
+  PIXEL_FMT_XR30 = 30,
+  PIXEL_FMT_XB30 = 31,
+  PIXEL_FMT_BGRA = 32,
+  PIXEL_FMT_MAX = PIXEL_FMT_BGRA,
+};
+
+/**
+ * Video Codec Profile enum
+ */
+enum VideoCodecProfile {
+  VIDEO_CODEC_PROFILE_UNKNOWN = -1,
+  VIDEO_CODEC_PROFILE_MIN = VIDEO_CODEC_PROFILE_UNKNOWN,
+  H264PROFILE_MIN = 0,
+  H264PROFILE_BASELINE = H264PROFILE_MIN,
+  H264PROFILE_MAIN = 1,
+  H264PROFILE_EXTENDED = 2,
+  H264PROFILE_HIGH = 3,
+  H264PROFILE_HIGH10PROFILE = 4,
+  H264PROFILE_HIGH422PROFILE = 5,
+  H264PROFILE_HIGH444PREDICTIVEPROFILE = 6,
+  H264PROFILE_SCALABLEBASELINE = 7,
+  H264PROFILE_SCALABLEHIGH = 8,
+  H264PROFILE_STEREOHIGH = 9,
+  H264PROFILE_MULTIVIEWHIGH = 10,
+  H264PROFILE_MAX = H264PROFILE_MULTIVIEWHIGH,
+  VP8PROFILE_MIN = 11,
+  VP8PROFILE_ANY = VP8PROFILE_MIN,
+  VP8PROFILE_MAX = VP8PROFILE_ANY,
+  VP9PROFILE_MIN = 12,
+  VP9PROFILE_PROFILE0 = VP9PROFILE_MIN,
+  VP9PROFILE_PROFILE1 = 13,
+  VP9PROFILE_PROFILE2 = 14,
+  VP9PROFILE_PROFILE3 = 15,
+  VP9PROFILE_MAX = VP9PROFILE_PROFILE3,
+  HEVCPROFILE_MIN = 16,
+  HEVCPROFILE_MAIN = HEVCPROFILE_MIN,
+  HEVCPROFILE_MAIN10 = 17,
+  HEVCPROFILE_MAIN_STILL_PICTURE = 18,
+  HEVCPROFILE_MAX = HEVCPROFILE_MAIN_STILL_PICTURE,
+  DOLBYVISION_PROFILE0 = 19,
+  DOLBYVISION_PROFILE4 = 20,
+  DOLBYVISION_PROFILE5 = 21,
+  DOLBYVISION_PROFILE7 = 22,
+  THEORAPROFILE_MIN = 23,
+  THEORAPROFILE_ANY = THEORAPROFILE_MIN,
+  THEORAPROFILE_MAX = THEORAPROFILE_ANY,
+  AV1PROFILE_MIN = 24,
+  AV1PROFILE_PROFILE_MAIN = AV1PROFILE_MIN,
+  AV1PROFILE_PROFILE_HIGH = 25,
+  AV1PROFILE_PROFILE_PRO = 26,
+  AV1PROFILE_MAX = AV1PROFILE_PROFILE_PRO,
+  DOLBYVISION_PROFILE8 = 27,
+  DOLBYVISION_PROFILE9 = 28,
+  VIDEO_CODEC_PROFILE_MAX = DOLBYVISION_PROFILE9,
+};
+
+class Size {
+ public:
+  Size() = default;
+  Size(uint32_t w, uint32_t h);
+
+  bool IsEmpty() const { return !width || !height; }
+
+  uint32_t width = 0;
+  uint32_t height = 0;
+};
+
+class Rect {
+ public:
+  Rect() = default;
+  Rect(int32_t x, int32_t y, uint32_t w, uint32_t h);
+  Rect(const Size& size);
+
+  bool Contains(const Rect& rect) const;
+  bool IsEmpty() const { return !width || !height; }
+
+  int32_t x = 0;
+  int32_t y = 0;
+  uint32_t width = 0;
+  uint32_t height = 0;
+};
+
+class SupportedProfile {
+ public:
+  SupportedProfile() = default;
+  ~SupportedProfile() = default;
+  VideoCodecProfile profile;
+  Size max_resolution;
+  Size min_resolution;
+  bool encrypted_only = false;
+};
+
+typedef std::vector<mcil::SupportedProfile> SupportedProfiles;
+
+std::string FourccToString(uint32_t fourcc);
+
+std::string GetProfileName(VideoCodecProfile profile);
+
+}  //  namespace mcil
 
 #endif  // SRC_BASE_CODEC_TYPES_H_

@@ -15,13 +15,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-#ifndef SRC_MEDIA_CODEC_INTERFACE_VIDEO_ENCODER_API_H_
-#define SRC_MEDIA_CODEC_INTERFACE_VIDEO_ENCODER_API_H_
-
-#include <glib.h>
-#include <string>
-#include <memory>
-#include <functional>
+#ifndef SRC_VIDEO_ENCODER_API_H_
+#define SRC_VIDEO_ENCODER_API_H_
 
 #include "encoder_types.h"
 
@@ -29,49 +24,36 @@ namespace mcil {
 
 namespace encoder {
 
-typedef std::function<bool(uint8_t*, ENCODED_BUFFER_T*)> FunctorEncoder;
-
 class VideoEncoder;
+class VideoEncoderDelegate;
 
 class VideoEncoderAPI {
-  public:
-    VideoEncoderAPI();
-    ~VideoEncoderAPI();
+ public:
+  static mcil::SupportedProfiles GetSupportedProfiles();
 
-    static bool IsCodecSupported(MCP_VIDEO_CODEC videoCodec);
+  VideoEncoderAPI(VideoEncoderDelegate* delegate);
+  ~VideoEncoderAPI();
 
-    bool Init(const ENCODER_INIT_DATA_T* loadData,
-              NEWFRAME_CALLBACK_T new_frame_cb);
-    bool Deinit();
+  bool Initialize(const EncoderConfig* configData);
+  bool Destroy();
 
-    MCP_MEDIA_STATUS_T Encode(const uint8_t* bufferPtr, size_t bufferSize);
-    MCP_MEDIA_STATUS_T Encode(const uint8_t* yBuf, size_t ySize,
-                              const uint8_t* uBuf, size_t uSize,
-                              const uint8_t* vBuf, size_t vSize,
-                              uint64_t bufferTimestamp,
-                              const bool requestKeyFrame);
+  bool EncodeBuffers(const uint8_t* yBuf, size_t ySize,
+                     const uint8_t* uBuf, size_t uSize,
+                     const uint8_t* vBuf, size_t vSize,
+                     uint64_t bufferTimestamp,
+                     const bool requestKeyFrame);
 
-    void RegisterCallback(ENCODER_CALLBACK_T callback, void *uData);
-    bool UpdateEncodingResolution(uint32_t width, uint32_t height);
-    bool UpdateEncodingParams(const ENCODING_PARAMS_T* properties);
+  bool IsEncoderAvailable();
+  bool UpdateEncodingResolution(uint32_t width, uint32_t height);
+  bool UpdateEncodingParams(const EncodingParams* properties);
 
-  private:
-    bool OnEncodedDataAvailable(uint8_t* buffer, ENCODED_BUFFER_T* encData);
-    void Notify(const gint notification, const gint64 numValue,
-                const gchar *strValue, void *payload);
-
-    std::string appId_;
-    std::string media_id_;
-    std::string instanceId_;
-    std::string connectionId_;
-    ENCODER_CALLBACK_T callback_;
-
-    std::shared_ptr<mcil::encoder::VideoEncoder> videoEncoder_;
-    void *userData_ = nullptr;
+ private:
+  VideoEncoderDelegate* delegate_;
+  std::shared_ptr<mcil::encoder::VideoEncoder> videoEncoder_;
 };
 
 }  // namespace encoder
 
 }  // namespace mcil
 
-#endif  // SRC_MEDIA_CODEC_INTERFACE_VIDEO_ENCODER_API_H_
+#endif  // SRC_VIDEO_ENCODER_API_H_

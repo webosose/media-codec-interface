@@ -22,41 +22,46 @@
 #include <assert.h>
 
 PmLogContext GetPmLogContext();
-#define MCP_LOG_CRITICAL(...) PmLogCritical(GetPmLogContext(), ##__VA_ARGS__)
-#define MCP_LOG_ERROR(...)    PmLogError(GetPmLogContext(), ##__VA_ARGS__)
-#define MCP_LOG_WARNING(...)  PmLogWarning(GetPmLogContext(), ##__VA_ARGS__)
+#define MCIL_LOG_CRITICAL(...) PmLogCritical(GetPmLogContext(), ##__VA_ARGS__)
+#define MCIL_LOG_ERROR(...)    PmLogError(GetPmLogContext(), ##__VA_ARGS__)
+#define MCIL_LOG_WARNING(...)  PmLogWarning(GetPmLogContext(), ##__VA_ARGS__)
 
-#define MCP_LOG_INFO(FORMAT__, ...) \
+#if 0
+#define MCIL_LOG_INFO(FORMAT__, ...) void(0)
+#define MCIL_LOG_DEBUG(FORMAT__, ...) void(0)
+#else
+#define MCIL_LOG_INFO(FORMAT__, ...) \
     PmLogInfo(GetPmLogContext(), \
-    "gmp", 0, "[%s:%d] " FORMAT__, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
-
-#define MCP_LOG_DEBUG(FORMAT__, ...) \
+    "mcil", 0, "[%s:%d] " FORMAT__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define MCIL_LOG_DEBUG(FORMAT__, ...) \
     PmLogDebug(GetPmLogContext(), \
-    "[%s:%d]" FORMAT__, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+   "[%s:%d]" FORMAT__, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 
-#define MCP_LOG_OBJ_SET(OBJ__) PmLogContext GetPmLogContext_##OBJ__()
-#define MCP_LOG_OBJ_CRITICAL(OBJ__, ...) \
+#endif
+
+#define MCIL_LOG_OBJ_SET(OBJ__) PmLogContext GetPmLogContext_##OBJ__()
+#define MCIL_LOG_OBJ_CRITICAL(OBJ__, ...) \
     PmLogCritical(GetPmLogContext_##OBJ__(), ##__VA_ARGS__)
-#define MCP_LOG_OBJ_ERROR(OBJ__, ...) \
+#define MCIL_LOG_OBJ_ERROR(OBJ__, ...) \
     PmLogError(GetPmLogContext_##OBJ__(), ##__VA_ARGS__)
-#define MCP_LOG_OBJ_WARNING(OBJ__, ...) \
+#define MCIL_LOG_OBJ_WARNING(OBJ__, ...) \
     PmLogWarning(GetPmLogContext_##OBJ__(), ##__VA_ARGS__)
-#define MCP_LOG_OBJ_INFO(OBJ__, ...) \
+#define MCIL_LOG_OBJ_INFO(OBJ__, ...) \
     PmLogInfo(GetPmLogContext_##OBJ__(), ##__VA_ARGS__)
-#define MCP_LOG_OBJ_DEBUG(OBJ__, FORMAT__, ...) \
+#define MCIL_LOG_OBJ_DEBUG(OBJ__, FORMAT__, ...) \
     PmLogDebug(GetPmLogContext_##OBJ__(), \
     "[%s:%d]" FORMAT__, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 /* Info Print */
-#define MCP_INFO_PRINT MCP_LOG_INFO
+#define MCIL_INFO_PRINT MCIL_LOG_INFO
 
 /* Debug Print */
-#define MCP_DEBUG_PRINT MCP_LOG_DEBUG
+#define MCIL_DEBUG_PRINT MCIL_LOG_DEBUG
 
 /* Assert print */
-#define GMPASSERT(cond) { \
+#define MCILASSERT(cond) { \
     if (!(cond)) { \
-        MCP_DEBUG_PRINT("ASSERT FAILED : %s:%d:%s: %s", \
+        MCIL_DEBUG_PRINT("ASSERT FAILED : %s:%d:%s: %s", \
                 __FILE__, __LINE__, __func__, #cond); \
         assert(0); \
     } \
