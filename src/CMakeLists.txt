@@ -46,6 +46,7 @@ set(MEDIA_CODEC_INTERFACE_HEADERS
     base/optional.h
     base/ref_counted.h
     base/scoped_refptr.h
+    base/thread.h
     base/video_decoder.h
     base/video_decoder_delegate.h
     base/video_encoder_delegate.h
@@ -58,6 +59,7 @@ set(MEDIA_CODEC_INTERFACE_SRC
     base/decoder_types.cpp
     base/fourcc_value.cpp
     base/log.cpp
+    base/thread.cpp
     base/video_decoder.cpp
     video_decoder_api.cpp
     video_encoder_api.cpp

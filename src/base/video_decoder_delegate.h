@@ -31,7 +31,6 @@ class VideoDecoderDelegate {
                                    uint32_t texture_target) = 0;
   virtual bool DestroyOutputBuffers() = 0;
   virtual void ScheduleDecodeBufferTaskIfNeeded() = 0;
-  virtual void ScheduleDecodeBufferTask(uint64_t delay_microseconds) = 0;
   virtual void StartResolutionChange() = 0;
   virtual void NotifyFlushDone() = 0;
   virtual void NotifyFlushDoneIfNeeded() = 0;
@@ -45,8 +44,13 @@ class VideoDecoderDelegate {
   virtual void SendBufferToClient(
       size_t buffer_index, int32_t buffer_id, ReadableBufferRef buffer) = 0;
   virtual void CheckGLFences() = 0;
+
   virtual void NotifyDecoderError(DecoderError error) = 0;
-  virtual void NotifyResolutionChangePending() = 0;
+  virtual void NotifyDecodeBufferTask(
+      uint64_t delay_ms, bool event_pending, bool has_output) = 0;
+  virtual void NotifyDecoderPostTask(PostTaskType task,
+                                     uint64_t delay_ms, bool value) = 0;
+  virtual void NotifyDecodeBufferDone() = 0;
 
  protected:
   virtual ~VideoDecoderDelegate() = default;

@@ -38,23 +38,19 @@ namespace mcil {
 namespace encoder {
 
 VideoEncoder::VideoEncoder() {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
 }
 
 VideoEncoder::~VideoEncoder() {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
 }
 
 bool VideoEncoder::Initialize(const EncoderConfig* configData,
                               VideoEncoderDelegate* delegate) {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
   delegate_ = delegate;
   return true;
 }
 
 bool VideoEncoder::Destroy() {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
-  return true;
+  return false;
 }
 
 bool VideoEncoder::EncodeBuffers(const uint8_t* yBuf, size_t ySize,
@@ -62,22 +58,18 @@ bool VideoEncoder::EncodeBuffers(const uint8_t* yBuf, size_t ySize,
                                  const uint8_t* vBuf, size_t vSize,
                                  uint64_t bufferTimestamp,
                                  const bool requestKeyFrame) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
   return false;
 }
 
 bool VideoEncoder::IsEncoderAvailable() {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
   return false;
 }
 
 bool VideoEncoder::UpdateEncodingParams(const EncodingParams* properties) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
-  return true;
+  return false;
 }
 
 bool VideoEncoder::UpdateEncodingResolution(uint32_t width, uint32_t height) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
   return false;
 }
 

@@ -30,37 +30,40 @@ namespace mcil {
 namespace encoder {
 
 mcil::SupportedProfiles VideoEncoderAPI::GetSupportedProfiles() {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
+  MCIL_INFO_PRINT(" ");
   return mcil::encoder::VideoEncoder::GetSupportedProfiles();
 }
 
 VideoEncoderAPI::VideoEncoderAPI(VideoEncoderDelegate* delegate)
   : delegate_(delegate) {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
+  MCIL_INFO_PRINT(" Ctor");
 }
 
 VideoEncoderAPI::~VideoEncoderAPI() {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
+  MCIL_INFO_PRINT(" Dtor");
 }
 
 bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
-  MCIL_INFO_PRINT("Load configData = %p", configData);
-  MCIL_INFO_PRINT("Load width = %d", configData->width);
-  MCIL_INFO_PRINT("Load height = %d", configData->height);
-  MCIL_INFO_PRINT("Load FrameRate = %d", configData->frameRate);
-  MCIL_INFO_PRINT("Load pixelFormat = %d", configData->pixelFormat);
+  MCIL_INFO_PRINT(" configData = %p", configData);
+  MCIL_INFO_PRINT(" width = %d", configData->width);
+  MCIL_INFO_PRINT(" height = %d", configData->height);
+  MCIL_INFO_PRINT(" FrameRate = %d", configData->frameRate);
+  MCIL_INFO_PRINT(" pixelFormat = %d", configData->pixelFormat);
 
   videoEncoder_ = mcil::encoder::VideoEncoder::Create(configData->codecType);
   if (!videoEncoder_) {
-    MCIL_INFO_PRINT("Encoder Buffer not created");
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
   }
   return videoEncoder_ ->Initialize(configData, delegate_);
 }
 
 bool VideoEncoderAPI::Destroy() {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
+  if (!videoEncoder_) {
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
+    return true;
+  }
+
   return videoEncoder_ ->Destroy();
 }
 
@@ -70,7 +73,7 @@ bool VideoEncoderAPI::EncodeBuffers(const uint8_t* yBuf, size_t ySize,
                                     uint64_t bufferTimestamp,
                                     const bool requestKeyFrame) {
   if (!videoEncoder_) {
-    MCIL_INFO_PRINT(" Error: encoder (%p) ", videoEncoder_.get());
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
   }
 
@@ -80,7 +83,7 @@ bool VideoEncoderAPI::EncodeBuffers(const uint8_t* yBuf, size_t ySize,
 
 bool VideoEncoderAPI::IsEncoderAvailable() {
   if (!videoEncoder_) {
-    MCIL_INFO_PRINT(" Error: encoder (%p)", videoEncoder_.get());
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
   }
 
@@ -90,7 +93,7 @@ bool VideoEncoderAPI::IsEncoderAvailable() {
 bool VideoEncoderAPI::UpdateEncodingResolution(uint32_t width, uint32_t height)
 {
   if (!videoEncoder_) {
-    MCIL_INFO_PRINT(" Error: encoder (%p) ", videoEncoder_.get());
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
   }
 
@@ -100,7 +103,7 @@ bool VideoEncoderAPI::UpdateEncodingResolution(uint32_t width, uint32_t height)
 bool VideoEncoderAPI::UpdateEncodingParams(const EncodingParams* properties)
 {
   if (!videoEncoder_) {
-    MCIL_INFO_PRINT(" Error: encoder (%p) ", videoEncoder_.get());
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
   }
 

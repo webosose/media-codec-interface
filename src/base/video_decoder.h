@@ -36,20 +36,23 @@ class VideoDecoder {
   virtual bool Initialize(const DecoderConfig* config,
                           VideoDecoderDelegate* delegate,
                           VideoPixelFormat* output_pix_fmt,
-                          bool* consider_egl_image_creation);
+                          bool* should_control_buffer_feed);
   virtual bool DoReset(bool full_reset, bool* reset_pending);
   virtual void Destroy();
 
   virtual bool FeedBuffers(const void* buffer, size_t size,
-                           const int32_t id, int64_t buffer_pts);
+                           const int32_t id, uint64_t buffer_pts);
   virtual bool FlushBuffers();
   virtual bool DidFlushBuffersDone();
 
   virtual bool EnqueueBuffers();
   virtual bool DequeueBuffers();
+  virtual void ReusePictureBuffer(int32_t pic_buffer_id);
 
   virtual bool StartDevicePoll(bool poll_device, bool* event_pending);
-  virtual void RunDecodeBufferTask(bool event_pending);
+
+  virtual void RunDecodeBufferTask(bool event_pending, bool has_output);
+  virtual void RunDecoderPostTask(PostTaskType task, bool value);
 
   virtual void SetDecoderState(DecoderState state);
 
@@ -64,6 +67,7 @@ class VideoDecoder {
   friend class V4L2VideoDecoder;
 
   std::vector<WritableBufferRef*> empty_output_buffer;
+  VideoDecoderDelegate* delegate_ = nullptr;
 };
 
 }  // namespace decoder

@@ -36,20 +36,23 @@ class VideoDecoderAPI {
 
   bool Initialize(const DecoderConfig* decoderConfig,
                   VideoPixelFormat* output_pix_fmt,
-                  bool* consider_egl_image_creation);
+                  bool* should_control_buffer_feed);
   bool DoReset(bool full_reset, bool* reset_pending);
   void Destroy();
 
   bool FeedBuffers(const void* buffer, size_t size,
-                   const int32_t id, int64_t buffer_pts);
+                   const int32_t id, uint64_t buffer_pts);
   bool FlushBuffers();
   bool DidFlushBuffersDone();
 
   bool EnqueueBuffers();
   bool DequeueBuffers();
+  void ReusePictureBuffer(int32_t pic_buffer_id);
 
   bool StartDevicePoll(bool poll_device, bool* event_pending);
-  void RunDecodeBufferTask(bool event_pending);
+
+  void RunDecodeBufferTask(bool event_pending, bool has_output);
+  void RunDecoderPostTask(PostTaskType task, bool value);
 
   void SetDecoderState(DecoderState state);
   int64_t GetCurrentInputBufferId();
@@ -62,6 +65,7 @@ class VideoDecoderAPI {
   VideoDecoderDelegate* delegate_;
   std::vector<WritableBufferRef*> empty_output_buffer;
   std::shared_ptr<mcil::decoder::VideoDecoder> videoDecoder_;
+  DecoderState state_ = kUninitialized;
 };
 
 }  // namespace decoder

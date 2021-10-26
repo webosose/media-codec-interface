@@ -49,7 +49,7 @@ FourccValue FourccValue::FromUint32(uint32_t fourcc) {
     default:
       break;
   }
-  MCIL_INFO_PRINT("%d %s : Unmapped fourcc: %d", __LINE__, __FUNCTION__, fourcc);
+  MCIL_INFO_PRINT(": Unmapped fourcc: %d", fourcc);
   return FourccValue(NONE);
 }
 
@@ -100,9 +100,8 @@ FourccValue FourccValue::FromMCILPixelFormat(
     }
   }
 
-  MCIL_INFO_PRINT("%d %s : Unmapped %d for %s",
-      __LINE__, __FUNCTION__, pixel_format,
-      (single_planar ? "single-planar" : "multi-planar"));
+  MCIL_INFO_PRINT(": Unmapped %d for %s", pixel_format,
+                  (single_planar ? "single-planar" : "multi-planar"));
   return FourccValue(NONE);
 }
 
@@ -148,8 +147,7 @@ VideoPixelFormat FourccValue::ToMCILPixelFormat() const {
     case P010:
       return PIXEL_FMT_P016LE;
   }
-  MCIL_INFO_PRINT("%d %s : Unmapped fourcc: %s",
-                  __LINE__, __FUNCTION__, ToString().c_str());
+  MCIL_INFO_PRINT(": Unmapped fourcc: %s", ToString().c_str());
   return PIXEL_FMT_UNKNOWN;
 }
 

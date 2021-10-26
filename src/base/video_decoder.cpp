@@ -31,99 +31,87 @@
 #include <gst/app/gstappsink.h>
 #include <gst/pbutils/pbutils.h>
 
-#include "base/log.h"
-
 namespace mcil {
 
 namespace decoder {
 
 VideoDecoder::VideoDecoder() {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
 }
 
 VideoDecoder::~VideoDecoder() {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
 }
 
 bool VideoDecoder::Initialize(const DecoderConfig* decoderConfig,
                               VideoDecoderDelegate* delegate,
                               VideoPixelFormat* output_pix_fmt,
-                              bool* consider_egl_image_creation) {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
+                              bool* should_control_buffer_feed) {
+  delegate_ = delegate;
   return true;
 }
 
 bool VideoDecoder::DoReset(bool full_reset, bool* reset_pending) {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
-  return true;
+  return false;
 }
 
 void VideoDecoder::Destroy() {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
 }
 
 bool VideoDecoder::FeedBuffers(
-    const void* buffer, size_t size, const int32_t id, int64_t buffer_pts) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
-  return true;
+    const void* buffer, size_t size, const int32_t id, uint64_t buffer_pts) {
+  return false;
 }
 
 bool VideoDecoder::FlushBuffers() {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
-  return true;
+  return false;
 }
 
 bool VideoDecoder::DidFlushBuffersDone() {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
-  return true;
+  return false;
 }
 
 bool VideoDecoder::EnqueueBuffers() {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
-  return true;
+  return false;
 }
 
 bool VideoDecoder::DequeueBuffers() {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
-  return true;
+  return false;
+}
+
+void VideoDecoder::ReusePictureBuffer(int32_t pic_buffer_id) {
+  return;
 }
 
 bool VideoDecoder::StartDevicePoll(bool poll_device, bool* event_pending) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
-  return true;
+  return false;
 }
 
-void VideoDecoder::RunDecodeBufferTask(bool event_pending) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
+void VideoDecoder::RunDecodeBufferTask(bool event_pending, bool has_output) {
+}
+
+void VideoDecoder::RunDecoderPostTask(PostTaskType task, bool value) {
 }
 
 void VideoDecoder::SetDecoderState(DecoderState state) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
 }
 
 int64_t VideoDecoder::GetCurrentInputBufferId() {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
   return kFlushBufferId;
 }
 
 size_t VideoDecoder::GetFreeBuffersCount(QueueType queue_type) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
   return 0;
 }
 
 std::vector<WritableBufferRef*>
 VideoDecoder::AllocateOutputBuffers(std::vector<OutputRecord>* records) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
   return empty_output_buffer;
 }
 
 bool VideoDecoder::CanCreateEGLImageFrom(VideoPixelFormat pixel_format) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
   return true;
 }
 
 void VideoDecoder::OnEGLImagesCreationCompleted() {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
 }
 
 }  // namespace decoder
