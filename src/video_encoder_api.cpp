@@ -30,7 +30,7 @@ namespace mcil {
 namespace encoder {
 
 mcil::SupportedProfiles VideoEncoderAPI::GetSupportedProfiles() {
-  MCIL_INFO_PRINT(" ");
+  MCIL_INFO_PRINT(" Called");
   return mcil::encoder::VideoEncoder::GetSupportedProfiles();
 }
 
@@ -90,8 +90,7 @@ bool VideoEncoderAPI::IsEncoderAvailable() {
   return videoEncoder_->IsEncoderAvailable();
 }
 
-bool VideoEncoderAPI::UpdateEncodingResolution(uint32_t width, uint32_t height)
-{
+bool VideoEncoderAPI::UpdateEncodingResolution(uint32_t width, uint32_t height) {
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
@@ -100,8 +99,7 @@ bool VideoEncoderAPI::UpdateEncodingResolution(uint32_t width, uint32_t height)
   return videoEncoder_->UpdateEncodingResolution(width, height);
 }
 
-bool VideoEncoderAPI::UpdateEncodingParams(const EncodingParams* properties)
-{
+bool VideoEncoderAPI::UpdateEncodingParams(const EncodingParams* properties) {
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;

@@ -66,6 +66,7 @@ enum BufferId {
 
 enum DecoderType {
   V4L2_DECODER,
+  V4L2_ENCODER,
   JPEG_DECODER,
 };
 
@@ -85,6 +86,7 @@ enum PostTaskType {
   DECODER_DEVICE_WRITE_TASK,
   DISPLAY_DEVICE_READ_TASK,
   DISPLAY_DEVICE_WRITE_TASK,
+  SCALER_DEVICE_READ_TASK,
 };
 
 /* Decoder configure data structure */
