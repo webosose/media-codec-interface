@@ -24,6 +24,7 @@
 #include "video_decoder_api.h"
 #include "base/decoder_types.h"
 #include "base/video_decoder.h"
+#include "base/vdec_resource_handler.h"
 
 namespace mcil {
 
@@ -51,6 +52,11 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoderConfig,
   MCIL_INFO_PRINT(" frameHeight = %d", decoderConfig->frameHeight);
   MCIL_INFO_PRINT(" codecType = %d", decoderConfig->codecType);
 
+  if (!mcil::decoder::VdecResourceHandler::getInstance().SetupResource(decoderConfig, resources_, &vdec_port_index_)) {
+    MCIL_INFO_PRINT(" Failed to acquire resources");
+    return false;
+  }
+
   videoDecoder_ = mcil::decoder::VideoDecoder::Create(decoderConfig->codecType);
   if (!videoDecoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
@@ -63,7 +69,7 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoderConfig,
   }
 
   return videoDecoder_ ->Initialize(
-      decoderConfig, delegate_, output_pix_fmt, should_control_buffer_feed);
+      decoderConfig, delegate_, output_pix_fmt, should_control_buffer_feed, vdec_port_index_);
 }
 
 bool VideoDecoderAPI::DoReset(bool full_reset, bool* reset_pending) {

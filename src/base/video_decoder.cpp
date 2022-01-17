@@ -44,7 +44,8 @@ VideoDecoder::~VideoDecoder() {
 bool VideoDecoder::Initialize(const DecoderConfig* decoderConfig,
                               VideoDecoderDelegate* delegate,
                               VideoPixelFormat* output_pix_fmt,
-                              bool* should_control_buffer_feed) {
+                              bool* should_control_buffer_feed,
+                              int vdec_port_index) {
   delegate_ = delegate;
   return true;
 }

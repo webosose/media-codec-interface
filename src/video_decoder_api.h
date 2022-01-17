@@ -26,6 +26,7 @@ namespace decoder {
 
 class VideoDecoder;
 class VideoDecoderDelegate;
+class VdecResourceHandler;
 
 class VideoDecoderAPI {
  public:
@@ -66,6 +67,8 @@ class VideoDecoderAPI {
   std::vector<WritableBufferRef*> empty_output_buffer;
   std::shared_ptr<mcil::decoder::VideoDecoder> videoDecoder_;
   DecoderState state_ = kUninitialized;
+  int vdec_port_index_ = -1;
+  std::string resources_ = "";
 };
 
 }  // namespace decoder

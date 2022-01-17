@@ -36,7 +36,8 @@ class VideoDecoder {
   virtual bool Initialize(const DecoderConfig* config,
                           VideoDecoderDelegate* delegate,
                           VideoPixelFormat* output_pix_fmt,
-                          bool* should_control_buffer_feed);
+                          bool* should_control_buffer_feed,
+                          int vdec_port_index);
   virtual bool DoReset(bool full_reset, bool* reset_pending);
   virtual void Destroy();
 
@@ -64,6 +65,7 @@ class VideoDecoder {
   virtual void OnEGLImagesCreationCompleted();
 
  private:
+
   std::vector<WritableBufferRef*> empty_output_buffer;
   VideoDecoderDelegate* delegate_ = nullptr;
 };

@@ -34,6 +34,9 @@ include_directories(./codec_impl)
 
 add_subdirectory(codec_impl)
 
+pkg_check_modules(RESOURCE-CALCULATOR REQUIRED media-resource-calculator)
+include_directories(${RESOURCE-CALCULATOR_INCLUDE_DIRS})
+
 find_package(Threads REQUIRED)
 
 set(MEDIA_CODEC_INTERFACE_LIB media-codec-interface)
@@ -61,12 +64,21 @@ set(MEDIA_CODEC_INTERFACE_SRC
     base/log.cpp
     base/thread.cpp
     base/video_decoder.cpp
+    base/vdec_resource_handler.cpp
     video_decoder_api.cpp
     video_encoder_api.cpp
+    resourcefacilitator/parser.cpp
+    resourcefacilitator/requestor.cpp
+)
+
+set(MEDIA_CODEC_INTERFACE_LIBRARIES
+    ${RESOURCE-CALCULATOR_LDFLAGS}
+    resource_mgr_client
+    resource_mgr_client_c
 )
 
 add_library(${MEDIA_CODEC_INTERFACE_LIB} SHARED ${MEDIA_CODEC_INTERFACE_SRC})
-target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} media-codec-impl)
+target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} ${MEDIA_CODEC_INTERFACE_LIBRARIES} media-codec-impl)
 
 install(TARGETS ${MEDIA_CODEC_INTERFACE_LIB} DESTINATION lib)
 install(FILES ${MEDIA_CODEC_INTERFACE_HEADERS} DESTINATION include/mcil)
