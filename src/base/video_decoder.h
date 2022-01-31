@@ -64,8 +64,6 @@ class VideoDecoder {
   virtual void OnEGLImagesCreationCompleted();
 
  private:
-  friend class V4L2VideoDecoder;
-
   std::vector<WritableBufferRef*> empty_output_buffer;
   VideoDecoderDelegate* delegate_ = nullptr;
 };
