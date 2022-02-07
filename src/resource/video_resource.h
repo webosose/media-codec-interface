@@ -14,12 +14,13 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef SRC_BASE_VDEC_RESOURCE_HANDLER_H_
-#define SRC_BASE_VDEC_RESOURCE_HANDLER_H_
+#ifndef SRC_RESOURCE_VIDEO_RESOURCE_H_
+#define SRC_RESOURCE_VIDEO_RESOURCE_H_
 
-#include "resourcefacilitator/requestor.h"
-#include "base/decoder_types.h"
 #include <set>
+
+#include "base/decoder_types.h"
+#include "resource/requestor.h"
 
 class UMSConnectorHandle;
 class UMSConnectorMessage;
@@ -33,34 +34,32 @@ struct source_info_t;
 
 typedef struct ACQUIRE_RESOURCE_INFO {
   source_info_t* sourceInfo;
-  char *displayMode;
   bool result;
 } ACQUIRE_RESOURCE_INFO_T;
 
-class VdecResourceHandler {
-public:
-  ~VdecResourceHandler();
+class VideoResource {
+ public:
+  static VideoResource& GetInstance();
+  VideoResource(VideoResource const&) = delete;
+  void operator=(VideoResource const&)  = delete;
 
-  static VdecResourceHandler& getInstance();
+  ~VideoResource();
 
-  bool SetupResource(const DecoderConfig* decoderConfig, std::string& resources, int *vdec_index);
-  bool ReleaseResource(std::string& resources, int vdec_index);
+  bool Acquire(const DecoderConfig* decoder_config,
+               std::string& resources,
+               int32_t *vdec_index);
+  bool Release(std::string& resources, int32_t vdec_index);
 
-  void LoadCommon();
-  uint32_t VideoCodecProfileToV4L2PixFmt(VideoCodecProfile profile);
+ private:
+  VideoResource();
 
-private:
-  VdecResourceHandler();
-
-  std::unique_ptr<ResourceRequestor> resourceRequestor_;
-  std::string media_id_;  // connection_id
-  std::string app_id_;
+  std::unique_ptr<ResourceRequestor> requestor_;
   source_info_t source_info_;
-  std::set<int> vdec_index_list_;
+  std::set<int32_t> vdec_index_list_;
 };
 
 }  // namespace decoder
 
 }  // namespace mcil
 
-#endif  // SRC_BASE_VDEC_RESOURCE_HANDLER_H_
+#endif  // SRC_RESOURCE_VIDEO_RESOURCE_H_

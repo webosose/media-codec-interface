@@ -14,6 +14,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+#include "requestor.h"
+
+#include <boost/regex.hpp>
+
 #include <string>
 #include <set>
 #include <utility>
@@ -21,11 +25,7 @@
 #include <pbnjson.hpp>
 #include <ResourceManagerClient.h>
 
-#include <boost/regex.hpp>
-
-#include "resourcefacilitator/requestor.h"
 #include "base/log.h"
-#define LOGTAG "ResourceRequestor"
 
 #ifdef MCIL_DEBUG_PRINT
 //#undef MCIL_DEBUG_PRINT
@@ -40,20 +40,12 @@ namespace mcil {
 
 namespace decoder {
 
-// FIXME : temp. set to 0 for request max
-#define FAKE_WIDTH_MAX 0
-#define FAKE_HEIGHT_MAX 0
-#define FAKE_FRAMERATE_MAX 0
-
-ResourceRequestor::ResourceRequestor(const std::string& appId,
-                                     const std::string& connectionId):
-  rc_(std::shared_ptr<MRC>(MRC::create())),
-  appId_(appId),
-  instanceId_(""),
-  cb_(nullptr),
-  planeIdCb_(nullptr),
-  videoResData_{VIDEO_CODEC_NONE,VIDEO_CODEC_NONE,VIDEO_CODEC_NONE,0,0,0,0,0,0,0},
-  allowPolicy_(true) {
+ResourceRequestor::ResourceRequestor(const std::string& connectionId)
+  : rc_(std::shared_ptr<MRC>(MRC::create())),
+    cb_(nullptr),
+    videoResData_{VIDEO_CODEC_NONE, VIDEO_CODEC_NONE, VIDEO_CODEC_NONE,
+                  0, 0, 0, 0, 0, 0, 0},
+    allowPolicy_(true) {
   try {
     if (connectionId.empty()) {
       umsRMC_ = make_shared<uMediaServer::ResourceManagerClient> ();
@@ -94,9 +86,7 @@ ResourceRequestor::~ResourceRequestor() {
 
 bool ResourceRequestor::acquireResources(PortResource_t& resourceMMap,
                                          const source_info_t &sourceInfo,
-                                         const std::string &display_mode,
-                                         std::string& resources,
-                                         const int32_t display_path) {
+                                         std::string& resources) {
 
   mrc::ResourceListOptions finalOptions;
 
@@ -105,29 +95,23 @@ bool ResourceRequestor::acquireResources(PortResource_t& resourceMMap,
     return false;
   }
 
-  mrc::ResourceListOptions VResource = calcVdecResources();
+  mrc::ResourceListOptions VResource = calcVideoResources();
   if (!VResource.empty()) {
     mrc::concatResourceListOptions(&finalOptions, &VResource);
-    MCIL_DEBUG_PRINT("VResource size:%lu, %s, %d", VResource.size(),
-                                                  VResource[0].front().type.c_str(),
-                                                  VResource[0].front().quantity);
-  }
-#if 0
-  mrc::ResourceListOptions VEncResource = calcVencResources();
-  if (!VResource.empty()) {
-    mrc::concatResourceListOptions(&finalOptions, &VEncResource);
-    MCIL_DEBUG_PRINT("VResource size:%lu, %s, %d", VEncResource.size(),
-                                                  VEncResource[0].front().type.c_str(),
-                                                  VEncResource[0].front().quantity);
+    MCIL_DEBUG_PRINT("VResource size:%lu, %s, %d",
+        VResource.size(), VResource[0].front().type.c_str(),
+        VResource[0].front().quantity);
   }
 
-  mrc::ResourceListOptions DisplayResource = calcDisplayResource(display_mode);
-  if (!DisplayResource.empty()) {
-    mrc::concatResourceListOptions(&finalOptions, &DisplayResource);
-    MCIL_DEBUG_PRINT("DisplayResource size:%lu, %s, %d", DisplayResource.size(),
-                                                        DisplayResource[0].front().type.c_str(),
-                                                        DisplayResource[0].front().quantity);
+  mrc::ResourceListOptions VEncResource = calcVencResources();
+#if 0
+  if (!VResource.empty()) {
+    mrc::concatResourceListOptions(&finalOptions, &VEncResource);
+    MCIL_DEBUG_PRINT("VResource size:%lu, %s, %d",
+        VEncResource.size(), VEncResource[0].front().type.c_str(),
+        VEncResource[0].front().quantity);
   }
+
 #endif
   JSchemaFragment input_schema("{}");
   JGenerator serializer(nullptr);
@@ -140,7 +124,8 @@ bool ResourceRequestor::acquireResources(PortResource_t& resourceMMap,
       JValue obj = pbnjson::Object();
       obj.put("resource", it.type);
       obj.put("qty", it.quantity);
-      MCIL_DEBUG_PRINT("calculator return : %s, %d", it.type.c_str(), it.quantity);
+      MCIL_DEBUG_PRINT("calculator return : %s, %d",
+                       it.type.c_str(), it.quantity);
       objArray << obj;
     }
   }
@@ -171,54 +156,38 @@ bool ResourceRequestor::acquireResources(PortResource_t& resourceMMap,
   return true;
 }
 
-mrc::ResourceListOptions ResourceRequestor::calcVdecResources() {
+mrc::ResourceListOptions ResourceRequestor::calcVideoResources() {
   mrc::ResourceListOptions VResource;
   MCIL_DEBUG_PRINT("Codec type:%d",videoResData_.vdecode);
   if (videoResData_.vdecode != VIDEO_CODEC_NONE) {
-    VResource = rc_->calcVdecResourceOptions((MRC::VideoCodecs)translateVideoCodec(videoResData_.vdecode),
-                                             videoResData_.width,
-                                             videoResData_.height,
-                                             videoResData_.frameRate,
-                                             (MRC::ScanType)translateScanType(videoResData_.escanType),
-                                             (MRC::_3DType)translate3DType(videoResData_.e3DType));
+    VResource = rc_->calcVdecResourceOptions(
+        (MRC::VideoCodecs)translateVideoCodec(videoResData_.vdecode),
+        videoResData_.width,
+        videoResData_.height,
+        videoResData_.frameRate,
+        (MRC::ScanType)translateScanType(videoResData_.escanType),
+        (MRC::_3DType)translate3DType(videoResData_.e3DType));
   }
 
   return VResource;
 }
 
 mrc::ResourceListOptions ResourceRequestor::calcVencResources() {
-  MCIL_DEBUG_PRINT("calcVencResourceOptions not supported:%d",videoResData_.vencode);
   mrc::ResourceListOptions VResource;
-#if 0
+
   MCIL_DEBUG_PRINT("Codec type:%d",videoResData_.vencode);
   if (videoResData_.vencode != VIDEO_CODEC_NONE) {
-    VResource = rc_->calcVencResourceOptions((MRC::VideoCodecs)translateVideoCodec(videoResData_.vencode),
-                                             videoResData_.width,
-                                             videoResData_.height,
-                                             videoResData_.frameRate
-                                            );
+#if 0
+    VResource = rc_->calcVencResourceOptions(
+        (MRC::VideoCodecs)translateVideoCodec(videoResData_.vencode),
+        videoResData_.width,
+        videoResData_.height,
+        videoResData_.frameRate);
+#endif
   }
   MCIL_DEBUG_PRINT("Codec type:%d",videoResData_.vencode);
-#endif
-  return VResource;
-}
 
-mrc::ResourceListOptions ResourceRequestor::calcDisplayResource(const std::string &display_mode) {
-  mrc::ResourceListOptions DisplayResource;
-  MCIL_DEBUG_PRINT("calcDisplayPlaneResourceOptions is not supported: %s", display_mode.c_str());
-#if 0
-  if (videoResData_.vcodec != VIDEO_CODEC_NONE) {
-    /* need to change display_mode type from string to enum */
-    if (display_mode.compare("PunchThrough") == 0) {
-      DisplayResource = rc_->calcDisplayPlaneResourceOptions(mrc::ResourceCalculator::RenderMode::kModePunchThrough);
-    } else if (display_mode.compare("Textured") == 0) {
-      DisplayResource = rc_->calcDisplayPlaneResourceOptions(mrc::ResourceCalculator::RenderMode::kModeTexture);
-    } else {
-      MCIL_DEBUG_PRINT("Wrong display mode: %s", display_mode.c_str());
-    }
-  }
-#endif
-  return DisplayResource;
+  return VResource;
 }
 
 bool ResourceRequestor::releaseResource(std::string& resources) {
@@ -303,7 +272,7 @@ bool ResourceRequestor::parsePortInformation(const std::string& payload,
   }
 
   for (auto& it : resourceMMap) {
-    MCIL_DEBUG_PRINT("port Resource - %s, : [%d] ", it.first.c_str(), it.second);
+    MCIL_DEBUG_PRINT("port Resource- %s, : [%d] ", it.first.c_str(), it.second);
   }
 
   return true;
@@ -408,19 +377,6 @@ bool ResourceRequestor::setSourceInfo(
   videoResData_.escanType = 0;
 
   return true;
-}
-
-void ResourceRequestor::planeIdHandler(int32_t planePortIdx) {
-  MCIL_DEBUG_PRINT("planePortIndex = %d", planePortIdx);
-  if (nullptr != planeIdCb_) {
-    bool res = planeIdCb_(planePortIdx);
-    MCIL_DEBUG_PRINT("PlanePort[%d] register : %s",
-                    planePortIdx, res ? "success!" : "fail!");
-  }
-}
-
-void ResourceRequestor::setAppId(std::string id) {
-  appId_ = id;
 }
 
 }  // namespace decoder

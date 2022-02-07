@@ -14,8 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef SRC_ResourceFacilitator_REQUESTOR_H_
-#define SRC_ResourceFacilitator_REQUESTOR_H_
+#ifndef SRC_RESOURCE_REQUESTOR_H_
+#define SRC_RESOURCE_REQUESTOR_H_
 
 #include <string>
 #include <functional>
@@ -76,48 +76,6 @@ struct source_info_t {
   std::vector<video_info_t> video_streams;
 };
 
-struct media_info_t {
-  std::string mediaId;
-};
-
-struct result_t {
-  bool state;
-  std::string mediaId;
-};
-
-struct error_t {
-  int32_t errorCode;
-  std::string errorText;
-  std::string mediaId;
-};
-
-struct load_param_t {
-  int32_t displayPath;
-  std::string videoDisplayMode;
-  std::string windowId;
-  std::string uri;
-};
-
-typedef enum {
-  MCIL_DEFAULT_DISPLAY = 0,
-  MCIL_PRIMARY_DISPLAY = 0,
-  MCIL_SECONDARY_DISPLAY,
-} MCIL_DISPLAY_PATH;
-
-typedef enum {
-  MCIL_NOTIFY_LOAD_COMPLETED = 0,
-  MCIL_NOTIFY_UNLOAD_COMPLETED,
-  MCIL_NOTIFY_SOURCE_INFO,
-  MCIL_NOTIFY_END_OF_STREAM,
-  MCIL_NOTIFY_PLAYING,
-  MCIL_NOTIFY_PAUSED,
-  MCIL_NOTIFY_ERROR,
-  MCIL_NOTIFY_VIDEO_INFO,
-  MCIL_NOTIFY_ACTIVITY,
-  MCIL_NOTIFY_ACQUIRE_RESOURCE,
-  MCIL_NOTIFY_MAX
-} MCIL_NOTIFY_TYPE_T;
-
 typedef std::function<void()> Functor;
 typedef std::function<bool(int32_t)> PlaneIDFunctor;
 typedef mrc::ResourceCalculator MRC;
@@ -125,20 +83,15 @@ typedef std::multimap<std::string, int> PortResource_t;
 
 class ResourceRequestor {
  public:
-  explicit ResourceRequestor(const std::string& appId,
-          const std::string& connectionId = "");
+  explicit ResourceRequestor(const std::string& connectionId = "");
   virtual ~ResourceRequestor();
 
   const std::string getConnectionId() const { return connectionId_; }
   void registerUMSPolicyActionCallback(Functor callback) { cb_ = callback; }
-  void registerPlaneIdCallback(PlaneIDFunctor callback) {
-    planeIdCb_ = callback;
-  }
+
   bool acquireResources(PortResource_t& resourceMMap,
           const source_info_t &sourceInfo,
-          const std::string& display_mode,
-          std::string& resources,
-          const int32_t display_path = 0);
+          std::string& resources);
 
   bool releaseResource(std::string& resources);
 
@@ -149,7 +102,6 @@ class ResourceRequestor {
   bool notifyActivity() const;
   bool notifyPipelineStatus(const std::string& status) const;
   void allowPolicyAction(const bool allow);
-  void setAppId(std::string id);
 
  private:
   bool setSourceInfo(const source_info_t &sourceInfo);
@@ -158,7 +110,7 @@ class ResourceRequestor {
       const char *requestorType,
       const char *requestorName,
       const char *connectionId);
-  void planeIdHandler(int32_t planePortIdx);
+
   bool parsePortInformation(const std::string& payload, PortResource_t& resourceMMap);
   bool parseResources(const std::string& payload, std::string& resources);
 
@@ -166,18 +118,14 @@ class ResourceRequestor {
   int translateVideoCodec(const VideoCodecType vcodec) const;
   int translateScanType(const int escanType) const;
   int translate3DType(const int e3DType) const;
-  mrc::ResourceListOptions calcVdecResources();
+  mrc::ResourceListOptions calcVideoResources();
   mrc::ResourceListOptions calcVencResources();
-  mrc::ResourceListOptions calcDisplayResource(const std::string &display_mode);
 
   std::shared_ptr<MRC> rc_;
   std::shared_ptr<uMediaServer::ResourceManagerClient> umsRMC_;
 
-  std::string appId_;
-  std::string instanceId_;
   std::string connectionId_;
   Functor cb_;
-  PlaneIDFunctor planeIdCb_;
   videoResData_t videoResData_;
 
   bool allowPolicy_;
@@ -186,4 +134,4 @@ class ResourceRequestor {
 }  // namespace decoder
 }  // namespace MCIL
 
-#endif  // SRC_ResourceFacilitator_REQUESTOR_H_
+#endif  // SRC_RESOURCE_REQUESTOR_H_

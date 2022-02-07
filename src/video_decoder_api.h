@@ -26,7 +26,6 @@ namespace decoder {
 
 class VideoDecoder;
 class VideoDecoderDelegate;
-class VdecResourceHandler;
 
 class VideoDecoderAPI {
  public:
@@ -35,7 +34,7 @@ class VideoDecoderAPI {
 
   static mcil::SupportedProfiles GetSupportedProfiles();
 
-  bool Initialize(const DecoderConfig* decoderConfig,
+  bool Initialize(const DecoderConfig* decoder_config,
                   VideoPixelFormat* output_pix_fmt,
                   bool* should_control_buffer_feed);
   bool DoReset(bool full_reset, bool* reset_pending);
@@ -65,10 +64,12 @@ class VideoDecoderAPI {
  private:
   VideoDecoderDelegate* delegate_;
   std::vector<WritableBufferRef*> empty_output_buffer;
-  std::shared_ptr<mcil::decoder::VideoDecoder> videoDecoder_;
-  DecoderState state_ = kUninitialized;
+  std::shared_ptr<mcil::decoder::VideoDecoder> video_decoder_;
+
   int vdec_port_index_ = -1;
   std::string resources_ = "";
+
+  DecoderState state_ = kUninitialized;
 };
 
 }  // namespace decoder

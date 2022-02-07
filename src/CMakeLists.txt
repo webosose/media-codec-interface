@@ -64,11 +64,10 @@ set(MEDIA_CODEC_INTERFACE_SRC
     base/log.cpp
     base/thread.cpp
     base/video_decoder.cpp
-    base/vdec_resource_handler.cpp
+    resource/requestor.cpp
+    resource/video_resource.cpp
     video_decoder_api.cpp
     video_encoder_api.cpp
-    resourcefacilitator/parser.cpp
-    resourcefacilitator/requestor.cpp
 )
 
 set(MEDIA_CODEC_INTERFACE_LIBRARIES
