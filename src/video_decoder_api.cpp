@@ -52,10 +52,12 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
   MCIL_INFO_PRINT(" frameHeight = %d", decoder_config->frameHeight);
   MCIL_INFO_PRINT(" codecType = %d", decoder_config->codecType);
 
-  vdec_port_index_ = V4L2_DECODER;
-  if (!VideoResource::GetInstance().Acquire(decoder_config,
-                                           resources_,
-                                           &vdec_port_index_)) {
+  if (!VideoResource::GetInstance().Acquire(V4L2_DECODER,
+                                            decoder_config->codecType,
+                                            decoder_config->frameWidth,
+                                            decoder_config->frameHeight,
+                                            resources_,
+                                            &vdec_port_index_)) {
     MCIL_INFO_PRINT(" Failed to acquire resources");
     return false;
   }
@@ -85,7 +87,9 @@ bool VideoDecoderAPI::DoReset(bool full_reset, bool* reset_pending) {
 
 void VideoDecoderAPI::Destroy() {
   if (vdec_port_index_ != -1)
-    VideoResource::GetInstance().Release(resources_, vdec_port_index_);
+    VideoResource::GetInstance().Release(V4L2_DECODER,
+                                         resources_,
+                                         vdec_port_index_);
 
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");

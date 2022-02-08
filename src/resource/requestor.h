@@ -86,40 +86,39 @@ class ResourceRequestor {
   explicit ResourceRequestor(const std::string& connectionId = "");
   virtual ~ResourceRequestor();
 
-  const std::string getConnectionId() const { return connectionId_; }
-  void registerUMSPolicyActionCallback(Functor callback) { cb_ = callback; }
+  const std::string GetConnectionId() const { return connectionId_; }
+  void RegisterUMSPolicyActionCallback(Functor callback) { cb_ = callback; }
 
-  bool acquireResources(PortResource_t& resourceMMap,
+  bool AcquireResources(PortResource_t& resourceMMap,
           const source_info_t &sourceInfo,
           std::string& resources);
 
-  bool releaseResource(std::string& resources);
+  bool ReleaseResource(std::string& resources);
 
-  bool endOfStream();
-
-  bool notifyForeground() const;
-  bool notifyBackground() const;
-  bool notifyActivity() const;
-  bool notifyPipelineStatus(const std::string& status) const;
-  void allowPolicyAction(const bool allow);
+  bool NotifyForeground() const;
+  bool NotifyBackground() const;
+  bool NotifyActivity() const;
+  bool NotifyPipelineStatus(const std::string& status) const;
+  void AllowPolicyAction(const bool allow);
 
  private:
-  bool setSourceInfo(const source_info_t &sourceInfo);
-  bool policyActionHandler(const char *action,
+  bool SetSourceInfo(const source_info_t &sourceInfo);
+  bool PolicyActionHandler(const char *action,
       const char *resources,
       const char *requestorType,
       const char *requestorName,
       const char *connectionId);
 
-  bool parsePortInformation(const std::string& payload, PortResource_t& resourceMMap);
-  bool parseResources(const std::string& payload, std::string& resources);
+  bool ParsePortInformation(const std::string& payload, PortResource_t& resourceMMap);
+  bool ParseResources(const std::string& payload, std::string& resources);
 
   // translate enum type from omx player to resource calculator
-  int translateVideoCodec(const VideoCodecType vcodec) const;
-  int translateScanType(const int escanType) const;
-  int translate3DType(const int e3DType) const;
-  mrc::ResourceListOptions calcVideoResources();
-  mrc::ResourceListOptions calcVencResources();
+  int TranslateVideoCodec(const VideoCodecType vcodec) const;
+  int TranslateScanType(const int escanType) const;
+  int Translate3DType(const int e3DType) const;
+
+  mrc::ResourceListOptions CalcVdecResources();
+  mrc::ResourceListOptions CalcVencResources();
 
   std::shared_ptr<MRC> rc_;
   std::shared_ptr<uMediaServer::ResourceManagerClient> umsRMC_;

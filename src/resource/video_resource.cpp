@@ -51,9 +51,12 @@ VideoResource::VideoResource()
 VideoResource::~VideoResource() {
 }
 
-bool VideoResource::Acquire(const DecoderConfig* decoder_config,
-                           std::string& resources,
-                           int32_t *vdec_index) {
+bool VideoResource::Acquire(DeviceType device_type,
+                            VideoCodecType video_codec,
+                            uint32_t frame_width,
+                            uint32_t frame_height,
+                            std::string& resources,
+                            int32_t *vdec_index) {
   MCIL_INFO_PRINT(": called");
 
   PortResource_t resourceMMap;
@@ -61,17 +64,19 @@ bool VideoResource::Acquire(const DecoderConfig* decoder_config,
 
   video_info_t video_stream_info = {};
 
-  video_stream_info.width = decoder_config->frameWidth;
-  video_stream_info.height = decoder_config->frameHeight;
+  video_stream_info.width = frame_width;
+  video_stream_info.height = frame_height;
 
-  if (*vdec_index == V4L2_DECODER) {
+  if (device_type == V4L2_DECODER) {
     MCIL_DEBUG_PRINT(": decoder resource needed");
     video_stream_info.encode = VIDEO_CODEC_NONE;
-    video_stream_info.decode = decoder_config->codecType;
-  } else if (*vdec_index == V4L2_ENCODER) {
+    video_stream_info.decode = video_codec;
+  } else if (device_type == V4L2_ENCODER) {
     MCIL_DEBUG_PRINT(": encoder resource needed");
-    video_stream_info.encode = decoder_config->codecType;
+    video_stream_info.encode = video_codec;
     video_stream_info.decode = VIDEO_CODEC_NONE;
+  } else {
+    return false;
   }
 
   video_stream_info.frame_rate.num = MCIL_MAX_FRAME_RATE;
@@ -81,55 +86,79 @@ bool VideoResource::Acquire(const DecoderConfig* decoder_config,
             video_stream_info.frame_rate.num, video_stream_info.frame_rate.den);
 
   program_info_t program;
-  program.video_stream = 1;
-  source_info_.programs.push_back(program);
-  source_info_.video_streams.push_back(video_stream_info);
+  source_info_t source_info;
+  int32_t dec_index = -1;
+  int32_t enc_index = -1;
 
-  resource_info.sourceInfo = &source_info_;
+  program.video_stream = 1;
+  source_info.programs.push_back(program);
+  source_info.video_streams.push_back(video_stream_info);
+
+  resource_info.sourceInfo = &source_info;
   resource_info.result = true;
 
+  std::lock_guard<std::mutex> lock(mutex_);
   if (requestor_) {
-    requestor_->notifyForeground();
-    requestor_->registerUMSPolicyActionCallback([this]() {
-      requestor_->notifyBackground();
+    requestor_->NotifyForeground();
+    requestor_->RegisterUMSPolicyActionCallback([this]() {
+      requestor_->NotifyBackground();
     });
 
+  if (!requestor_->AcquireResources(resourceMMap,
+           source_info, resources)) {
+    MCIL_INFO_PRINT("Resource acquisition failed");
+    return false;
+  }
 
-    if (!requestor_->acquireResources(resourceMMap,
-            source_info_, resources)) {
-      MCIL_INFO_PRINT("resource acquisition failed");
-      return false;
-    }
+  for (auto it : resourceMMap) {
+     MCIL_DEBUG_PRINT("Resource::[%s]=>index:%d", it.first.c_str(), it.second);
+     if (it.first == "VDEC") {
+       dec_index = it.second;
+     }
+     else if (it.first == "VENC") {
+       enc_index = it.second;
+     }
+  }
 
-    for (auto it : resourceMMap) {
-      MCIL_DEBUG_PRINT("Resource::[%s]=>index:%d", it.first.c_str(), it.second);
-      if (it.first == "VDEC") {
-        *vdec_index = it.second;
-      }
-    }
+  if (dec_index != -1 &&
+      vdec_index_list_.find(dec_index) == vdec_index_list_.end()) {
+    MCIL_DEBUG_PRINT(" Decoder resource acquired:%d", dec_index);
+    vdec_index_list_.insert(dec_index);
+    *vdec_index = dec_index;
+  }
 
-    if (vdec_index_list_.find(*vdec_index) == vdec_index_list_.end()) {
-      MCIL_DEBUG_PRINT(" resource acquired:%d", *vdec_index);
-      vdec_index_list_.insert(*vdec_index);
-    } else {
-      MCIL_INFO_PRINT(" failed to get new resource:%d", *vdec_index);
-      *vdec_index = -1;
-      return false;
-    }
+  if (enc_index != -1 &&
+      venc_index_list_.find(enc_index) == venc_index_list_.end()) {
+    MCIL_DEBUG_PRINT(" Encoder resource acquired:%d", enc_index);
+    venc_index_list_.insert(enc_index);
+    *vdec_index = enc_index;
+  }
+
   } else {
     MCIL_INFO_PRINT(" failed creating requestor_");
     return false;
   }
 
-  return true;
+  if (*vdec_index < 0)
+    return false;
 
+  return true;
 }
 
-bool VideoResource::Release(std::string& resources, int32_t vdec_index) {
-  vdec_index_list_.erase(vdec_index);
+bool VideoResource::Release(DeviceType device_type,
+                            std::string& resources,
+                            int32_t vdec_index) {
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  if (device_type == V4L2_DECODER && !vdec_index_list_.empty())
+    vdec_index_list_.erase(vdec_index);
+
+  if (device_type == V4L2_ENCODER && !venc_index_list_.empty())
+    venc_index_list_.erase(vdec_index);
 
   if (requestor_)
-    return requestor_->releaseResource(resources);
+    return requestor_->ReleaseResource(resources);
+
   return false;
 }
 

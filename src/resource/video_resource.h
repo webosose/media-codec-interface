@@ -17,7 +17,9 @@
 #ifndef SRC_RESOURCE_VIDEO_RESOURCE_H_
 #define SRC_RESOURCE_VIDEO_RESOURCE_H_
 
+#include <mutex>
 #include <set>
+#include <thread>
 
 #include "base/decoder_types.h"
 #include "resource/requestor.h"
@@ -45,17 +47,23 @@ class VideoResource {
 
   ~VideoResource();
 
-  bool Acquire(const DecoderConfig* decoder_config,
+  bool Acquire(DeviceType device_type,
+               VideoCodecType video_codec,
+               uint32_t frame_width,
+               uint32_t frame_height,
                std::string& resources,
                int32_t *vdec_index);
-  bool Release(std::string& resources, int32_t vdec_index);
+  bool Release(DeviceType device_type,
+               std::string& resources,
+               int32_t vdec_index);
 
  private:
   VideoResource();
 
   std::unique_ptr<ResourceRequestor> requestor_;
-  source_info_t source_info_;
   std::set<int32_t> vdec_index_list_;
+  std::set<int32_t> venc_index_list_;
+  mutable std::mutex mutex_;
 };
 
 }  // namespace decoder

@@ -133,6 +133,12 @@ enum VideoCodecProfile {
   VIDEO_CODEC_PROFILE_MAX = DOLBYVISION_PROFILE9,
 };
 
+enum DeviceType {
+  V4L2_DECODER,
+  V4L2_ENCODER,
+  JPEG_DECODER,
+};
+
 class Size {
  public:
   Size() = default;

@@ -64,12 +64,6 @@ enum BufferId {
   kFlushBufferId = -2  // Buffer id for flush buffer, queued by FlushTask().
 };
 
-enum DecoderType {
-  V4L2_DECODER,
-  V4L2_ENCODER,
-  JPEG_DECODER,
-};
-
 enum QueueType {
   INVALID_QUEUE,
   INPUT_QUEUE,

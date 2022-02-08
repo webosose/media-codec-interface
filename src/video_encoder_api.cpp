@@ -21,9 +21,10 @@
 
 #include <base/log.h>
 
-#include "video_encoder_api.h"
 #include "base/encoder_types.h"
 #include "base/video_encoder.h"
+#include "resource/video_resource.h"
+#include "video_encoder_api.h"
 
 namespace mcil {
 
@@ -50,6 +51,16 @@ bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
   MCIL_INFO_PRINT(" FrameRate = %d", configData->frameRate);
   MCIL_INFO_PRINT(" pixelFormat = %d", configData->pixelFormat);
 
+  if (!mcil::decoder::VideoResource::GetInstance().Acquire(V4L2_ENCODER,
+                                            configData->codecType,
+                                            configData->width,
+                                            configData->height,
+                                            resources_,
+                                            &venc_port_index_)) {
+    MCIL_INFO_PRINT(" Failed to acquire resources");
+    return false;
+  }
+
   videoEncoder_ = mcil::encoder::VideoEncoder::Create(configData->codecType);
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
@@ -59,6 +70,11 @@ bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
 }
 
 bool VideoEncoderAPI::Destroy() {
+  if (venc_port_index_ != -1)
+    mcil::decoder::VideoResource::GetInstance().Release(V4L2_ENCODER,
+                                                        resources_,
+                                                        venc_port_index_);
+
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
     return true;

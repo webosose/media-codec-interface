@@ -70,7 +70,7 @@ ResourceRequestor::ResourceRequestor(const std::string& connectionId)
   }
 
   umsRMC_->registerPolicyActionHandler(
-      std::bind(&ResourceRequestor::policyActionHandler,
+      std::bind(&ResourceRequestor::PolicyActionHandler,
         this,
         std::placeholders::_1,
         std::placeholders::_2,
@@ -80,39 +80,35 @@ ResourceRequestor::ResourceRequestor(const std::string& connectionId)
   MCIL_DEBUG_PRINT("ResourceRequestor creation done");
 }
 
-ResourceRequestor::~ResourceRequestor() {
+ResourceRequestor::~ResourceRequestor() { }
 
-}
-
-bool ResourceRequestor::acquireResources(PortResource_t& resourceMMap,
+bool ResourceRequestor::AcquireResources(PortResource_t& resourceMMap,
                                          const source_info_t &sourceInfo,
                                          std::string& resources) {
 
   mrc::ResourceListOptions finalOptions;
 
-  if (!setSourceInfo(sourceInfo)) {
+  if (!SetSourceInfo(sourceInfo)) {
     MCIL_DEBUG_PRINT("Failed to set source info!");
     return false;
   }
 
-  mrc::ResourceListOptions VResource = calcVideoResources();
-  if (!VResource.empty()) {
-    mrc::concatResourceListOptions(&finalOptions, &VResource);
-    MCIL_DEBUG_PRINT("VResource size:%lu, %s, %d",
-        VResource.size(), VResource[0].front().type.c_str(),
-        VResource[0].front().quantity);
+  mrc::ResourceListOptions vdec_resource = CalcVdecResources();
+  if (!vdec_resource.empty()) {
+    mrc::concatResourceListOptions(&finalOptions, &vdec_resource);
+    MCIL_DEBUG_PRINT("vdec_resource size:%lu, %s, %d",
+        vdec_resource.size(), vdec_resource[0].front().type.c_str(),
+        vdec_resource[0].front().quantity);
   }
 
-  mrc::ResourceListOptions VEncResource = calcVencResources();
-#if 0
-  if (!VResource.empty()) {
-    mrc::concatResourceListOptions(&finalOptions, &VEncResource);
-    MCIL_DEBUG_PRINT("VResource size:%lu, %s, %d",
-        VEncResource.size(), VEncResource[0].front().type.c_str(),
-        VEncResource[0].front().quantity);
+  mrc::ResourceListOptions venc_resource = CalcVencResources();
+  if (!venc_resource.empty()) {
+    mrc::concatResourceListOptions(&finalOptions, &venc_resource);
+    MCIL_DEBUG_PRINT("venc_resource size:%lu, %s, %d",
+        venc_resource.size(), venc_resource[0].front().type.c_str(),
+        venc_resource[0].front().quantity);
   }
 
-#endif
   JSchemaFragment input_schema("{}");
   JGenerator serializer(nullptr);
   string payload;
@@ -144,8 +140,8 @@ bool ResourceRequestor::acquireResources(PortResource_t& resourceMMap,
   MCIL_DEBUG_PRINT("acquire response:%s", response.c_str());
 
   try {
-    parsePortInformation(response, resourceMMap);
-    parseResources(response, resources);
+    ParsePortInformation(response, resourceMMap);
+    ParseResources(response, resources);
   } catch (const std::runtime_error & err) {
     MCIL_DEBUG_PRINT("[%s:%d] err=%s, response:%s",
           __func__, __LINE__, err.what(), response.c_str());
@@ -156,41 +152,39 @@ bool ResourceRequestor::acquireResources(PortResource_t& resourceMMap,
   return true;
 }
 
-mrc::ResourceListOptions ResourceRequestor::calcVideoResources() {
-  mrc::ResourceListOptions VResource;
+mrc::ResourceListOptions ResourceRequestor::CalcVdecResources() {
+  mrc::ResourceListOptions vdec_resource;
   MCIL_DEBUG_PRINT("Codec type:%d",videoResData_.vdecode);
   if (videoResData_.vdecode != VIDEO_CODEC_NONE) {
-    VResource = rc_->calcVdecResourceOptions(
-        (MRC::VideoCodecs)translateVideoCodec(videoResData_.vdecode),
+    vdec_resource = rc_->calcVdecResourceOptions(
+        (MRC::VideoCodecs)TranslateVideoCodec(videoResData_.vdecode),
         videoResData_.width,
         videoResData_.height,
         videoResData_.frameRate,
-        (MRC::ScanType)translateScanType(videoResData_.escanType),
-        (MRC::_3DType)translate3DType(videoResData_.e3DType));
+        (MRC::ScanType)TranslateScanType(videoResData_.escanType),
+        (MRC::_3DType)Translate3DType(videoResData_.e3DType));
   }
 
-  return VResource;
+  return vdec_resource;
 }
 
-mrc::ResourceListOptions ResourceRequestor::calcVencResources() {
-  mrc::ResourceListOptions VResource;
+mrc::ResourceListOptions ResourceRequestor::CalcVencResources() {
+  mrc::ResourceListOptions venc_resource;
 
   MCIL_DEBUG_PRINT("Codec type:%d",videoResData_.vencode);
   if (videoResData_.vencode != VIDEO_CODEC_NONE) {
-#if 0
-    VResource = rc_->calcVencResourceOptions(
-        (MRC::VideoCodecs)translateVideoCodec(videoResData_.vencode),
+    venc_resource = rc_->calcVencResourceOptions(
+        (MRC::VideoCodecs)TranslateVideoCodec(videoResData_.vencode),
         videoResData_.width,
         videoResData_.height,
         videoResData_.frameRate);
-#endif
   }
-  MCIL_DEBUG_PRINT("Codec type:%d",videoResData_.vencode);
+  MCIL_DEBUG_PRINT("Codec type:%d", videoResData_.vencode);
 
-  return VResource;
+  return venc_resource;
 }
 
-bool ResourceRequestor::releaseResource(std::string& resources) {
+bool ResourceRequestor::ReleaseResource(std::string& resources) {
   if (resources.empty()) {
     MCIL_DEBUG_PRINT("[%s], resource already empty", __func__);
     return true;
@@ -208,28 +202,28 @@ bool ResourceRequestor::releaseResource(std::string& resources) {
   return true;
 }
 
-bool ResourceRequestor::notifyForeground() const {
+bool ResourceRequestor::NotifyForeground() const {
   return umsRMC_->notifyForeground();
 }
 
-bool ResourceRequestor::notifyBackground() const {
+bool ResourceRequestor::NotifyBackground() const {
   return umsRMC_->notifyBackground();
 }
 
-bool ResourceRequestor::notifyActivity() const {
+bool ResourceRequestor::NotifyActivity() const {
   return umsRMC_->notifyActivity();
 }
 
-bool ResourceRequestor::notifyPipelineStatus(const std::string& status) const {
+bool ResourceRequestor::NotifyPipelineStatus(const std::string& status) const {
   umsRMC_->notifyPipelineStatus(status);
   return true;
 }
 
-void ResourceRequestor::allowPolicyAction(const bool allow) {
+void ResourceRequestor::AllowPolicyAction(const bool allow) {
   allowPolicy_ = allow;
 }
 
-bool ResourceRequestor::policyActionHandler(const char *action,
+bool ResourceRequestor::PolicyActionHandler(const char *action,
                                             const char *resources,
                                             const char *requestorType,
                                             const char *requestorName,
@@ -250,7 +244,7 @@ bool ResourceRequestor::policyActionHandler(const char *action,
   return allowPolicy_;
 }
 
-bool ResourceRequestor::parsePortInformation(const std::string& payload,
+bool ResourceRequestor::ParsePortInformation(const std::string& payload,
                                              PortResource_t& resourceMMap) {
   pbnjson::JDomParser parser;
   pbnjson::JSchemaFragment input_schema("{}");
@@ -278,7 +272,7 @@ bool ResourceRequestor::parsePortInformation(const std::string& payload,
   return true;
 }
 
-bool ResourceRequestor::parseResources(const std::string& payload,
+bool ResourceRequestor::ParseResources(const std::string& payload,
                                        std::string& resources) {
   pbnjson::JDomParser parser;
   pbnjson::JSchemaFragment input_schema("{}");
@@ -308,7 +302,7 @@ bool ResourceRequestor::parseResources(const std::string& payload,
   return true;
 }
 
-int ResourceRequestor::translateVideoCodec(const VideoCodecType vcodec) const {
+int ResourceRequestor::TranslateVideoCodec(const VideoCodecType vcodec) const {
   MRC::VideoCodec ev = MRC::kVideoEtc;
   switch (vcodec) {
     case VIDEO_CODEC_NONE:
@@ -336,7 +330,7 @@ int ResourceRequestor::translateVideoCodec(const VideoCodecType vcodec) const {
   return static_cast<int>(ev);
 }
 
-int ResourceRequestor::translateScanType(const int escanType) const {
+int ResourceRequestor::TranslateScanType(const int escanType) const {
   MRC::ScanType scan = MRC::kScanProgressive;
 
   switch (escanType) {
@@ -347,7 +341,7 @@ int ResourceRequestor::translateScanType(const int escanType) const {
   return static_cast<int>(scan);
 }
 
-int ResourceRequestor::translate3DType(const int e3DType) const {
+int ResourceRequestor::Translate3DType(const int e3DType) const {
   MRC::_3DType my3d = MRC::k3DNone;
 
   switch (e3DType) {
@@ -359,8 +353,7 @@ int ResourceRequestor::translate3DType(const int e3DType) const {
   return static_cast<int>(my3d);
 }
 
-bool ResourceRequestor::setSourceInfo(
-    const source_info_t &sourceInfo) {
+bool ResourceRequestor::SetSourceInfo(const source_info_t &sourceInfo) {
   if (sourceInfo.video_streams.empty()){
     MCIL_DEBUG_PRINT("Video/Audio streams are empty!");
     return false;
