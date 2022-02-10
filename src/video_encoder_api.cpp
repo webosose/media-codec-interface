@@ -42,6 +42,10 @@ VideoEncoderAPI::VideoEncoderAPI(VideoEncoderDelegate* delegate)
 
 VideoEncoderAPI::~VideoEncoderAPI() {
   MCIL_INFO_PRINT(" Dtor");
+  if (venc_port_index_ != -1)
+    mcil::decoder::VideoResource::GetInstance().Release(V4L2_ENCODER,
+                                                        resources_,
+                                                        venc_port_index_);
 }
 
 bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
@@ -50,11 +54,13 @@ bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
   MCIL_INFO_PRINT(" height = %d", configData->height);
   MCIL_INFO_PRINT(" FrameRate = %d", configData->frameRate);
   MCIL_INFO_PRINT(" pixelFormat = %d", configData->pixelFormat);
+  MCIL_INFO_PRINT(" codecType = %d", configData->codecType);
 
   if (!mcil::decoder::VideoResource::GetInstance().Acquire(V4L2_ENCODER,
                                             configData->codecType,
                                             configData->width,
                                             configData->height,
+                                            configData->frameRate,
                                             resources_,
                                             &venc_port_index_)) {
     MCIL_INFO_PRINT(" Failed to acquire resources");

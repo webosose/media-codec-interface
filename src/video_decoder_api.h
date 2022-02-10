@@ -66,7 +66,7 @@ class VideoDecoderAPI {
   std::vector<WritableBufferRef*> empty_output_buffer;
   std::shared_ptr<mcil::decoder::VideoDecoder> video_decoder_;
 
-  int vdec_port_index_ = -1;
+  int32_t vdec_port_index_ = -1;
   std::string resources_ = "";
 
   DecoderState state_ = kUninitialized;

@@ -26,6 +26,8 @@
 #include "base/video_decoder.h"
 #include "resource/video_resource.h"
 
+#define MCIL_MAX_FRAME_RATE 60 //Set to maximum framerate supported in webcodec
+
 namespace mcil {
 
 namespace decoder {
@@ -56,6 +58,7 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
                                             decoder_config->codecType,
                                             decoder_config->frameWidth,
                                             decoder_config->frameHeight,
+                                            MCIL_MAX_FRAME_RATE,
                                             resources_,
                                             &vdec_port_index_)) {
     MCIL_INFO_PRINT(" Failed to acquire resources");

@@ -37,7 +37,7 @@ class VideoDecoder {
                           VideoDecoderDelegate* delegate,
                           VideoPixelFormat* output_pix_fmt,
                           bool* should_control_buffer_feed,
-                          int vdec_port_index);
+                          int32_t vdec_port_index);
   virtual bool DoReset(bool full_reset, bool* reset_pending);
   virtual void Destroy();
 

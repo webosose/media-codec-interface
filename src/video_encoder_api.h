@@ -50,7 +50,7 @@ class VideoEncoderAPI {
  private:
   VideoEncoderDelegate* delegate_;
   std::shared_ptr<mcil::encoder::VideoEncoder> videoEncoder_;
-  int venc_port_index_ = -1;
+  int32_t venc_port_index_ = -1;
   std::string resources_ = "";
 };
 

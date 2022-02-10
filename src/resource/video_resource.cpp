@@ -27,8 +27,6 @@
 #include "base/log.h"
 #include "decoder_types.h"
 
-#define MCIL_MAX_FRAME_RATE 60 //Set to maximum framerate supported in webcodec
-
 #ifdef MCIL_DEBUG_PRINT
 //#undef MCIL_DEBUG_PRINT
 #endif
@@ -55,6 +53,7 @@ bool VideoResource::Acquire(DeviceType device_type,
                             VideoCodecType video_codec,
                             uint32_t frame_width,
                             uint32_t frame_height,
+                            uint32_t frame_rate,
                             std::string& resources,
                             int32_t *vdec_index) {
   MCIL_INFO_PRINT(": called");
@@ -66,6 +65,8 @@ bool VideoResource::Acquire(DeviceType device_type,
 
   video_stream_info.width = frame_width;
   video_stream_info.height = frame_height;
+  video_stream_info.frame_rate.num = frame_rate;
+  video_stream_info.frame_rate.den = 1;
 
   if (device_type == V4L2_DECODER) {
     MCIL_DEBUG_PRINT(": decoder resource needed");
@@ -79,11 +80,8 @@ bool VideoResource::Acquire(DeviceType device_type,
     return false;
   }
 
-  video_stream_info.frame_rate.num = MCIL_MAX_FRAME_RATE;
-  video_stream_info.frame_rate.den = 1;
-  MCIL_DEBUG_PRINT("[video info] width: %d, height: %d, frameRate: %d/%d",
-            video_stream_info.width, video_stream_info.height,
-            video_stream_info.frame_rate.num, video_stream_info.frame_rate.den);
+  MCIL_DEBUG_PRINT("[video info] width: %d, height: %d, frame_rate: %d",
+                   frame_width, frame_height, frame_rate);
 
   program_info_t program;
   source_info_t source_info;

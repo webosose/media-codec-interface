@@ -51,6 +51,7 @@ class VideoResource {
                VideoCodecType video_codec,
                uint32_t frame_width,
                uint32_t frame_height,
+               uint32_t frame_rate,
                std::string& resources,
                int32_t *vdec_index);
   bool Release(DeviceType device_type,
