@@ -58,7 +58,7 @@ void VideoDecoder::Destroy() {
 }
 
 bool VideoDecoder::FeedBuffers(
-    const void* buffer, size_t size, const int32_t id, uint64_t buffer_pts) {
+    const void* buffer, size_t size, const int32_t id, int64_t buffer_pts) {
   return false;
 }
 

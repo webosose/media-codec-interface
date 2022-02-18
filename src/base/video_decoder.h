@@ -42,7 +42,7 @@ class VideoDecoder {
   virtual void Destroy();
 
   virtual bool FeedBuffers(const void* buffer, size_t size,
-                           const int32_t id, uint64_t buffer_pts);
+                           const int32_t id, int64_t buffer_pts);
   virtual bool FlushBuffers();
   virtual bool DidFlushBuffersDone();
 

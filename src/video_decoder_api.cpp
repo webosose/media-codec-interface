@@ -103,7 +103,7 @@ void VideoDecoderAPI::Destroy() {
 }
 
 bool VideoDecoderAPI::FeedBuffers(
-    const void* buffer, size_t size, const int32_t id, uint64_t buffer_pts) {
+    const void* buffer, size_t size, const int32_t id, int64_t buffer_pts) {
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
     return false;
