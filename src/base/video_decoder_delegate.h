@@ -46,10 +46,8 @@ class VideoDecoderDelegate {
   virtual void CheckGLFences() = 0;
 
   virtual void NotifyDecoderError(DecoderError error) = 0;
-  virtual void NotifyDecodeBufferTask(
-      uint64_t delay_ms, bool event_pending, bool has_output) = 0;
-  virtual void NotifyDecoderPostTask(PostTaskType task,
-                                     uint64_t delay_ms, bool value) = 0;
+  virtual void NotifyDecodeBufferTask(bool event_pending, bool has_output) = 0;
+  virtual void NotifyDecoderPostTask(PostTaskType task, bool value) = 0;
   virtual void NotifyDecodeBufferDone() = 0;
 
  protected:
