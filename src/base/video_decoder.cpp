@@ -50,7 +50,11 @@ bool VideoDecoder::Initialize(const DecoderConfig* decoderConfig,
   return true;
 }
 
-bool VideoDecoder::DoReset(bool full_reset, bool* reset_pending) {
+bool VideoDecoder::ResetInputBuffer() {
+  return false;
+}
+
+bool VideoDecoder::ResetDecodingBuffers(bool* reset_pending) {
   return false;
 }
 
@@ -62,7 +66,7 @@ bool VideoDecoder::FeedBuffers(
   return false;
 }
 
-bool VideoDecoder::FlushBuffers() {
+bool VideoDecoder::FlushInputBuffers() {
   return false;
 }
 
@@ -82,10 +86,6 @@ void VideoDecoder::ReusePictureBuffer(int32_t pic_buffer_id) {
   return;
 }
 
-bool VideoDecoder::StartDevicePoll(bool poll_device, bool* event_pending) {
-  return false;
-}
-
 void VideoDecoder::RunDecodeBufferTask(bool event_pending, bool has_output) {
 }
 
@@ -95,8 +95,8 @@ void VideoDecoder::RunDecoderPostTask(PostTaskType task, bool value) {
 void VideoDecoder::SetDecoderState(DecoderState state) {
 }
 
-int64_t VideoDecoder::GetCurrentInputBufferId() {
-  return kFlushBufferId;
+bool VideoDecoder::GetCurrentInputBufferId(int32_t* buffer_id) {
+  return false;
 }
 
 size_t VideoDecoder::GetFreeBuffersCount(QueueType queue_type) {
@@ -113,6 +113,10 @@ bool VideoDecoder::CanCreateEGLImageFrom(VideoPixelFormat pixel_format) {
 }
 
 void VideoDecoder::OnEGLImagesCreationCompleted() {
+}
+
+bool VideoDecoder::StartDevicePoll(bool poll_device, bool* event_pending) {
+  return false;
 }
 
 }  // namespace decoder

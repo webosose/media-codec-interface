@@ -23,20 +23,22 @@
 
 PmLogContext GetPmLogContext();
 #define MCIL_LOG_CRITICAL(...) PmLogCritical(GetPmLogContext(), ##__VA_ARGS__)
-#define MCIL_LOG_ERROR(...)    PmLogError(GetPmLogContext(), ##__VA_ARGS__)
 #define MCIL_LOG_WARNING(...)  PmLogWarning(GetPmLogContext(), ##__VA_ARGS__)
 
 #if 0
 #define MCIL_LOG_INFO(FORMAT__, ...) void(0)
 #define MCIL_LOG_DEBUG(FORMAT__, ...) void(0)
+#define MCIL_LOG_ERROR(FORMAT__, ...) void(0)
 #else
 #define MCIL_LOG_INFO(FORMAT__, ...) \
     PmLogInfo(GetPmLogContext(), \
     "mcil", 0, "[%s:%d] " FORMAT__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 #define MCIL_LOG_DEBUG(FORMAT__, ...) \
     PmLogDebug(GetPmLogContext(), \
-   "[%s:%d]" FORMAT__, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
-
+    "[%s:%d] " FORMAT__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define MCIL_LOG_ERROR(FORMAT__, ...) \
+    PmLogError(GetPmLogContext(), \
+    "mcil", 0, "[%s:%d] " FORMAT__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 #endif
 
 #define MCIL_LOG_OBJ_SET(OBJ__) PmLogContext GetPmLogContext_##OBJ__()
@@ -57,6 +59,9 @@ PmLogContext GetPmLogContext();
 
 /* Debug Print */
 #define MCIL_DEBUG_PRINT MCIL_LOG_DEBUG
+
+/* Error Print */
+#define MCIL_ERROR_PRINT MCIL_LOG_ERROR
 
 /* Assert print */
 #define MCILASSERT(cond) { \

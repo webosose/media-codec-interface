@@ -38,31 +38,32 @@ class VideoDecoder {
                           VideoPixelFormat* output_pix_fmt,
                           bool* should_control_buffer_feed,
                           int32_t vdec_port_index);
-  virtual bool DoReset(bool full_reset, bool* reset_pending);
+  virtual bool ResetInputBuffer();
+  virtual bool ResetDecodingBuffers(bool* reset_pending);
   virtual void Destroy();
 
   virtual bool FeedBuffers(const void* buffer, size_t size,
                            const int32_t id, int64_t buffer_pts);
-  virtual bool FlushBuffers();
+  virtual bool FlushInputBuffers();
   virtual bool DidFlushBuffersDone();
 
   virtual bool EnqueueBuffers();
   virtual bool DequeueBuffers();
   virtual void ReusePictureBuffer(int32_t pic_buffer_id);
 
-  virtual bool StartDevicePoll(bool poll_device, bool* event_pending);
-
   virtual void RunDecodeBufferTask(bool event_pending, bool has_output);
   virtual void RunDecoderPostTask(PostTaskType task, bool value);
 
   virtual void SetDecoderState(DecoderState state);
 
-  virtual int64_t GetCurrentInputBufferId();
+  virtual bool GetCurrentInputBufferId(int32_t* buffer_id);
   virtual size_t GetFreeBuffersCount(QueueType queue_type);
   virtual std::vector<WritableBufferRef*> AllocateOutputBuffers(
       std::vector<OutputRecord>* output_records);
   virtual bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format);
   virtual void OnEGLImagesCreationCompleted();
+
+  virtual bool StartDevicePoll(bool poll_device, bool* event_pending);
 
  private:
 

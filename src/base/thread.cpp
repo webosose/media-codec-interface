@@ -41,7 +41,7 @@ void Thread::PostTask(std::function<void()> task) {
 }
 
 void Thread::Start() {
-  MCIL_INFO_PRINT(": %s running[%d]", thread_name_.c_str(), is_running_);
+  MCIL_DEBUG_PRINT(": %s running[%d]", thread_name_.c_str(), is_running_);
 
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -55,7 +55,7 @@ void Thread::Start() {
 }
 
 void Thread::Stop() {
-  MCIL_INFO_PRINT(": %s running[%d]", thread_name_.c_str(), is_running_);
+  MCIL_DEBUG_PRINT(": %s running[%d]", thread_name_.c_str(), is_running_);
 
   {
     std::lock_guard<std::mutex> lock(mutex_);

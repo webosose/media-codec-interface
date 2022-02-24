@@ -80,12 +80,20 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
       output_pix_fmt, should_control_buffer_feed, vdec_port_index_);
 }
 
-bool VideoDecoderAPI::DoReset(bool full_reset, bool* reset_pending) {
+bool VideoDecoderAPI::ResetInputBuffer() {
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
     return false;
   }
-  return video_decoder_->DoReset(full_reset, reset_pending);
+  return video_decoder_->ResetInputBuffer();
+}
+
+bool VideoDecoderAPI::ResetDecodingBuffers(bool* reset_pending) {
+  if (!video_decoder_) {
+    MCIL_INFO_PRINT(" decoder is not created or null.");
+    return false;
+  }
+  return video_decoder_->ResetDecodingBuffers(reset_pending);
 }
 
 void VideoDecoderAPI::Destroy() {
@@ -111,12 +119,12 @@ bool VideoDecoderAPI::FeedBuffers(
   return video_decoder_->FeedBuffers(buffer, size, id, buffer_pts);
 }
 
-bool VideoDecoderAPI::FlushBuffers() {
+bool VideoDecoderAPI::FlushInputBuffers() {
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
     return false;
   }
-  return video_decoder_->FlushBuffers();
+  return video_decoder_->FlushInputBuffers();
 }
 
 bool VideoDecoderAPI::DidFlushBuffersDone() {
@@ -151,14 +159,6 @@ void VideoDecoderAPI::ReusePictureBuffer(int32_t pic_buffer_id) {
   return video_decoder_->ReusePictureBuffer(pic_buffer_id);
 }
 
-bool VideoDecoderAPI::StartDevicePoll(bool poll_device, bool* event_pending) {
-  if (!video_decoder_) {
-    MCIL_INFO_PRINT(" decoder is not created or null.");
-    return false;
-  }
-  return video_decoder_->StartDevicePoll(poll_device, event_pending);
-}
-
 void VideoDecoderAPI::RunDecodeBufferTask(bool event_pending, bool has_output) {
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" Error: decoder (%p) ", video_decoder_.get());
@@ -186,12 +186,12 @@ void VideoDecoderAPI::SetDecoderState(DecoderState state) {
   return video_decoder_->SetDecoderState(state);
 }
 
-int64_t VideoDecoderAPI::GetCurrentInputBufferId() {
+bool VideoDecoderAPI::GetCurrentInputBufferId(int32_t* buffer_id) {
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
     return false;
   }
-  return video_decoder_->GetCurrentInputBufferId();
+  return video_decoder_->GetCurrentInputBufferId(buffer_id);
 }
 
 size_t VideoDecoderAPI::GetFreeBuffersCount(QueueType queue_type) {
@@ -227,6 +227,14 @@ void VideoDecoderAPI::OnEGLImagesCreationCompleted() {
   }
 
   return video_decoder_->OnEGLImagesCreationCompleted();
+}
+
+bool VideoDecoderAPI::StartDevicePoll(bool poll_device, bool* event_pending) {
+  if (!video_decoder_) {
+    MCIL_INFO_PRINT(" decoder is not created or null.");
+    return false;
+  }
+  return video_decoder_->StartDevicePoll(poll_device, event_pending);
 }
 
 } // namespace decoder
