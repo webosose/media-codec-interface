@@ -37,17 +37,18 @@ class VideoDecoderAPI {
   bool Initialize(const DecoderConfig* decoder_config,
                   VideoPixelFormat* output_pix_fmt,
                   bool* should_control_buffer_feed);
+  void Destroy();
   bool ResetInputBuffer();
   bool ResetDecodingBuffers(bool* reset_pending);
-  void Destroy();
+  bool CanNotifyResetDone();
 
   bool FeedBuffers(const void* buffer, size_t size,
                    const int32_t id, int64_t buffer_pts);
   bool FlushInputBuffers();
   bool DidFlushBuffersDone();
 
-  bool EnqueueBuffers();
-  bool DequeueBuffers();
+  void EnqueueBuffers();
+  void DequeueBuffers();
   void ReusePictureBuffer(int32_t pic_buffer_id);
 
   void RunDecodeBufferTask(bool event_pending, bool has_output);
@@ -59,8 +60,6 @@ class VideoDecoderAPI {
   std::vector<WritableBufferRef*> AllocateOutputBuffers(std::vector<OutputRecord>*);
   bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format);
   void OnEGLImagesCreationCompleted();
-
-  bool StartDevicePoll(bool poll_device, bool* event_pending);
 
  private:
   VideoDecoderDelegate* delegate_;

@@ -35,10 +35,8 @@ class VideoDecoderDelegate {
   virtual void NotifyFlushDone() = 0;
   virtual void NotifyFlushDoneIfNeeded() = 0;
   virtual bool IsDestroyPending() = 0;
-  virtual bool IsDevicePollRunning() = 0;
-  virtual bool StartDevicePoll() = 0;
-  virtual bool StopDevicePoll() = 0;
-  virtual void RunDevicePollTask(bool poll_device) = 0;
+  virtual void OnStartDevicePoll() = 0;
+  virtual void OnStopDevicePoll() = 0;
   virtual void CreateBuffersForFormat(const mcil::Size& coded_size,
                                       const mcil::Size& visible_size) = 0;
   virtual void SendBufferToClient(

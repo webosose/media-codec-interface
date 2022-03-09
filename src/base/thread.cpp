@@ -26,7 +26,8 @@ Thread::Thread(const std::string& name)
 }
 
 Thread::~Thread() {
-  Stop();
+  if (is_running_)
+    Stop();
 }
 
 void Thread::PostTask(std::function<void()> task) {

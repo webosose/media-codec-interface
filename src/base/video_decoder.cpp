@@ -50,6 +50,9 @@ bool VideoDecoder::Initialize(const DecoderConfig* decoderConfig,
   return true;
 }
 
+void VideoDecoder::Destroy() {
+}
+
 bool VideoDecoder::ResetInputBuffer() {
   return false;
 }
@@ -58,7 +61,8 @@ bool VideoDecoder::ResetDecodingBuffers(bool* reset_pending) {
   return false;
 }
 
-void VideoDecoder::Destroy() {
+bool VideoDecoder::CanNotifyResetDone() {
+  return true;
 }
 
 bool VideoDecoder::FeedBuffers(
@@ -74,12 +78,10 @@ bool VideoDecoder::DidFlushBuffersDone() {
   return false;
 }
 
-bool VideoDecoder::EnqueueBuffers() {
-  return false;
+void VideoDecoder::EnqueueBuffers() {
 }
 
-bool VideoDecoder::DequeueBuffers() {
-  return false;
+void VideoDecoder::DequeueBuffers() {
 }
 
 void VideoDecoder::ReusePictureBuffer(int32_t pic_buffer_id) {
@@ -113,10 +115,6 @@ bool VideoDecoder::CanCreateEGLImageFrom(VideoPixelFormat pixel_format) {
 }
 
 void VideoDecoder::OnEGLImagesCreationCompleted() {
-}
-
-bool VideoDecoder::StartDevicePoll(bool poll_device, bool* event_pending) {
-  return false;
 }
 
 }  // namespace decoder

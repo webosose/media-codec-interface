@@ -80,6 +80,20 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
       output_pix_fmt, should_control_buffer_feed, vdec_port_index_);
 }
 
+void VideoDecoderAPI::Destroy() {
+  if (vdec_port_index_ != -1)
+    VideoResource::GetInstance().Release(V4L2_DECODER,
+                                         resources_,
+                                         vdec_port_index_);
+
+  if (!video_decoder_) {
+    MCIL_INFO_PRINT(" decoder is not created or null.");
+    return;
+  }
+
+  return video_decoder_->Destroy();
+}
+
 bool VideoDecoderAPI::ResetInputBuffer() {
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
@@ -96,18 +110,12 @@ bool VideoDecoderAPI::ResetDecodingBuffers(bool* reset_pending) {
   return video_decoder_->ResetDecodingBuffers(reset_pending);
 }
 
-void VideoDecoderAPI::Destroy() {
-  if (vdec_port_index_ != -1)
-    VideoResource::GetInstance().Release(V4L2_DECODER,
-                                         resources_,
-                                         vdec_port_index_);
-
+bool VideoDecoderAPI::CanNotifyResetDone() {
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
-    return;
+    return true;
   }
-
-  return video_decoder_->Destroy();
+  return video_decoder_->CanNotifyResetDone();
 }
 
 bool VideoDecoderAPI::FeedBuffers(
@@ -135,18 +143,18 @@ bool VideoDecoderAPI::DidFlushBuffersDone() {
   return video_decoder_->DidFlushBuffersDone();
 }
 
-bool VideoDecoderAPI::EnqueueBuffers() {
+void VideoDecoderAPI::EnqueueBuffers() {
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
-    return false;
+    return;
   }
   return video_decoder_->EnqueueBuffers();
 }
 
-bool VideoDecoderAPI::DequeueBuffers() {
+void VideoDecoderAPI::DequeueBuffers() {
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
-    return false;
+    return;
   }
   return video_decoder_->DequeueBuffers();
 }
@@ -227,14 +235,6 @@ void VideoDecoderAPI::OnEGLImagesCreationCompleted() {
   }
 
   return video_decoder_->OnEGLImagesCreationCompleted();
-}
-
-bool VideoDecoderAPI::StartDevicePoll(bool poll_device, bool* event_pending) {
-  if (!video_decoder_) {
-    MCIL_INFO_PRINT(" decoder is not created or null.");
-    return false;
-  }
-  return video_decoder_->StartDevicePoll(poll_device, event_pending);
 }
 
 } // namespace decoder
