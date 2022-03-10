@@ -25,11 +25,11 @@ namespace mcil {
 namespace decoder {
 
 class VideoDecoder;
-class VideoDecoderDelegate;
+class VideoDecoderClient;
 
 class VideoDecoderAPI {
  public:
-  VideoDecoderAPI(VideoDecoderDelegate* delegate);
+  VideoDecoderAPI(VideoDecoderClient* client);
   ~VideoDecoderAPI();
 
   static mcil::SupportedProfiles GetSupportedProfiles();
@@ -62,7 +62,7 @@ class VideoDecoderAPI {
   void OnEGLImagesCreationCompleted();
 
  private:
-  VideoDecoderDelegate* delegate_;
+  VideoDecoderClient* client_;
   std::vector<WritableBufferRef*> empty_output_buffer;
   std::shared_ptr<mcil::decoder::VideoDecoder> video_decoder_;
 

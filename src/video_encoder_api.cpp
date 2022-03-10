@@ -35,8 +35,8 @@ mcil::SupportedProfiles VideoEncoderAPI::GetSupportedProfiles() {
   return mcil::encoder::VideoEncoder::GetSupportedProfiles();
 }
 
-VideoEncoderAPI::VideoEncoderAPI(VideoEncoderDelegate* delegate)
-  : delegate_(delegate) {
+VideoEncoderAPI::VideoEncoderAPI(VideoEncoderClient* client)
+  : client_(client) {
   MCIL_INFO_PRINT(" Ctor");
 }
 
@@ -72,7 +72,7 @@ bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
   }
-  return videoEncoder_ ->Initialize(configData, delegate_);
+  return videoEncoder_ ->Initialize(configData, client_);
 }
 
 bool VideoEncoderAPI::Destroy() {

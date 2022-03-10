@@ -37,8 +37,8 @@ namespace decoder {
   return mcil::decoder::VideoDecoder::GetSupportedProfiles();
 }
 
-VideoDecoderAPI::VideoDecoderAPI(VideoDecoderDelegate* delegate)
-  : delegate_(delegate) {
+VideoDecoderAPI::VideoDecoderAPI(VideoDecoderClient* client)
+  : client_(client) {
   MCIL_INFO_PRINT(" Ctor ");
 }
 
@@ -76,7 +76,7 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
     state_ = kUninitialized;
   }
 
-  return video_decoder_ ->Initialize(decoder_config, delegate_,
+  return video_decoder_ ->Initialize(decoder_config, client_,
       output_pix_fmt, should_control_buffer_feed, vdec_port_index_);
 }
 

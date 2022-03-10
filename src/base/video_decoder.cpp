@@ -42,11 +42,11 @@ VideoDecoder::~VideoDecoder() {
 }
 
 bool VideoDecoder::Initialize(const DecoderConfig* decoderConfig,
-                              VideoDecoderDelegate* delegate,
+                              VideoDecoderClient* client,
                               VideoPixelFormat* output_pix_fmt,
                               bool* should_control_buffer_feed,
                               int32_t vdec_port_index) {
-  delegate_ = delegate;
+  client_ = client;
   return true;
 }
 

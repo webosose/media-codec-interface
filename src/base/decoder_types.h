@@ -17,15 +17,11 @@
 #ifndef SRC_BASE_DECODER_TYPES_H_
 #define SRC_BASE_DECODER_TYPES_H_
 
-#include <chrono>
-
 #include "codec_types.h"
 #include "optional.h"
 #include "ref_counted.h"
 
 namespace mcil {
-
-typedef std::chrono::_V2::system_clock::time_point 	ChronoTime;
 
 // Same as the enum Error defined in upstream Chromium file
 // media/video/video_decode_accelerator.h

@@ -25,13 +25,13 @@ namespace mcil {
 namespace encoder {
 
 class VideoEncoder;
-class VideoEncoderDelegate;
+class VideoEncoderClient;
 
 class VideoEncoderAPI {
  public:
   static mcil::SupportedProfiles GetSupportedProfiles();
 
-  VideoEncoderAPI(VideoEncoderDelegate* delegate);
+  VideoEncoderAPI(VideoEncoderClient* client);
   ~VideoEncoderAPI();
 
   bool Initialize(const EncoderConfig* configData);
@@ -48,7 +48,7 @@ class VideoEncoderAPI {
   bool UpdateEncodingParams(const EncodingParams* properties);
 
  private:
-  VideoEncoderDelegate* delegate_;
+  VideoEncoderClient* client_;
   std::shared_ptr<mcil::encoder::VideoEncoder> videoEncoder_;
   int32_t venc_port_index_ = -1;
   std::string resources_ = "";

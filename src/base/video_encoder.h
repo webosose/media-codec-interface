@@ -19,7 +19,7 @@
 
 #include "video_encoder_api.h"
 #include "encoder_types.h"
-#include "video_encoder_delegate.h"
+#include "video_encoder_client.h"
 
 namespace mcil {
 
@@ -35,7 +35,7 @@ class VideoEncoder {
   ~VideoEncoder();
 
   virtual bool Initialize(const EncoderConfig* configData,
-                          VideoEncoderDelegate* delegate);
+                          VideoEncoderClient* client);
   virtual bool Destroy();
   virtual bool EncodeBuffers(const uint8_t* yBuf, size_t ySize,
                              const uint8_t* uBuf, size_t uSize,
@@ -52,7 +52,7 @@ class VideoEncoder {
   friend class LxVideoEncoder;
 
   EncoderConfig* configData_;
-  VideoEncoderDelegate* delegate_ = nullptr;
+  VideoEncoderClient* client_ = nullptr;
 };
 
 }  // namespace encoder

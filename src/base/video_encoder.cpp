@@ -44,8 +44,8 @@ VideoEncoder::~VideoEncoder() {
 }
 
 bool VideoEncoder::Initialize(const EncoderConfig* configData,
-                              VideoEncoderDelegate* delegate) {
-  delegate_ = delegate;
+                              VideoEncoderClient* client) {
+  client_ = client;
   return true;
 }
 

@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 
+#include <chrono>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -176,6 +177,8 @@ class SupportedProfile {
 };
 
 typedef std::vector<mcil::SupportedProfile> SupportedProfiles;
+
+typedef std::chrono::_V2::system_clock::time_point 	ChronoTime;
 
 std::string FourccToString(uint32_t fourcc);
 

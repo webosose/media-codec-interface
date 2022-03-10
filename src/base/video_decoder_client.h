@@ -22,9 +22,9 @@
 namespace mcil {
 
 namespace decoder {
-// Video decoder delegate interface. This interface is implemented
+// Video decoder client interface. This interface is implemented
 // by the components that uses the VideoDecoderAPI.
-class VideoDecoderDelegate {
+class VideoDecoderClient {
  public:
   virtual bool CreateOutputBuffers(VideoPixelFormat pixel_format,
                                    uint32_t buffer_count,
@@ -49,7 +49,7 @@ class VideoDecoderDelegate {
   virtual void NotifyDecodeBufferDone() = 0;
 
  protected:
-  virtual ~VideoDecoderDelegate() = default;
+  virtual ~VideoDecoderClient() = default;
 };
 
 }  // namespace decoder

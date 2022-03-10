@@ -23,16 +23,16 @@ namespace mcil {
 
 namespace encoder {
 
-// Video encoder delegate interface. This interface is implemented
+// Video encoder client interface. This interface is implemented
 // by the components that uses the VideoEncoderAPI.
-class VideoEncoderDelegate {
+class VideoEncoderClient {
  public:
   virtual void EncodedBufferReady(const uint8_t* buffer,
                                   size_t buffer_size,
                                   uint64_t timestamp,
                                   bool is_key_frame) = 0;
  protected:
-  virtual ~VideoEncoderDelegate() = default;
+  virtual ~VideoEncoderClient() = default;
 };
 
 }  // namespace encoder

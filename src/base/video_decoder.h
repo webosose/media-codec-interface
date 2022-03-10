@@ -19,7 +19,7 @@
 
 #include "video_decoder_api.h"
 #include "decoder_types.h"
-#include "video_decoder_delegate.h"
+#include "video_decoder_client.h"
 
 namespace mcil {
 
@@ -34,7 +34,7 @@ class VideoDecoder {
   ~VideoDecoder();
 
   virtual bool Initialize(const DecoderConfig* config,
-                          VideoDecoderDelegate* delegate,
+                          VideoDecoderClient* client,
                           VideoPixelFormat* output_pix_fmt,
                           bool* should_control_buffer_feed,
                           int32_t vdec_port_index);
@@ -67,7 +67,7 @@ class VideoDecoder {
  private:
 
   std::vector<WritableBufferRef*> empty_output_buffer;
-  VideoDecoderDelegate* delegate_ = nullptr;
+  VideoDecoderClient* client_ = nullptr;
 };
 
 }  // namespace decoder

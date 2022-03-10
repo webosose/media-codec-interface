@@ -51,8 +51,8 @@ set(MEDIA_CODEC_INTERFACE_HEADERS
     base/scoped_refptr.h
     base/thread.h
     base/video_decoder.h
-    base/video_decoder_delegate.h
-    base/video_encoder_delegate.h
+    base/video_decoder_client.h
+    base/video_encoder_client.h
     base/video_encoder.h
     video_decoder_api.h
     video_encoder_api.h)
