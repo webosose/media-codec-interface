@@ -105,9 +105,9 @@ size_t VideoDecoder::GetFreeBuffersCount(QueueType queue_type) {
   return 0;
 }
 
-std::vector<WritableBufferRef*>
-VideoDecoder::AllocateOutputBuffers(std::vector<OutputRecord>* records) {
-  return empty_output_buffer;
+bool VideoDecoder::AllocateOutputBuffers(
+    uint32_t count, std::vector<WritableBufferRef*>& buffers) {
+  return false;
 }
 
 bool VideoDecoder::CanCreateEGLImageFrom(VideoPixelFormat pixel_format) {

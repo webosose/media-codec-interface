@@ -83,7 +83,7 @@ scoped_refptr<VideoFrame> VideoFrame::Create(const mcil::Size& size) {
 }
 
 VideoFrame::VideoFrame(const mcil::Size& size)
- : size(size.width, size.height) {}
+ : coded_size(size.width, size.height) {}
 
 VideoFrame::~VideoFrame() {}
 

@@ -59,14 +59,12 @@ class VideoDecoder {
 
   virtual bool GetCurrentInputBufferId(int32_t* buffer_id);
   virtual size_t GetFreeBuffersCount(QueueType queue_type);
-  virtual std::vector<WritableBufferRef*> AllocateOutputBuffers(
-      std::vector<OutputRecord>* output_records);
+  virtual bool AllocateOutputBuffers(
+      uint32_t count, std::vector<WritableBufferRef*>& buffers);
   virtual bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format);
   virtual void OnEGLImagesCreationCompleted();
 
  private:
-
-  std::vector<WritableBufferRef*> empty_output_buffer;
   VideoDecoderClient* client_ = nullptr;
 };
 

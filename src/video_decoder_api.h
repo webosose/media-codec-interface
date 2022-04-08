@@ -57,13 +57,14 @@ class VideoDecoderAPI {
   void SetDecoderState(DecoderState state);
   bool GetCurrentInputBufferId(int32_t* buffer_id);
   size_t GetFreeBuffersCount(QueueType queue_type);
-  std::vector<WritableBufferRef*> AllocateOutputBuffers(std::vector<OutputRecord>*);
+  bool AllocateOutputBuffers(uint32_t count,
+                             std::vector<WritableBufferRef*>& buffers);
   bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format);
   void OnEGLImagesCreationCompleted();
 
  private:
   VideoDecoderClient* client_;
-  std::vector<WritableBufferRef*> empty_output_buffer;
+
   std::shared_ptr<mcil::decoder::VideoDecoder> video_decoder_;
 
   int32_t vdec_port_index_ = -1;

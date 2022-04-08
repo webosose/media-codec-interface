@@ -114,7 +114,7 @@ class VideoFrame : public RefCounted<VideoFrame> {
   static  scoped_refptr<VideoFrame> Create(const mcil::Size& size);
 
   VideoPixelFormat format;
-  Size size;
+  Size coded_size;
   size_t num_buffers;
   std::vector<ColorPlane> color_planes;
   std::vector<uint32_t> dmabuf_fds;
@@ -162,18 +162,6 @@ class WritableBufferRef {
 
   virtual size_t BufferIndex() const { return 0; }
   virtual scoped_refptr<VideoFrame> GetVideoFrame() { return nullptr; }
-};
-
-class OutputRecord {
- public:
-  OutputRecord() = default;
-  OutputRecord(OutputRecord&&) = default;
-  ~OutputRecord() = default;
-
-  void* egl_image = nullptr;
-  int32_t picture_id = 0;
-  uint32_t texture_id = 0;
-  bool cleared = false;
 };
 
 }  // namespace mcil

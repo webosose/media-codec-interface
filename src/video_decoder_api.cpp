@@ -210,13 +210,14 @@ size_t VideoDecoderAPI::GetFreeBuffersCount(QueueType queue_type) {
   return video_decoder_->GetFreeBuffersCount(queue_type);
 }
 
-std::vector<WritableBufferRef*>
-VideoDecoderAPI::AllocateOutputBuffers(std::vector<OutputRecord>* records) {
+
+bool VideoDecoderAPI::AllocateOutputBuffers(
+    uint32_t count, std::vector<WritableBufferRef*>& buffers) {
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
-    return empty_output_buffer;
+    return false;
   }
-  return video_decoder_->AllocateOutputBuffers(records);
+  return video_decoder_->AllocateOutputBuffers(count, buffers);
 }
 
 bool VideoDecoderAPI::CanCreateEGLImageFrom(VideoPixelFormat pixel_format) {
