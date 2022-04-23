@@ -23,15 +23,13 @@
 
 namespace mcil {
 
-namespace decoder {
-
 class VideoDecoder {
  public:
   static std::shared_ptr<VideoDecoder> Create(VideoCodecType type);
   static mcil::SupportedProfiles GetSupportedProfiles();
 
   VideoDecoder();
-  ~VideoDecoder();
+  virtual ~VideoDecoder();
 
   virtual bool Initialize(const DecoderConfig* config,
                           VideoDecoderClient* client,
@@ -67,8 +65,6 @@ class VideoDecoder {
  private:
   VideoDecoderClient* client_ = nullptr;
 };
-
-}  // namespace decoder
 
 }  // namespace mcil
 

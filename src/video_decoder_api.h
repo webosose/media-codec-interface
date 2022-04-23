@@ -22,8 +22,6 @@
 
 namespace mcil {
 
-namespace decoder {
-
 class VideoDecoder;
 class VideoDecoderClient;
 
@@ -32,7 +30,7 @@ class VideoDecoderAPI {
   VideoDecoderAPI(VideoDecoderClient* client);
   ~VideoDecoderAPI();
 
-  static mcil::SupportedProfiles GetSupportedProfiles();
+  static SupportedProfiles GetSupportedProfiles();
 
   bool Initialize(const DecoderConfig* decoder_config,
                   VideoPixelFormat* output_pix_fmt,
@@ -65,15 +63,13 @@ class VideoDecoderAPI {
  private:
   VideoDecoderClient* client_;
 
-  std::shared_ptr<mcil::decoder::VideoDecoder> video_decoder_;
+  std::shared_ptr<VideoDecoder> video_decoder_;
 
   int32_t vdec_port_index_ = -1;
   std::string resources_ = "";
 
   DecoderState state_ = kUninitialized;
 };
-
-}  // namespace decoder
 
 }  // namespace mcil
 

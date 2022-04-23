@@ -26,15 +26,13 @@
 #include "base/video_decoder.h"
 #include "resource/video_resource.h"
 
-#define MCIL_MAX_FRAME_RATE 60 //Set to maximum framerate supported in webcodec
+#define MCIL_MAX_FRAME_RATE 60 // Set to maximum framerate supported in webcodec
 
 namespace mcil {
 
-namespace decoder {
-
- mcil::SupportedProfiles VideoDecoderAPI::GetSupportedProfiles() {
+SupportedProfiles VideoDecoderAPI::GetSupportedProfiles() {
   MCIL_INFO_PRINT(" ");
-  return mcil::decoder::VideoDecoder::GetSupportedProfiles();
+  return VideoDecoder::GetSupportedProfiles();
 }
 
 VideoDecoderAPI::VideoDecoderAPI(VideoDecoderClient* client)
@@ -54,7 +52,7 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
   MCIL_INFO_PRINT(" frameHeight = %d", decoder_config->frameHeight);
   MCIL_INFO_PRINT(" codecType = %d", decoder_config->codecType);
 
-  if (!VideoResource::GetInstance().Acquire(V4L2_DECODER,
+  if (!mcil::decoder::VideoResource::GetInstance().Acquire(V4L2_DECODER,
                                             decoder_config->codecType,
                                             decoder_config->frameWidth,
                                             decoder_config->frameHeight,
@@ -82,7 +80,7 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
 
 void VideoDecoderAPI::Destroy() {
   if (vdec_port_index_ != -1)
-    VideoResource::GetInstance().Release(V4L2_DECODER,
+    mcil::decoder::VideoResource::GetInstance().Release(V4L2_DECODER,
                                          resources_,
                                          vdec_port_index_);
 
@@ -237,7 +235,5 @@ void VideoDecoderAPI::OnEGLImagesCreationCompleted() {
 
   return video_decoder_->OnEGLImagesCreationCompleted();
 }
-
-} // namespace decoder
 
 }  // namespace mcil

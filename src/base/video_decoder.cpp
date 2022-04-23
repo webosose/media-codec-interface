@@ -33,8 +33,6 @@
 
 namespace mcil {
 
-namespace decoder {
-
 VideoDecoder::VideoDecoder() {
 }
 
@@ -116,7 +114,5 @@ bool VideoDecoder::CanCreateEGLImageFrom(VideoPixelFormat pixel_format) {
 
 void VideoDecoder::OnEGLImagesCreationCompleted() {
 }
-
-}  // namespace decoder
 
 }  // namespace mcil

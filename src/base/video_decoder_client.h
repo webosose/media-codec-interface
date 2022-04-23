@@ -21,7 +21,6 @@
 
 namespace mcil {
 
-namespace decoder {
 // Video decoder client interface. This interface is implemented
 // by the components that uses the VideoDecoderAPI.
 class VideoDecoderClient {
@@ -51,8 +50,6 @@ class VideoDecoderClient {
  protected:
   virtual ~VideoDecoderClient() = default;
 };
-
-}  // namespace decoder
 
 }  // namespace mcil
 
