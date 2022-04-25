@@ -32,8 +32,6 @@ namespace uMediaServer {   class ResourceManagerClient; }
 
 namespace mcil {
 
-namespace decoder {
-
 struct videoResData_t {
   VideoCodecType vcodec;
   VideoCodecType vdecode;
@@ -130,7 +128,6 @@ class ResourceRequestor {
   bool allowPolicy_;
 };
 
-}  // namespace decoder
 }  // namespace MCIL
 
 #endif  // SRC_RESOURCE_REQUESTOR_H_

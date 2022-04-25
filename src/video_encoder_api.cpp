@@ -28,11 +28,9 @@
 
 namespace mcil {
 
-namespace encoder {
-
-mcil::SupportedProfiles VideoEncoderAPI::GetSupportedProfiles() {
+SupportedProfiles VideoEncoderAPI::GetSupportedProfiles() {
   MCIL_INFO_PRINT(" Called");
-  return mcil::encoder::VideoEncoder::GetSupportedProfiles();
+  return VideoEncoder::GetSupportedProfiles();
 }
 
 VideoEncoderAPI::VideoEncoderAPI(VideoEncoderClient* client)
@@ -43,9 +41,9 @@ VideoEncoderAPI::VideoEncoderAPI(VideoEncoderClient* client)
 VideoEncoderAPI::~VideoEncoderAPI() {
   MCIL_INFO_PRINT(" Dtor");
   if (venc_port_index_ != -1)
-    mcil::decoder::VideoResource::GetInstance().Release(V4L2_ENCODER,
-                                                        resources_,
-                                                        venc_port_index_);
+    VideoResource::GetInstance().Release(V4L2_ENCODER,
+                                         resources_,
+                                         venc_port_index_);
 }
 
 bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
@@ -56,7 +54,7 @@ bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
   MCIL_INFO_PRINT(" pixelFormat = %d", configData->pixelFormat);
   MCIL_INFO_PRINT(" codecType = %d", configData->codecType);
 
-  if (!mcil::decoder::VideoResource::GetInstance().Acquire(V4L2_ENCODER,
+  if (!VideoResource::GetInstance().Acquire(V4L2_ENCODER,
                                             configData->codecType,
                                             configData->width,
                                             configData->height,
@@ -67,7 +65,7 @@ bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
     return false;
   }
 
-  videoEncoder_ = mcil::encoder::VideoEncoder::Create(configData->codecType);
+  videoEncoder_ = VideoEncoder::Create(configData->codecType);
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
@@ -77,9 +75,9 @@ bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
 
 bool VideoEncoderAPI::Destroy() {
   if (venc_port_index_ != -1)
-    mcil::decoder::VideoResource::GetInstance().Release(V4L2_ENCODER,
-                                                        resources_,
-                                                        venc_port_index_);
+    VideoResource::GetInstance().Release(V4L2_ENCODER,
+                                         resources_,
+                                         venc_port_index_);
 
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
@@ -129,7 +127,5 @@ bool VideoEncoderAPI::UpdateEncodingParams(const EncodingParams* properties) {
 
   return videoEncoder_->UpdateEncodingParams(properties);
 }
-
-} // namespace encoder
 
 }  // namespace mcil

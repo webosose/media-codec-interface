@@ -29,8 +29,6 @@ class UMSConnectorMessage;
 
 namespace mcil {
 
-namespace decoder {
-
 class ResourceRequestor;
 struct source_info_t;
 
@@ -66,8 +64,6 @@ class VideoResource {
   std::set<int32_t> venc_index_list_;
   mutable std::mutex mutex_;
 };
-
-}  // namespace decoder
 
 }  // namespace mcil
 

@@ -34,8 +34,6 @@
 
 namespace mcil {
 
-namespace decoder {
-
 //Static member definition
 VideoResource& VideoResource::GetInstance() {
   static VideoResource rm_instance;
@@ -159,7 +157,5 @@ bool VideoResource::Release(DeviceType device_type,
 
   return false;
 }
-
-}  // namespace decoder
 
 }  // namespace mcil

@@ -35,14 +35,6 @@
 
 namespace mcil {
 
-namespace encoder {
-
-VideoEncoder::VideoEncoder() {
-}
-
-VideoEncoder::~VideoEncoder() {
-}
-
 bool VideoEncoder::Initialize(const EncoderConfig* configData,
                               VideoEncoderClient* client) {
   client_ = client;
@@ -72,7 +64,5 @@ bool VideoEncoder::UpdateEncodingParams(const EncodingParams* properties) {
 bool VideoEncoder::UpdateEncodingResolution(uint32_t width, uint32_t height) {
   return false;
 }
-
-}  // namespace encoder
 
 }  // namespace mcil

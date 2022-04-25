@@ -14,14 +14,12 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef SRC_BASE_VIDEO_ENCODER_DELEGATE_H_
-#define SRC_BASE_VIDEO_ENCODER_DELEGATE_H_
+#ifndef SRC_BASE_VIDEO_ENCODER_CLIENT_H_
+#define SRC_BASE_VIDEO_ENCODER_CLIENT_H_
 
 #include "decoder_types.h"
 
 namespace mcil {
-
-namespace encoder {
 
 // Video encoder client interface. This interface is implemented
 // by the components that uses the VideoEncoderAPI.
@@ -35,8 +33,6 @@ class VideoEncoderClient {
   virtual ~VideoEncoderClient() = default;
 };
 
-}  // namespace encoder
-
 }  // namespace mcil
 
-#endif  // SRC_BASE_VIDEO_ENCODER_DELEGATE_H_
+#endif  // SRC_BASE_VIDEO_ENCODER_CLIENT_H_

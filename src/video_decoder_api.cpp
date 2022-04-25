@@ -52,7 +52,7 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
   MCIL_INFO_PRINT(" frameHeight = %d", decoder_config->frameHeight);
   MCIL_INFO_PRINT(" codecType = %d", decoder_config->codecType);
 
-  if (!mcil::decoder::VideoResource::GetInstance().Acquire(V4L2_DECODER,
+  if (!VideoResource::GetInstance().Acquire(V4L2_DECODER,
                                             decoder_config->codecType,
                                             decoder_config->frameWidth,
                                             decoder_config->frameHeight,
@@ -80,7 +80,7 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
 
 void VideoDecoderAPI::Destroy() {
   if (vdec_port_index_ != -1)
-    mcil::decoder::VideoResource::GetInstance().Release(V4L2_DECODER,
+    VideoResource::GetInstance().Release(V4L2_DECODER,
                                          resources_,
                                          vdec_port_index_);
 

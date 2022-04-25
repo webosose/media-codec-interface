@@ -23,16 +23,14 @@
 
 namespace mcil {
 
-namespace encoder {
-
 class VideoEncoder {
  public:
   static std::shared_ptr<VideoEncoder> Create(VideoCodecType type);
 
-  static mcil::SupportedProfiles GetSupportedProfiles();
+  static SupportedProfiles GetSupportedProfiles();
 
-  VideoEncoder();
-  ~VideoEncoder();
+  VideoEncoder() = default;
+  virtual ~VideoEncoder() = default;
 
   virtual bool Initialize(const EncoderConfig* configData,
                           VideoEncoderClient* client);
@@ -54,8 +52,6 @@ class VideoEncoder {
   EncoderConfig* configData_;
   VideoEncoderClient* client_ = nullptr;
 };
-
-}  // namespace encoder
 
 }  // namespace mcil
 

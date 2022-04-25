@@ -38,8 +38,6 @@ using namespace pbnjson;
 
 namespace mcil {
 
-namespace decoder {
-
 ResourceRequestor::ResourceRequestor(const std::string& connectionId)
   : rc_(std::shared_ptr<MRC>(MRC::create())),
     cb_(nullptr),
@@ -372,5 +370,4 @@ bool ResourceRequestor::SetSourceInfo(const source_info_t &sourceInfo) {
   return true;
 }
 
-}  // namespace decoder
 }  // namespace mcil
