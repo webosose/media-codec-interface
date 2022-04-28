@@ -17,20 +17,16 @@
 #ifndef SRC_BASE_VIDEO_ENCODER_H_
 #define SRC_BASE_VIDEO_ENCODER_H_
 
-#include "video_encoder_api.h"
 #include "encoder_types.h"
-#include "video_encoder_client.h"
 
 namespace mcil {
 
-class VideoEncoder {
+class VideoEncoderClient;
+
+class VideoEncoder : public RefCounted<VideoEncoder> {
  public:
-  static std::shared_ptr<VideoEncoder> Create(VideoCodecType type);
-
   static SupportedProfiles GetSupportedProfiles();
-
-  VideoEncoder() = default;
-  virtual ~VideoEncoder() = default;
+  static scoped_refptr<VideoEncoder> Create(VideoCodecType type);
 
   virtual bool Initialize(const EncoderConfig* configData,
                           VideoEncoderClient* client);
@@ -45,12 +41,11 @@ class VideoEncoder {
   virtual bool UpdateEncodingResolution(uint32_t width, uint32_t height);
   virtual bool UpdateEncodingParams(const EncodingParams* properties);
 
- private:
-  friend class GstVideoEncoder;
-  friend class LxVideoEncoder;
+protected:
+  friend class RefCounted<VideoEncoder>;
 
-  EncoderConfig* configData_;
-  VideoEncoderClient* client_ = nullptr;
+  VideoEncoder();
+  virtual ~VideoEncoder();
 };
 
 }  // namespace mcil

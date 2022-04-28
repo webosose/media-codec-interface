@@ -14,10 +14,11 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef SRC_BASE_VIDEO_DECODER_DELEGATE_H_
-#define SRC_BASE_VIDEO_DECODER_DELEGATE_H_
+#ifndef SRC_BASE_VIDEO_DECODER_CLIENT_H_
+#define SRC_BASE_VIDEO_DECODER_CLIENT_H_
 
 #include "decoder_types.h"
+#include "video_buffers.h"
 
 namespace mcil {
 
@@ -36,8 +37,8 @@ class VideoDecoderClient {
   virtual bool IsDestroyPending() = 0;
   virtual void OnStartDevicePoll() = 0;
   virtual void OnStopDevicePoll() = 0;
-  virtual void CreateBuffersForFormat(const mcil::Size& coded_size,
-                                      const mcil::Size& visible_size) = 0;
+  virtual void CreateBuffersForFormat(const Size& coded_size,
+                                      const Size& visible_size) = 0;
   virtual void SendBufferToClient(
       size_t buffer_index, int32_t buffer_id, ReadableBufferRef buffer) = 0;
   virtual void CheckGLFences() = 0;
@@ -53,4 +54,4 @@ class VideoDecoderClient {
 
 }  // namespace mcil
 
-#endif  // SRC_BASE_VIDEO_DECODER_DELEGATE_H_
+#endif  // SRC_BASE_VIDEO_DECODER_CLIENT_H_

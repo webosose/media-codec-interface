@@ -14,6 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+#include "video_encoder_api.h"
 
 #include <functional>
 #include <vector>
@@ -24,22 +25,21 @@
 #include "base/encoder_types.h"
 #include "base/video_encoder.h"
 #include "resource/video_resource.h"
-#include "video_encoder_api.h"
 
 namespace mcil {
 
+// static
 SupportedProfiles VideoEncoderAPI::GetSupportedProfiles() {
-  MCIL_INFO_PRINT(" Called");
   return VideoEncoder::GetSupportedProfiles();
 }
 
 VideoEncoderAPI::VideoEncoderAPI(VideoEncoderClient* client)
   : client_(client) {
-  MCIL_INFO_PRINT(" Ctor");
+  MCIL_DEBUG_PRINT(" Ctor");
 }
 
 VideoEncoderAPI::~VideoEncoderAPI() {
-  MCIL_INFO_PRINT(" Dtor");
+  MCIL_DEBUG_PRINT(" Dtor");
   if (venc_port_index_ != -1)
     VideoResource::GetInstance().Release(V4L2_ENCODER,
                                          resources_,
@@ -47,12 +47,7 @@ VideoEncoderAPI::~VideoEncoderAPI() {
 }
 
 bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
-  MCIL_INFO_PRINT(" configData = %p", configData);
-  MCIL_INFO_PRINT(" width = %d", configData->width);
-  MCIL_INFO_PRINT(" height = %d", configData->height);
-  MCIL_INFO_PRINT(" FrameRate = %d", configData->frameRate);
-  MCIL_INFO_PRINT(" pixelFormat = %d", configData->pixelFormat);
-  MCIL_INFO_PRINT(" codecType = %d", configData->codecType);
+  MCIL_DEBUG_PRINT(" encoder_config = %p", configData);
 
   if (!VideoResource::GetInstance().Acquire(V4L2_ENCODER,
                                             configData->codecType,

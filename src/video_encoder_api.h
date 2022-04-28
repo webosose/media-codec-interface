@@ -14,7 +14,6 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-
 #ifndef SRC_VIDEO_ENCODER_API_H_
 #define SRC_VIDEO_ENCODER_API_H_
 
@@ -47,7 +46,7 @@ class VideoEncoderAPI {
 
  private:
   VideoEncoderClient* client_;
-  std::shared_ptr<VideoEncoder> videoEncoder_;
+  scoped_refptr<VideoEncoder> videoEncoder_;
   int32_t venc_port_index_ = -1;
   std::string resources_ = "";
 };

@@ -33,18 +33,15 @@
 
 namespace mcil {
 
-VideoDecoder::VideoDecoder() {
-}
+VideoDecoder::VideoDecoder() = default;
 
-VideoDecoder::~VideoDecoder() {
-}
+VideoDecoder::~VideoDecoder() = default;
 
 bool VideoDecoder::Initialize(const DecoderConfig* decoderConfig,
                               VideoDecoderClient* client,
                               VideoPixelFormat* output_pix_fmt,
-                              bool* should_control_buffer_feed,
-                              int32_t vdec_port_index) {
-  client_ = client;
+                              int32_t vdec_port_index,
+                              bool* should_control_buffer_feed) {
   return true;
 }
 
@@ -63,8 +60,10 @@ bool VideoDecoder::CanNotifyResetDone() {
   return true;
 }
 
-bool VideoDecoder::FeedBuffers(
-    const void* buffer, size_t size, const int32_t id, int64_t buffer_pts) {
+bool VideoDecoder::DecodeBuffer(const void* buffer,
+                                size_t size,
+                                const int32_t id,
+                                int64_t buffer_pts) {
   return false;
 }
 
@@ -92,7 +91,7 @@ void VideoDecoder::RunDecodeBufferTask(bool event_pending, bool has_output) {
 void VideoDecoder::RunDecoderPostTask(PostTaskType task, bool value) {
 }
 
-void VideoDecoder::SetDecoderState(DecoderState state) {
+void VideoDecoder::SetDecoderState(CodecState state) {
 }
 
 bool VideoDecoder::GetCurrentInputBufferId(int32_t* buffer_id) {

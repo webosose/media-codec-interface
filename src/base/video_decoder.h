@@ -17,32 +17,30 @@
 #ifndef SRC_BASE_VIDEO_DECODER_H_
 #define SRC_BASE_VIDEO_DECODER_H_
 
-#include "video_decoder_api.h"
 #include "decoder_types.h"
-#include "video_decoder_client.h"
+#include "video_buffers.h"
 
 namespace mcil {
 
-class VideoDecoder {
- public:
-  static std::shared_ptr<VideoDecoder> Create(VideoCodecType type);
-  static mcil::SupportedProfiles GetSupportedProfiles();
+class VideoDecoderClient;
 
-  VideoDecoder();
-  virtual ~VideoDecoder();
+class VideoDecoder : public RefCounted<VideoDecoder> {
+ public:
+  static SupportedProfiles GetSupportedProfiles();
+  static scoped_refptr<VideoDecoder> Create(VideoCodecType type);
 
   virtual bool Initialize(const DecoderConfig* config,
                           VideoDecoderClient* client,
                           VideoPixelFormat* output_pix_fmt,
-                          bool* should_control_buffer_feed,
-                          int32_t vdec_port_index);
+                          int32_t vdec_port_index,
+                          bool* should_control_buffer_feed);
   virtual void Destroy();
   virtual bool ResetInputBuffer();
   virtual bool ResetDecodingBuffers(bool* reset_pending);
   virtual bool CanNotifyResetDone();
 
-  virtual bool FeedBuffers(const void* buffer, size_t size,
-                           const int32_t id, int64_t buffer_pts);
+  virtual bool DecodeBuffer(const void* buffer, size_t size,
+                            const int32_t id, int64_t buffer_pts);
   virtual bool FlushInputBuffers();
   virtual bool DidFlushBuffersDone();
 
@@ -53,7 +51,7 @@ class VideoDecoder {
   virtual void RunDecodeBufferTask(bool event_pending, bool has_output);
   virtual void RunDecoderPostTask(PostTaskType task, bool value);
 
-  virtual void SetDecoderState(DecoderState state);
+  virtual void SetDecoderState(CodecState state);
 
   virtual bool GetCurrentInputBufferId(int32_t* buffer_id);
   virtual size_t GetFreeBuffersCount(QueueType queue_type);
@@ -62,8 +60,11 @@ class VideoDecoder {
   virtual bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format);
   virtual void OnEGLImagesCreationCompleted();
 
- private:
-  VideoDecoderClient* client_ = nullptr;
+ protected:
+  friend class RefCounted<VideoDecoder>;
+
+  VideoDecoder();
+  virtual ~VideoDecoder();
 };
 
 }  // namespace mcil

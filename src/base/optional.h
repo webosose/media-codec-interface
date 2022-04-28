@@ -371,20 +371,20 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
 
   static_assert(
       !std::is_same<internal::RemoveCvRefT<T>, internal::in_place_t>::value,
-      "instantiation of mcil::Optional with in_place_t is ill-formed");
+      "instantiation of Optional with in_place_t is ill-formed");
   static_assert(!std::is_same<internal::RemoveCvRefT<T>, nullopt_t>::value,
-                "instantiation of mcil::Optional with nullopt_t is ill-formed");
+                "instantiation of Optional with nullopt_t is ill-formed");
   static_assert(
       !std::is_reference<T>::value,
-      "instantiation of mcil::Optional with a reference type is ill-formed");
+      "instantiation of Optional with a reference type is ill-formed");
 
   static_assert(std::is_destructible<T>::value,
-                "instantiation of mcil::Optional with a non-destructible type "
+                "instantiation of Optional with a non-destructible type "
                 "is ill-formed");
 
   static_assert(
       !std::is_array<T>::value,
-      "instantiation of mcil::Optional with an array type is ill-formed");
+      "instantiation of Optional with an array type is ill-formed");
 
  public:
 #undef OPTIONAL_DECLSPEC_EMPTY_BASES

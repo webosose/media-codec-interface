@@ -26,26 +26,26 @@ namespace mcil {
  */
 class EncodingParams {
  public:
-  EncodingParams() = default;
-  ~EncodingParams() = default;
+  EncodingParams();
+  ~EncodingParams();
 
-  uint32_t bitRate;
-  uint32_t frameRate;
+  uint32_t bitRate = 0;
+  uint32_t frameRate = 0;
 };
 
-/* Encoder config data structure */
+/* Class for Encoder config data */
 class EncoderConfig {
  public:
-  EncoderConfig() = default;
-  ~EncoderConfig() = default;
+  EncoderConfig();
+  ~EncoderConfig();
 
-  uint32_t frameRate;
-  uint32_t bitRate;
-  uint32_t width;
-  uint32_t height;
-  VideoPixelFormat pixelFormat;
-  VideoCodecType codecType;
-  uint32_t bufferSize;
+  uint32_t frameRate = 0;
+  uint32_t bitRate = 0;
+  uint32_t width = 0;
+  uint32_t height = 0;
+  VideoPixelFormat pixelFormat = PIXEL_FORMAT_UNKNOWN;
+  VideoCodecType codecType = VIDEO_CODEC_NONE;
+  uint32_t bufferSize = 0;
 };
 
 }  // namespace mcil

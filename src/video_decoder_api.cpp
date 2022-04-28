@@ -14,6 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+#include "video_decoder_api.h"
 
 #include <functional>
 #include <vector>
@@ -21,36 +22,32 @@
 
 #include <base/log.h>
 
-#include "video_decoder_api.h"
 #include "base/decoder_types.h"
 #include "base/video_decoder.h"
 #include "resource/video_resource.h"
 
-#define MCIL_MAX_FRAME_RATE 60 // Set to maximum framerate supported in webcodec
+#define MCIL_MAX_FRAME_RATE 60 //Set to maximum framerate supported in webcodec
 
 namespace mcil {
 
+// static
 SupportedProfiles VideoDecoderAPI::GetSupportedProfiles() {
-  MCIL_INFO_PRINT(" ");
   return VideoDecoder::GetSupportedProfiles();
 }
 
 VideoDecoderAPI::VideoDecoderAPI(VideoDecoderClient* client)
   : client_(client) {
-  MCIL_INFO_PRINT(" Ctor ");
+  MCIL_DEBUG_PRINT(" Ctor ");
 }
 
 VideoDecoderAPI::~VideoDecoderAPI() {
-  MCIL_INFO_PRINT(" Dtor ");
+  MCIL_DEBUG_PRINT(" Dtor ");
 }
 
 bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
                                  VideoPixelFormat* output_pix_fmt,
                                  bool* should_control_buffer_feed) {
-  MCIL_INFO_PRINT(" decoder_config = %p", decoder_config);
-  MCIL_INFO_PRINT(" frameWidth = %d", decoder_config->frameWidth);
-  MCIL_INFO_PRINT(" frameHeight = %d", decoder_config->frameHeight);
-  MCIL_INFO_PRINT(" codecType = %d", decoder_config->codecType);
+  MCIL_DEBUG_PRINT(" decoder_config = %p", decoder_config);
 
   if (!VideoResource::GetInstance().Acquire(V4L2_DECODER,
                                             decoder_config->codecType,
@@ -75,7 +72,7 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
   }
 
   return video_decoder_ ->Initialize(decoder_config, client_,
-      output_pix_fmt, should_control_buffer_feed, vdec_port_index_);
+      output_pix_fmt, vdec_port_index_, should_control_buffer_feed);
 }
 
 void VideoDecoderAPI::Destroy() {
@@ -83,12 +80,10 @@ void VideoDecoderAPI::Destroy() {
     VideoResource::GetInstance().Release(V4L2_DECODER,
                                          resources_,
                                          vdec_port_index_);
-
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
     return;
   }
-
   return video_decoder_->Destroy();
 }
 
@@ -116,13 +111,15 @@ bool VideoDecoderAPI::CanNotifyResetDone() {
   return video_decoder_->CanNotifyResetDone();
 }
 
-bool VideoDecoderAPI::FeedBuffers(
-    const void* buffer, size_t size, const int32_t id, int64_t buffer_pts) {
+bool VideoDecoderAPI::DecodeBuffer(const void* buffer,
+                                   size_t size,
+                                   const int32_t id,
+                                   int64_t buffer_pts) {
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
     return false;
   }
-  return video_decoder_->FeedBuffers(buffer, size, id, buffer_pts);
+  return video_decoder_->DecodeBuffer(buffer, size, id, buffer_pts);
 }
 
 bool VideoDecoderAPI::FlushInputBuffers() {
@@ -183,7 +180,7 @@ void VideoDecoderAPI::RunDecoderPostTask(PostTaskType task, bool value) {
   return video_decoder_->RunDecoderPostTask(task, value);
 }
 
-void VideoDecoderAPI::SetDecoderState(DecoderState state) {
+void VideoDecoderAPI::SetDecoderState(CodecState state) {
   if (!video_decoder_) {
     state_ == state;
     MCIL_INFO_PRINT(" decoder is not created or null. state[%d]", state);

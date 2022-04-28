@@ -54,8 +54,6 @@ bool VideoResource::Acquire(DeviceType device_type,
                             uint32_t frame_rate,
                             std::string& resources,
                             int32_t *vdec_index) {
-  MCIL_INFO_PRINT(": called");
-
   PortResource_t resourceMMap;
   ACQUIRE_RESOURCE_INFO_T resource_info;
 

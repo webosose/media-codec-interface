@@ -45,25 +45,32 @@ set(MEDIA_CODEC_INTERFACE_HEADERS
     base/codec_types.h
     base/decoder_types.h
     base/encoder_types.h
-    base/fourcc_value.h
+    base/fourcc.h
     base/optional.h
     base/ref_counted.h
     base/scoped_refptr.h
     base/thread.h
+    base/video_buffers.h
     base/video_decoder.h
     base/video_decoder_client.h
     base/video_encoder_client.h
     base/video_encoder.h
+    base/video_frame.h
+    resource/video_resource.h
     video_decoder_api.h
     video_encoder_api.h)
 
 set(MEDIA_CODEC_INTERFACE_SRC
     base/codec_types.cpp
     base/decoder_types.cpp
-    base/fourcc_value.cpp
+    base/encoder_types.cpp
+    base/fourcc.cpp
     base/log.cpp
     base/thread.cpp
+    base/video_buffers.cpp
     base/video_decoder.cpp
+    base/video_encoder.cpp
+    base/video_frame.cpp
     resource/requestor.cpp
     resource/video_resource.cpp
     video_decoder_api.cpp

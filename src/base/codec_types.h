@@ -1,18 +1,6 @@
-// Copyright (c) 2021 LG Electronics, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2015 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef SRC_BASE_CODEC_TYPES_H_
 #define SRC_BASE_CODEC_TYPES_H_
@@ -26,7 +14,7 @@
 #include <utility>
 #include <vector>
 
-using namespace std;
+#include "ref_counted.h"
 
 namespace mcil {
 
@@ -51,37 +39,38 @@ enum VideoCodecType {
  * Video Pixel Format enum
  */
 enum VideoPixelFormat {
-  PIXEL_FMT_UNKNOWN = 0,
-  PIXEL_FMT_I420 = 1,
-  PIXEL_FMT_YV12 = 2,
-  PIXEL_FMT_I422 = 3,
-  PIXEL_FMT_I420A = 4,
-  PIXEL_FMT_I444 = 5,
-  PIXEL_FMT_NV12 = 6,
-  PIXEL_FMT_NV21 = 7,
-  PIXEL_FMT_UYVY = 8,
-  PIXEL_FMT_YUY2 = 9,
-  PIXEL_FMT_ARGB = 10,
-  PIXEL_FMT_XRGB = 11,
-  PIXEL_FMT_RGB24 = 12,
-  PIXEL_FMT_MJPEG = 14,
-  PIXEL_FMT_YUV420P9 = 16,
-  PIXEL_FMT_YUV420P10 = 17,
-  PIXEL_FMT_YUV422P9 = 18,
-  PIXEL_FMT_YUV422P10 = 19,
-  PIXEL_FMT_YUV444P9 = 20,
-  PIXEL_FMT_YUV444P10 = 21,
-  PIXEL_FMT_YUV420P12 = 22,
-  PIXEL_FMT_YUV422P12 = 23,
-  PIXEL_FMT_YUV444P12 = 24,
-  PIXEL_FMT_Y16 = 26,
-  PIXEL_FMT_ABGR = 27,
-  PIXEL_FMT_XBGR = 28,
-  PIXEL_FMT_P016LE = 29,
-  PIXEL_FMT_XR30 = 30,
-  PIXEL_FMT_XB30 = 31,
-  PIXEL_FMT_BGRA = 32,
-  PIXEL_FMT_MAX = PIXEL_FMT_BGRA,
+  PIXEL_FORMAT_UNKNOWN = 0,
+  PIXEL_FORMAT_I420 = 1,
+  PIXEL_FORMAT_YV12 = 2,
+  PIXEL_FORMAT_I422 = 3,
+  PIXEL_FORMAT_I420A = 4,
+  PIXEL_FORMAT_I444 = 5,
+  PIXEL_FORMAT_NV12 = 6,
+  PIXEL_FORMAT_NV21 = 7,
+  PIXEL_FORMAT_UYVY = 8,
+  PIXEL_FORMAT_YUY2 = 9,
+  PIXEL_FORMAT_ARGB = 10,
+  PIXEL_FORMAT_XRGB = 11,
+  PIXEL_FORMAT_RGB24 = 12,
+  PIXEL_FORMAT_MJPEG = 14,
+  PIXEL_FORMAT_YUV420P9 = 16,
+  PIXEL_FORMAT_YUV420P10 = 17,
+  PIXEL_FORMAT_YUV422P9 = 18,
+  PIXEL_FORMAT_YUV422P10 = 19,
+  PIXEL_FORMAT_YUV444P9 = 20,
+  PIXEL_FORMAT_YUV444P10 = 21,
+  PIXEL_FORMAT_YUV420P12 = 22,
+  PIXEL_FORMAT_YUV422P12 = 23,
+  PIXEL_FORMAT_YUV444P12 = 24,
+  PIXEL_FORMAT_Y16 = 26,
+  PIXEL_FORMAT_ABGR = 27,
+  PIXEL_FORMAT_XBGR = 28,
+  PIXEL_FORMAT_P016LE = 29,
+  PIXEL_FORMAT_XR30 = 30,
+  PIXEL_FORMAT_XB30 = 31,
+  PIXEL_FORMAT_BGRA = 32,
+  PIXEL_FORMAT_RGBAF16 = 33,
+  PIXEL_FORMAT_MAX = PIXEL_FORMAT_RGBAF16,
 };
 
 /**
@@ -138,6 +127,30 @@ enum DeviceType {
   V4L2_DECODER,
   V4L2_ENCODER,
   JPEG_DECODER,
+  IMAGE_PROCESSOR,
+};
+
+enum QueueType {
+  INVALID_QUEUE,
+  INPUT_QUEUE,
+  OUTPUT_QUEUE,
+};
+
+// Combination of enum State defined in upstream Chromium files
+// v4l2_video_decode_accelerator.h and v4l2_video_encode_accelerator.h
+enum CodecState {
+  kUninitialized = 0,
+  kInitialized,
+  kDecoding,
+  kEncoding,
+  kFlushing,
+  kResetting,
+  kChangingResolution,
+  kAwaitingPictureBuffers,
+  kDecoderError,
+  kEncoderError,
+  kDestroying,
+  kCodecStateMax = kDestroying,
 };
 
 class Size {
@@ -145,11 +158,21 @@ class Size {
   Size() = default;
   Size(uint32_t w, uint32_t h);
 
+  void SetSize(uint32_t width, uint32_t height);
+  uint32_t GetArea() const { return width * height; };
   bool IsEmpty() const { return !width || !height; }
 
   uint32_t width = 0;
   uint32_t height = 0;
 };
+
+inline bool operator==(const Size& lhs, const Size& rhs) {
+  return lhs.width == rhs.width && lhs.height == rhs.height;
+}
+
+inline bool operator!=(const Size& lhs, const Size& rhs) {
+  return !(lhs == rhs);
+}
 
 class Rect {
  public:
@@ -157,6 +180,7 @@ class Rect {
   Rect(int32_t x, int32_t y, uint32_t w, uint32_t h);
   Rect(const Size& size);
 
+  const Size size() { return Size(width, height); }
   bool Contains(const Rect& rect) const;
   bool IsEmpty() const { return !width || !height; }
 
@@ -165,6 +189,15 @@ class Rect {
   uint32_t width = 0;
   uint32_t height = 0;
 };
+
+inline bool operator==(const Rect& lhs, const Rect& rhs) {
+  return (lhs.x == rhs.x && lhs.y == rhs.y) &&
+         (lhs.width == rhs.width && lhs.height == rhs.height);
+}
+
+inline bool operator!=(const Rect& lhs, const Rect& rhs) {
+  return !(lhs == rhs);
+}
 
 class SupportedProfile {
  public:
@@ -176,13 +209,12 @@ class SupportedProfile {
   bool encrypted_only = false;
 };
 
-typedef std::vector<mcil::SupportedProfile> SupportedProfiles;
-
-typedef std::chrono::_V2::system_clock::time_point 	ChronoTime;
-
+std::string GetProfileName(VideoCodecProfile profile);
+std::string VideoPixelFormatToString(VideoPixelFormat format);
 std::string FourccToString(uint32_t fourcc);
 
-std::string GetProfileName(VideoCodecProfile profile);
+typedef std::vector<SupportedProfile> SupportedProfiles;
+typedef std::chrono::_V2::system_clock::time_point ChronoTime;
 
 }  //  namespace mcil
 

@@ -14,11 +14,11 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-
 #ifndef SRC_VIDEO_DECODER_API_H_
 #define SRC_VIDEO_DECODER_API_H_
 
 #include "decoder_types.h"
+#include "video_buffers.h"
 
 namespace mcil {
 
@@ -40,8 +40,8 @@ class VideoDecoderAPI {
   bool ResetDecodingBuffers(bool* reset_pending);
   bool CanNotifyResetDone();
 
-  bool FeedBuffers(const void* buffer, size_t size,
-                   const int32_t id, int64_t buffer_pts);
+  bool DecodeBuffer(const void* buffer, size_t size,
+                    const int32_t id, int64_t buffer_pts);
   bool FlushInputBuffers();
   bool DidFlushBuffersDone();
 
@@ -52,7 +52,7 @@ class VideoDecoderAPI {
   void RunDecodeBufferTask(bool event_pending, bool has_output);
   void RunDecoderPostTask(PostTaskType task, bool value);
 
-  void SetDecoderState(DecoderState state);
+  void SetDecoderState(CodecState state);
   bool GetCurrentInputBufferId(int32_t* buffer_id);
   size_t GetFreeBuffersCount(QueueType queue_type);
   bool AllocateOutputBuffers(uint32_t count,
@@ -63,12 +63,12 @@ class VideoDecoderAPI {
  private:
   VideoDecoderClient* client_;
 
-  std::shared_ptr<VideoDecoder> video_decoder_;
+  scoped_refptr<VideoDecoder> video_decoder_;
 
   int32_t vdec_port_index_ = -1;
   std::string resources_ = "";
 
-  DecoderState state_ = kUninitialized;
+  CodecState state_ = kUninitialized;
 };
 
 }  // namespace mcil

@@ -35,9 +35,12 @@
 
 namespace mcil {
 
+VideoEncoder::VideoEncoder() = default;
+
+VideoEncoder::~VideoEncoder() = default;
+
 bool VideoEncoder::Initialize(const EncoderConfig* configData,
                               VideoEncoderClient* client) {
-  client_ = client;
   return true;
 }
 

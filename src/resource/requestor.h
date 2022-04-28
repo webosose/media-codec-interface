@@ -24,7 +24,7 @@
 #include <resource_calculator.h>
 
 #include "base/decoder_types.h"
-#include "base/fourcc_value.h"
+#include "base/fourcc.h"
 
 namespace mrc { class ResourceCalculator; }
 

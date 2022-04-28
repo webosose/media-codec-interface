@@ -19,9 +19,13 @@
 #define SRC_BASE_LOG_H_
 
 #include <PmLogLib.h>
+
 #include <assert.h>
+#include <string>
 
 PmLogContext GetPmLogContext();
+std::string BaseFile(const char* long_file);
+
 #define MCIL_LOG_CRITICAL(...) PmLogCritical(GetPmLogContext(), ##__VA_ARGS__)
 #define MCIL_LOG_WARNING(...)  PmLogWarning(GetPmLogContext(), ##__VA_ARGS__)
 
@@ -32,13 +36,13 @@ PmLogContext GetPmLogContext();
 #else
 #define MCIL_LOG_INFO(FORMAT__, ...) \
     PmLogInfo(GetPmLogContext(), \
-    "mcil", 0, "[%s:%d] " FORMAT__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
+    "mcil", 0, "%s:[%d]:%s " FORMAT__, BaseFile(__FILE__).c_str(), __LINE__, __func__,  ##__VA_ARGS__)
 #define MCIL_LOG_DEBUG(FORMAT__, ...) \
     PmLogDebug(GetPmLogContext(), \
-    "[%s:%d] " FORMAT__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
+    "%s:[%d]:%s " FORMAT__, BaseFile(__FILE__).c_str(), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #define MCIL_LOG_ERROR(FORMAT__, ...) \
     PmLogError(GetPmLogContext(), \
-    "mcil", 0, "[%s:%d] " FORMAT__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
+    "mcil", 0, "%s:[%d]:%s " FORMAT__, BaseFile(__FILE__).c_str(), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #endif
 
 #define MCIL_LOG_OBJ_SET(OBJ__) PmLogContext GetPmLogContext_##OBJ__()
@@ -52,7 +56,7 @@ PmLogContext GetPmLogContext();
     PmLogInfo(GetPmLogContext_##OBJ__(), ##__VA_ARGS__)
 #define MCIL_LOG_OBJ_DEBUG(OBJ__, FORMAT__, ...) \
     PmLogDebug(GetPmLogContext_##OBJ__(), \
-    "[%s:%d]" FORMAT__, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+    "%s:[%d]:%s" FORMAT__, BaseFile(__FILE__).c_str(), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 
 /* Info Print */
 #define MCIL_INFO_PRINT MCIL_LOG_INFO
@@ -64,10 +68,10 @@ PmLogContext GetPmLogContext();
 #define MCIL_ERROR_PRINT MCIL_LOG_ERROR
 
 /* Assert print */
-#define MCILASSERT(cond) { \
+#define MCIL_ASSERT(cond) { \
     if (!(cond)) { \
-        MCIL_DEBUG_PRINT("ASSERT FAILED : %s:%d:%s: %s", \
-                __FILE__, __LINE__, __func__, #cond); \
+        MCIL_DEBUG_PRINT("%s:[%d]:%s ASSERT FAILED : %s", \
+                BaseFile(__FILE__).c_str(), __LINE__, __func__, #cond); \
         assert(0); \
     } \
 }
