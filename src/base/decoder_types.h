@@ -24,12 +24,12 @@ namespace mcil {
 
 // Same as the enum Error defined in upstream Chromium file
 // media/video/video_decode_accelerator.h
-enum DecoderError {
-  ILLEGAL_STATE = 1,
-  INVALID_ARGUMENT,
-  UNREADABLE_INPUT,
-  PLATFORM_FAILURE,
-  ERROR_MAX = PLATFORM_FAILURE,
+ enum DecoderError {
+   ILLEGAL_STATE = 1,
+   INVALID_ARGUMENT,
+   UNREADABLE_INPUT,
+   PLATFORM_FAILURE,
+   ERROR_MAX = PLATFORM_FAILURE,
 };
 
 // Same as the enum OutputMode defined in upstream Chromium file

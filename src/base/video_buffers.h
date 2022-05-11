@@ -16,7 +16,9 @@ class ReadableBuffer : public RefCounted<ReadableBuffer> {
   virtual ~ReadableBuffer() = default;
 
   virtual const void* GetPlaneBuffer(const size_t plane) const;
+  virtual size_t GetBufferSize(const size_t plane) const { return 0; }
   virtual bool IsLast() const { return false; }
+  virtual bool IsKeyframe() const { return false; }
   virtual size_t GetBytesUsed(size_t plane) const { return 0; }
   virtual size_t BufferIndex() const { return 0; }
   virtual struct timeval GetTimeStamp() const;

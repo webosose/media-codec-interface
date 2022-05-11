@@ -123,4 +123,37 @@ bool VideoEncoderAPI::UpdateEncodingParams(const EncodingParams* properties) {
   return videoEncoder_->UpdateEncodingParams(properties);
 }
 
+void VideoEncoderAPI::ServiceDeviceTask() {
+  if (!videoEncoder_) {
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
+    return;
+  }
+
+  videoEncoder_->ServiceDeviceTask();
+}
+
+size_t VideoEncoderAPI::GetFreeBuffersCount(QueueType queue_type) {
+  if (!videoEncoder_) {
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
+    return 0;
+  }
+  return videoEncoder_->GetFreeBuffersCount(queue_type);
+}
+
+void VideoEncoderAPI::SetEncoderState(CodecState state) {
+  if (!videoEncoder_) {
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
+    return;
+  }
+  videoEncoder_->SetEncoderState(state);
+}
+
+bool VideoEncoderAPI::Flush() {
+  if (!videoEncoder_) {
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
+    return false;
+  }
+  return videoEncoder_->Flush();
+}
+
 }  // namespace mcil

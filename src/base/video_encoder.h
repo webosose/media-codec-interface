@@ -40,6 +40,10 @@ class VideoEncoder : public RefCounted<VideoEncoder> {
   virtual bool IsEncoderAvailable();
   virtual bool UpdateEncodingResolution(uint32_t width, uint32_t height);
   virtual bool UpdateEncodingParams(const EncodingParams* properties);
+  virtual void ServiceDeviceTask();
+  virtual size_t GetFreeBuffersCount(QueueType queue_type);
+  virtual void SetEncoderState(CodecState state);
+  virtual bool Flush();
 
 protected:
   friend class RefCounted<VideoEncoder>;

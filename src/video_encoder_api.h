@@ -43,6 +43,10 @@ class VideoEncoderAPI {
   bool IsEncoderAvailable();
   bool UpdateEncodingResolution(uint32_t width, uint32_t height);
   bool UpdateEncodingParams(const EncodingParams* properties);
+  void ServiceDeviceTask();
+  size_t GetFreeBuffersCount(QueueType queue_type);
+  void SetEncoderState(CodecState state);
+  bool Flush();
 
  private:
   VideoEncoderClient* client_;

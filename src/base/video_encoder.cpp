@@ -68,4 +68,16 @@ bool VideoEncoder::UpdateEncodingResolution(uint32_t width, uint32_t height) {
   return false;
 }
 
+void VideoEncoder::ServiceDeviceTask() { }
+
+size_t VideoEncoder::GetFreeBuffersCount(QueueType queue_type) {
+  return 1;
+}
+
+void VideoEncoder::SetEncoderState(CodecState state) { }
+
+bool VideoEncoder::Flush() {
+  return true;
+}
+
 }  // namespace mcil

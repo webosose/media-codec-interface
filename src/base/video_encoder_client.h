@@ -17,7 +17,7 @@
 #ifndef SRC_BASE_VIDEO_ENCODER_CLIENT_H_
 #define SRC_BASE_VIDEO_ENCODER_CLIENT_H_
 
-#include "decoder_types.h"
+#include "encoder_types.h"
 
 namespace mcil {
 
@@ -29,6 +29,10 @@ class VideoEncoderClient {
                                   size_t buffer_size,
                                   uint64_t timestamp,
                                   bool is_key_frame) = 0;
+  virtual void NotifyEncoderError(EncoderError error) = 0;
+  virtual void OnStartServiceDeviceTask() = 0;
+  virtual void OnStopDevicePoll() = 0;
+  virtual void ScheduleFeedBufferIfNeeded() = 0;
  protected:
   virtual ~VideoEncoderClient() = default;
 };

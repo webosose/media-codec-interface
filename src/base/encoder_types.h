@@ -18,6 +18,7 @@
 #define SRC_BASE_ENCODER_TYPES_H_
 
 #include "codec_types.h"
+#include "base/optional.h"
 
 namespace mcil {
 
@@ -46,6 +47,23 @@ class EncoderConfig {
   VideoPixelFormat pixelFormat = PIXEL_FORMAT_UNKNOWN;
   VideoCodecType codecType = VIDEO_CODEC_NONE;
   uint32_t bufferSize = 0;
+  mcil::Size input_visible_size;
+  VideoCodecProfile output_profile;
+};
+
+// Same as the enum Error defined in upstream Chromium file
+// media/video/video_encode_accelerator.h
+enum EncoderError {
+  // An operation was attempted during an incompatible encoder state.
+  kIllegalStateError,
+  // Invalid argument was passed to an API method.
+  kInvalidArgumentError,
+  // A failure occurred at the GPU process or one of its dependencies.
+  // Examples of such failures include GPU hardware failures, GPU driver
+  // failures, GPU library failures, GPU process programming errors, and so
+  // on.
+  kPlatformFailureError,
+  kErrorMax = kPlatformFailureError
 };
 
 }  // namespace mcil
