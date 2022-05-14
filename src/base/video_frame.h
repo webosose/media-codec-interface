@@ -50,7 +50,7 @@ class VideoFrame : public RefCounted<VideoFrame> {
   Size coded_size;
 
   std::vector<ColorPlane> color_planes;
-  std::vector<uint32_t> dmabuf_fds;
+  std::vector<int32_t> dmabuf_fds;
 
   struct timeval timestamp;
   bool is_multi_planar;
