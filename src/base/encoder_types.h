@@ -22,6 +22,21 @@
 
 namespace mcil {
 
+// Same as the enum Error defined in upstream Chromium file
+// media/video/video_encode_accelerator.h
+enum EncoderError {
+  // An operation was attempted during an incompatible encoder state.
+  kIllegalStateError,
+  // Invalid argument was passed to an API method.
+  kInvalidArgumentError,
+  // A failure occurred at the GPU process or one of its dependencies.
+  // Examples of such failures include GPU hardware failures, GPU driver
+  // failures, GPU library failures, GPU process programming errors, and so
+  // on.
+  kPlatformFailureError,
+  kErrorMax = kPlatformFailureError
+};
+
 /**
  * Class for encoding parameters
  */

@@ -154,6 +154,14 @@ enum CodecState {
   kCodecStateMax = kDestroying,
 };
 
+// enum Error {
+//   ILLEGAL_STATE = 1,
+//   INVALID_ARGUMENT,
+//   UNREADABLE_INPUT,
+//   PLATFORM_FAILURE,
+//   ERROR_MAX = PLATFORM_FAILURE,
+// };
+
 class Size {
  public:
   Size() = default;

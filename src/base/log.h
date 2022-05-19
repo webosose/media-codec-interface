@@ -38,8 +38,11 @@ std::string BaseFile(const char* long_file);
     PmLogInfo(GetPmLogContext(), \
     "mcil", 0, "%s:[%d]:%s " FORMAT__, BaseFile(__FILE__).c_str(), __LINE__, __func__,  ##__VA_ARGS__)
 #define MCIL_LOG_DEBUG(FORMAT__, ...) \
-    PmLogDebug(GetPmLogContext(), \
-    "%s:[%d]:%s " FORMAT__, BaseFile(__FILE__).c_str(), __LINE__, __FUNCTION__, ##__VA_ARGS__)
+    PmLogInfo(GetPmLogContext(), \
+    "mcil", 0, "%s:[%d]:%s " FORMAT__, BaseFile(__FILE__).c_str(), __LINE__, __func__,  ##__VA_ARGS__)
+// #define MCIL_LOG_DEBUG(FORMAT__, ...) \
+//     PmLogDebug(GetPmLogContext(), \
+//     "%s:[%d]:%s " FORMAT__, BaseFile(__FILE__).c_str(), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #define MCIL_LOG_ERROR(FORMAT__, ...) \
     PmLogError(GetPmLogContext(), \
     "mcil", 0, "%s:[%d]:%s " FORMAT__, BaseFile(__FILE__).c_str(), __LINE__, __FUNCTION__, ##__VA_ARGS__)
