@@ -18,10 +18,6 @@
 
 namespace mcil {
 
-EncodingParams::EncodingParams() = default;
-
-EncodingParams::~EncodingParams() = default;
-
 EncoderConfig::EncoderConfig() = default;
 
 EncoderConfig::~EncoderConfig() = default;

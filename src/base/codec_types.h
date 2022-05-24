@@ -127,7 +127,6 @@ enum DeviceType {
   V4L2_DECODER,
   V4L2_ENCODER,
   JPEG_DECODER,
-  JPEG_ENCODER,
   IMAGE_PROCESSOR,
 };
 
@@ -153,14 +152,6 @@ enum CodecState {
   kDestroying,
   kCodecStateMax = kDestroying,
 };
-
-// enum Error {
-//   ILLEGAL_STATE = 1,
-//   INVALID_ARGUMENT,
-//   UNREADABLE_INPUT,
-//   PLATFORM_FAILURE,
-//   ERROR_MAX = PLATFORM_FAILURE,
-// };
 
 class Size {
  public:

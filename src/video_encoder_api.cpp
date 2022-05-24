@@ -46,7 +46,9 @@ VideoEncoderAPI::~VideoEncoderAPI() {
                                          venc_port_index_);
 }
 
-bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
+bool VideoEncoderAPI::Initialize(const EncoderConfig* configData,
+                                 bool* should_control_buffer_feed,
+                                 size_t* output_buffer_byte_size) {
   MCIL_DEBUG_PRINT(" encoder_config = %p", configData);
 
   if (!VideoResource::GetInstance().Acquire(V4L2_ENCODER,
@@ -65,10 +67,14 @@ bool VideoEncoderAPI::Initialize(const EncoderConfig* configData) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
   }
-  return videoEncoder_ ->Initialize(configData, client_);
+  return videoEncoder_->Initialize(configData,
+                                   client_,
+                                   venc_port_index_,
+                                   should_control_buffer_feed,
+                                   output_buffer_byte_size);
 }
 
-bool VideoEncoderAPI::Destroy() {
+void VideoEncoderAPI::Destroy() {
   if (venc_port_index_ != -1)
     VideoResource::GetInstance().Release(V4L2_ENCODER,
                                          resources_,
@@ -76,68 +82,79 @@ bool VideoEncoderAPI::Destroy() {
 
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
-    return true;
+    return;
   }
 
-  return videoEncoder_ ->Destroy();
+  videoEncoder_->Destroy();
 }
 
-bool VideoEncoderAPI::EncodeBuffers(const uint8_t* yBuf, size_t ySize,
-                                    const uint8_t* uBuf, size_t uSize,
-                                    const uint8_t* vBuf, size_t vSize,
-                                    uint64_t bufferTimestamp,
-                                    const bool requestKeyFrame) {
+bool VideoEncoderAPI::IsFlushSupported() {
+  if (!videoEncoder_) {
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
+    return false;
+  }
+  return videoEncoder_->IsFlushSupported();
+}
+
+bool VideoEncoderAPI::EncodeFrame(scoped_refptr<VideoFrame> frame,
+                                  bool force_keyframe) {
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
   }
 
-  return videoEncoder_->EncodeBuffers(yBuf, ySize, uBuf, uSize, vBuf, vSize,
+  return videoEncoder_->EncodeFrame(frame, force_keyframe);
+}
+
+bool VideoEncoderAPI::EncodeBuffer(const uint8_t* yBuf, size_t ySize,
+                                   const uint8_t* uBuf, size_t uSize,
+                                   const uint8_t* vBuf, size_t vSize,
+                                   uint64_t bufferTimestamp,
+                                   bool requestKeyFrame) {
+  if (!videoEncoder_) {
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
+    return false;
+  }
+
+  return videoEncoder_->EncodeBuffer(yBuf, ySize, uBuf, uSize, vBuf, vSize,
                                       bufferTimestamp, requestKeyFrame);
 }
 
-bool VideoEncoderAPI::IsEncoderAvailable() {
+bool VideoEncoderAPI::UpdateEncodingParams(
+    uint32_t bitrate, uint32_t framerate) {
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
   }
 
-  return videoEncoder_->IsEncoderAvailable();
+  return videoEncoder_->UpdateEncodingParams(bitrate, framerate);
 }
 
-bool VideoEncoderAPI::UpdateEncodingResolution(uint32_t width, uint32_t height) {
+bool VideoEncoderAPI::StartDevicePoll() {
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
   }
 
-  return videoEncoder_->UpdateEncodingResolution(width, height);
+  return videoEncoder_->StartDevicePoll();
 }
 
-bool VideoEncoderAPI::UpdateEncodingParams(const EncodingParams* properties) {
-  if (!videoEncoder_) {
-    MCIL_INFO_PRINT(" Encoder is not created or null.");
-    return false;
-  }
-
-  return videoEncoder_->UpdateEncodingParams(properties);
-}
-
-void VideoEncoderAPI::ServiceDeviceTask() {
+void VideoEncoderAPI::RunEncodeBufferTask() {
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
     return;
   }
 
-  videoEncoder_->ServiceDeviceTask();
+  videoEncoder_->RunEncodeBufferTask();
 }
 
-size_t VideoEncoderAPI::GetFreeBuffersCount(QueueType queue_type) {
+void VideoEncoderAPI::SendStartCommand(bool start) {
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
-    return 0;
+    return;
   }
-  return videoEncoder_->GetFreeBuffersCount(queue_type);
+
+  videoEncoder_->SendStartCommand(start);
 }
 
 void VideoEncoderAPI::SetEncoderState(CodecState state) {
@@ -145,15 +162,26 @@ void VideoEncoderAPI::SetEncoderState(CodecState state) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
     return;
   }
+
   videoEncoder_->SetEncoderState(state);
 }
 
-bool VideoEncoderAPI::Flush() {
+size_t VideoEncoderAPI::GetFreeBuffersCount(QueueType queue_type) {
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
-    return false;
+    return 0;
   }
-  return videoEncoder_->Flush();
+
+  return videoEncoder_->GetFreeBuffersCount(queue_type);
+}
+
+void VideoEncoderAPI::EnqueueBuffers() {
+  if (!videoEncoder_) {
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
+    return;
+  }
+
+  videoEncoder_->EnqueueBuffers();
 }
 
 }  // namespace mcil

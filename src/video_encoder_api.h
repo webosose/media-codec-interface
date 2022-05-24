@@ -31,22 +31,25 @@ class VideoEncoderAPI {
   VideoEncoderAPI(VideoEncoderClient* client);
   ~VideoEncoderAPI();
 
-  bool Initialize(const EncoderConfig* configData);
-  bool Destroy();
-
-  bool EncodeBuffers(const uint8_t* yBuf, size_t ySize,
-                     const uint8_t* uBuf, size_t uSize,
-                     const uint8_t* vBuf, size_t vSize,
-                     uint64_t bufferTimestamp,
-                     const bool requestKeyFrame);
-
-  bool IsEncoderAvailable();
-  bool UpdateEncodingResolution(uint32_t width, uint32_t height);
-  bool UpdateEncodingParams(const EncodingParams* properties);
-  void ServiceDeviceTask();
-  size_t GetFreeBuffersCount(QueueType queue_type);
+  bool Initialize(const EncoderConfig* configData,
+                  bool* should_control_buffer_feed,
+                  size_t* output_buffer_byte_size);
+  void Destroy();
+  bool IsFlushSupported();
+  bool EncodeFrame(scoped_refptr<VideoFrame> frame,
+                   bool force_keyframe);
+  bool EncodeBuffer(const uint8_t* yBuf, size_t ySize,
+                    const uint8_t* uBuf, size_t uSize,
+                    const uint8_t* vBuf, size_t vSize,
+                    uint64_t bufferTimestamp,
+                    bool requestKeyFrame);
+  bool UpdateEncodingParams(uint32_t bitrate, uint32_t framerate);
+  bool StartDevicePoll();
+  void RunEncodeBufferTask();
+  void SendStartCommand(bool start);
   void SetEncoderState(CodecState state);
-  bool Flush();
+  size_t GetFreeBuffersCount(QueueType queue_type);
+  void EnqueueBuffers();
 
  private:
   VideoEncoderClient* client_;

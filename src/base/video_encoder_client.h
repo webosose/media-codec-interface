@@ -25,14 +25,26 @@ namespace mcil {
 // by the components that uses the VideoEncoderAPI.
 class VideoEncoderClient {
  public:
-  virtual void EncodedBufferReady(const uint8_t* buffer,
-                                  size_t buffer_size,
-                                  uint64_t timestamp,
-                                  bool is_key_frame) = 0;
+  virtual void CreateInputBuffers(size_t count) = 0;
+  virtual void DestroyInputBuffers() = 0;
+
+  virtual void EnqueueInputBuffer(size_t buffer_index) = 0;
+  virtual void DequeueInputBuffer(size_t buffer_index) = 0;
+
+  virtual void BitstreamBufferReady(ReadableBufferRef) = 0;
+  virtual void BitstreamBufferReady(const uint8_t* buffer,
+                                    size_t buffer_size,
+                                    uint64_t timestamp,
+                                    bool is_key_frame) = 0;
+  virtual void PumpBitstreamBuffers() = 0;
+
+  virtual uint8_t GetH264LevelLimit(const EncoderConfig* config) = 0;
+  virtual void StopDevicePoll() = 0;
+  virtual void NotifyFlushIfNeeded(bool flush) = 0;
+  virtual void NotifyEncodeBufferTask() = 0;
   virtual void NotifyEncoderError(EncoderError error) = 0;
-  virtual void OnStartServiceDeviceTask() = 0;
-  virtual void OnStopDevicePoll() = 0;
-  virtual void ScheduleFeedBufferIfNeeded() = 0;
+  virtual void NotifyEncoderState(CodecState state) = 0;
+
  protected:
   virtual ~VideoEncoderClient() = default;
 };

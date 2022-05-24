@@ -29,23 +29,29 @@ class VideoEncoder : public RefCounted<VideoEncoder> {
   static scoped_refptr<VideoEncoder> Create(VideoCodecType type);
 
   virtual bool Initialize(const EncoderConfig* configData,
-                          VideoEncoderClient* client);
-  virtual bool Destroy();
-  virtual bool EncodeBuffers(const uint8_t* yBuf, size_t ySize,
-                             const uint8_t* uBuf, size_t uSize,
-                             const uint8_t* vBuf, size_t vSize,
-                             uint64_t bufferTimestamp,
-                             const bool requestKeyFrame);
+                          VideoEncoderClient* client,
+                          int venc_port_index,
+                          bool* should_control_buffer_feed,
+                          size_t* output_buffer_byte_size);
+  virtual void Destroy();
+  virtual bool IsFlushSupported();
 
-  virtual bool IsEncoderAvailable();
-  virtual bool UpdateEncodingResolution(uint32_t width, uint32_t height);
-  virtual bool UpdateEncodingParams(const EncodingParams* properties);
-  virtual void ServiceDeviceTask();
-  virtual size_t GetFreeBuffersCount(QueueType queue_type);
+  virtual bool EncodeFrame(scoped_refptr<VideoFrame> frame,
+                           bool force_keyframe);
+  virtual bool EncodeBuffer(const uint8_t* yBuf, size_t ySize,
+                            const uint8_t* uBuf, size_t uSize,
+                            const uint8_t* vBuf, size_t vSize,
+                            uint64_t bufferTimestamp,
+                            bool requestKeyFrame);
+  virtual bool UpdateEncodingParams(uint32_t bitrate, uint32_t framerate);
+  virtual bool StartDevicePoll();
+  virtual void RunEncodeBufferTask();
+  virtual void SendStartCommand(bool start);
   virtual void SetEncoderState(CodecState state);
-  virtual bool Flush();
+  virtual size_t GetFreeBuffersCount(QueueType queue_type);
+  virtual void EnqueueBuffers();
 
-protected:
+ protected:
   friend class RefCounted<VideoEncoder>;
 
   VideoEncoder();

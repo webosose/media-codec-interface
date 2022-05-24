@@ -37,7 +37,7 @@ Fourcc Fourcc::FromUint32(uint32_t fourcc) {
     default:
       break;
   }
-  MCIL_INFO_PRINT(": Unmapped fourcc: %d", fourcc);
+  MCIL_INFO_PRINT(": Unmapped fourcc: %s", FourccToString(fourcc).c_str());
   return Fourcc(NONE);
 }
 

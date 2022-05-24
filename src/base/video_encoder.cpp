@@ -40,44 +40,55 @@ VideoEncoder::VideoEncoder() = default;
 VideoEncoder::~VideoEncoder() = default;
 
 bool VideoEncoder::Initialize(const EncoderConfig* configData,
-                              VideoEncoderClient* client) {
+                              VideoEncoderClient* client,
+                              int venc_port_index,
+                              bool* should_control_buffer_feed,
+                              size_t* output_buffer_byte_size) {
   return true;
 }
 
-bool VideoEncoder::Destroy() {
+void VideoEncoder::Destroy() {
+}
+
+bool VideoEncoder::IsFlushSupported() {
+  return true;
+}
+
+bool VideoEncoder::EncodeFrame(scoped_refptr<VideoFrame> frame,
+                               bool force_keyframe) {
   return false;
 }
 
-bool VideoEncoder::EncodeBuffers(const uint8_t* yBuf, size_t ySize,
-                                 const uint8_t* uBuf, size_t uSize,
-                                 const uint8_t* vBuf, size_t vSize,
-                                 uint64_t bufferTimestamp,
-                                 const bool requestKeyFrame) {
+bool VideoEncoder::EncodeBuffer(const uint8_t* yBuf, size_t ySize,
+                                const uint8_t* uBuf, size_t uSize,
+                                const uint8_t* vBuf, size_t vSize,
+                                uint64_t bufferTimestamp,
+                                bool requestKeyFrame) {
   return false;
 }
 
-bool VideoEncoder::IsEncoderAvailable() {
+bool VideoEncoder::UpdateEncodingParams(uint32_t bitrate, uint32_t framerate) {
   return false;
 }
 
-bool VideoEncoder::UpdateEncodingParams(const EncodingParams* properties) {
-  return false;
+bool VideoEncoder::StartDevicePoll() {
+  return true;
 }
 
-bool VideoEncoder::UpdateEncodingResolution(uint32_t width, uint32_t height) {
-  return false;
+void VideoEncoder::RunEncodeBufferTask() {
 }
 
-void VideoEncoder::ServiceDeviceTask() { }
+void VideoEncoder::SendStartCommand(bool start) {
+}
+
+void VideoEncoder::SetEncoderState(CodecState state) {
+}
 
 size_t VideoEncoder::GetFreeBuffersCount(QueueType queue_type) {
-  return 1;
+  return 0;
 }
 
-void VideoEncoder::SetEncoderState(CodecState state) { }
-
-bool VideoEncoder::Flush() {
-  return true;
+void VideoEncoder::EnqueueBuffers() {
 }
 
 }  // namespace mcil

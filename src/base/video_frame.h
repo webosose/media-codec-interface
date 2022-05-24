@@ -43,6 +43,14 @@ class VideoFrame : public RefCounted<VideoFrame> {
   static int PlaneHorizontalBitsPerPixel(VideoPixelFormat format,
                                          size_t plane);
   static int PlaneBitsPerPixel(VideoPixelFormat format, size_t plane);
+  static size_t AllocationSize(VideoPixelFormat format,
+                               const Size& coded_size);
+  static Size PlaneSize(VideoPixelFormat format,
+                        size_t plane,
+                        const Size& coded_size);
+  static Size PlaneSizeInSamples(VideoPixelFormat format,
+                                 size_t plane,
+                                 const Size& coded_size);
 
   static  scoped_refptr<VideoFrame> Create(const Size& size);
 
@@ -54,6 +62,8 @@ class VideoFrame : public RefCounted<VideoFrame> {
 
   struct timeval timestamp;
   bool is_multi_planar;
+
+  uint8_t* data[kMaxPlanes];
 
  private:
   friend class RefCounted<VideoFrame>;

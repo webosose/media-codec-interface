@@ -6,6 +6,50 @@
 
 namespace mcil {
 
+namespace {
+
+bool RequiresEvenSizeAllocation(VideoPixelFormat format) {
+  switch (format) {
+    case PIXEL_FORMAT_ARGB:
+    case PIXEL_FORMAT_XRGB:
+    case PIXEL_FORMAT_RGB24:
+    case PIXEL_FORMAT_Y16:
+    case PIXEL_FORMAT_ABGR:
+    case PIXEL_FORMAT_XBGR:
+    case PIXEL_FORMAT_XR30:
+    case PIXEL_FORMAT_XB30:
+    case PIXEL_FORMAT_BGRA:
+    case PIXEL_FORMAT_RGBAF16:
+      return false;
+    case PIXEL_FORMAT_NV12:
+    case PIXEL_FORMAT_NV21:
+    case PIXEL_FORMAT_I420:
+    case PIXEL_FORMAT_MJPEG:
+    case PIXEL_FORMAT_YUY2:
+    case PIXEL_FORMAT_YV12:
+    case PIXEL_FORMAT_I422:
+    case PIXEL_FORMAT_I444:
+    case PIXEL_FORMAT_YUV420P9:
+    case PIXEL_FORMAT_YUV422P9:
+    case PIXEL_FORMAT_YUV444P9:
+    case PIXEL_FORMAT_YUV420P10:
+    case PIXEL_FORMAT_YUV422P10:
+    case PIXEL_FORMAT_YUV444P10:
+    case PIXEL_FORMAT_YUV420P12:
+    case PIXEL_FORMAT_YUV422P12:
+    case PIXEL_FORMAT_YUV444P12:
+    case PIXEL_FORMAT_I420A:
+    case PIXEL_FORMAT_UYVY:
+    case PIXEL_FORMAT_P016LE:
+      return true;
+    case PIXEL_FORMAT_UNKNOWN:
+      break;
+  }
+  return false;
+}
+
+}
+
 ColorPlane::ColorPlane(int32_t st, size_t os, size_t sz)
   : stride(st), offset(os), size(sz) {}
 
@@ -168,6 +212,41 @@ int VideoFrame::PlaneHorizontalBitsPerPixel(VideoPixelFormat format,
 int VideoFrame::PlaneBitsPerPixel(VideoPixelFormat format, size_t plane) {
   return PlaneHorizontalBitsPerPixel(format, plane) /
          SampleSize(format, plane).height;
+}
+
+// static
+size_t VideoFrame::AllocationSize(VideoPixelFormat format,
+                                  const Size& coded_size) {
+  size_t total = 0;
+  for (size_t i = 0; i < NumPlanes(format); ++i)
+    total += PlaneSize(format, i, coded_size).GetArea();
+  return total;
+}
+
+// static
+Size VideoFrame::PlaneSize(VideoPixelFormat format,
+                           size_t plane,
+                           const Size& coded_size) {
+  Size size = PlaneSizeInSamples(format, plane, coded_size);
+  size.width = (size.width * BytesPerElement(format, plane));
+  return size;
+}
+
+// static
+Size VideoFrame::PlaneSizeInSamples(VideoPixelFormat format,
+                                    size_t plane,
+                                    const Size& coded_size) {
+  int width = coded_size.width;
+  int height = coded_size.height;
+
+  if (RequiresEvenSizeAllocation(format)) {
+    // Align to power of 2.
+    width = (width + 2 - 1) & ~(2 - 1);
+    height = (height + 2 - 1) & ~(2 - 1);
+  }
+
+  const Size subsample = SampleSize(format, plane);
+  return Size(width / subsample.width, height / subsample.height);
 }
 
 // static

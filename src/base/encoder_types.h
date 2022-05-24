@@ -18,67 +18,36 @@
 #define SRC_BASE_ENCODER_TYPES_H_
 
 #include "codec_types.h"
-#include "base/optional.h"
+#include "video_buffers.h"
+#include "video_frame.h"
 
 namespace mcil {
 
 // Same as the enum Error defined in upstream Chromium file
 // media/video/video_encode_accelerator.h
 enum EncoderError {
-  // An operation was attempted during an incompatible encoder state.
   kIllegalStateError,
-  // Invalid argument was passed to an API method.
   kInvalidArgumentError,
-  // A failure occurred at the GPU process or one of its dependencies.
-  // Examples of such failures include GPU hardware failures, GPU driver
-  // failures, GPU library failures, GPU process programming errors, and so
-  // on.
   kPlatformFailureError,
   kErrorMax = kPlatformFailureError
 };
 
-/**
- * Class for encoding parameters
- */
-class EncodingParams {
- public:
-  EncodingParams();
-  ~EncodingParams();
-
-  uint32_t bitRate = 0;
-  uint32_t frameRate = 0;
-};
-
-/* Class for Encoder config data */
+/* Encoder config data structure */
 class EncoderConfig {
  public:
   EncoderConfig();
   ~EncoderConfig();
 
-  uint32_t frameRate = 0;
-  uint32_t bitRate = 0;
-  uint32_t width = 0;
-  uint32_t height = 0;
-  VideoPixelFormat pixelFormat = PIXEL_FORMAT_UNKNOWN;
-  VideoCodecType codecType = VIDEO_CODEC_NONE;
-  uint32_t bufferSize = 0;
-  mcil::Size input_visible_size;
-  VideoCodecProfile output_profile;
-};
-
-// Same as the enum Error defined in upstream Chromium file
-// media/video/video_encode_accelerator.h
-enum EncoderError {
-  // An operation was attempted during an incompatible encoder state.
-  kIllegalStateError,
-  // Invalid argument was passed to an API method.
-  kInvalidArgumentError,
-  // A failure occurred at the GPU process or one of its dependencies.
-  // Examples of such failures include GPU hardware failures, GPU driver
-  // failures, GPU library failures, GPU process programming errors, and so
-  // on.
-  kPlatformFailureError,
-  kErrorMax = kPlatformFailureError
+  VideoCodecType codecType;
+  uint32_t frameRate;
+  uint32_t bitRate;
+  uint32_t width;
+  uint32_t height;
+  VideoPixelFormat pixelFormat;
+  uint32_t outputBufferSize;
+  uint8_t h264OutputLevel;
+  uint32_t gopLength;
+  VideoCodecProfile profile;
 };
 
 }  // namespace mcil
