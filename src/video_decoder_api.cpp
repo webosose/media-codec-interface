@@ -49,8 +49,10 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
                                  bool* should_control_buffer_feed) {
   MCIL_DEBUG_PRINT(" decoder_config = %p", decoder_config);
 
+  VideoCodec codec_type =
+      VideoCodecProfileToVideoCodec(decoder_config->profile);
   if (!VideoResource::GetInstance().Acquire(V4L2_DECODER,
-                                            decoder_config->codecType,
+                                            codec_type,
                                             decoder_config->frameWidth,
                                             decoder_config->frameHeight,
                                             MCIL_MAX_FRAME_RATE,
@@ -60,7 +62,7 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
     return false;
   }
 
-  video_decoder_ = VideoDecoder::Create(decoder_config->codecType);
+  video_decoder_ = VideoDecoder::Create();
   if (!video_decoder_) {
     MCIL_INFO_PRINT(" decoder is not created or null.");
     return false;

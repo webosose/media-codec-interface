@@ -27,7 +27,7 @@ class VideoDecoderClient;
 class VideoDecoder : public RefCounted<VideoDecoder> {
  public:
   static SupportedProfiles GetSupportedProfiles();
-  static scoped_refptr<VideoDecoder> Create(VideoCodecType type);
+  static scoped_refptr<VideoDecoder> Create();
 
   virtual bool Initialize(const DecoderConfig* config,
                           VideoDecoderClient* client,

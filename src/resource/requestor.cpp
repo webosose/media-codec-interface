@@ -300,7 +300,7 @@ bool ResourceRequestor::ParseResources(const std::string& payload,
   return true;
 }
 
-int ResourceRequestor::TranslateVideoCodec(const VideoCodecType vcodec) const {
+int ResourceRequestor::TranslateVideoCodec(const VideoCodec vcodec) const {
   MRC::VideoCodec ev = MRC::kVideoEtc;
   switch (vcodec) {
     case VIDEO_CODEC_NONE:
@@ -360,8 +360,8 @@ bool ResourceRequestor::SetSourceInfo(const source_info_t &sourceInfo) {
   video_info_t video_stream_info = sourceInfo.video_streams.front();
   videoResData_.width = video_stream_info.width;
   videoResData_.height = video_stream_info.height;
-  videoResData_.vencode = (VideoCodecType)video_stream_info.encode;
-  videoResData_.vdecode = (VideoCodecType)video_stream_info.decode;
+  videoResData_.vencode = (VideoCodec)video_stream_info.encode;
+  videoResData_.vdecode = (VideoCodec)video_stream_info.decode;
   videoResData_.frameRate =
   std::round(static_cast<float>(video_stream_info.frame_rate.num) /
                  static_cast<float>(video_stream_info.frame_rate.den));

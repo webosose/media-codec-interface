@@ -176,4 +176,16 @@ std::string FourccToString(uint32_t fourcc) {
   return result;
 }
 
+VideoCodec VideoCodecProfileToVideoCodec(VideoCodecProfile profile) {
+  if (profile >= H264PROFILE_MIN && profile <= H264PROFILE_MAX) {
+    return VIDEO_CODEC_H264;
+  } else if (profile >= VP8PROFILE_MIN && profile <= VP8PROFILE_MAX) {
+    return VIDEO_CODEC_VP8;
+  } else if (profile >= VP9PROFILE_MIN && profile <= VP9PROFILE_MAX) {
+    return VIDEO_CODEC_VP9;
+  } else {
+    return VIDEO_CODEC_NONE;
+  }
+}
+
 }  //  namespace mcil

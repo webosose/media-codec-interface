@@ -38,7 +38,6 @@ class EncoderConfig {
   EncoderConfig();
   ~EncoderConfig();
 
-  VideoCodecType codecType;
   uint32_t frameRate;
   uint32_t bitRate;
   uint32_t width;

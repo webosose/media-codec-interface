@@ -33,9 +33,9 @@ namespace uMediaServer {   class ResourceManagerClient; }
 namespace mcil {
 
 struct videoResData_t {
-  VideoCodecType vcodec;
-  VideoCodecType vdecode;
-  VideoCodecType vencode;
+  VideoCodec vcodec;
+  VideoCodec vdecode;
+  VideoCodec vencode;
 
   int width;
   int height;
@@ -111,7 +111,7 @@ class ResourceRequestor {
   bool ParseResources(const std::string& payload, std::string& resources);
 
   // translate enum type from omx player to resource calculator
-  int TranslateVideoCodec(const VideoCodecType vcodec) const;
+  int TranslateVideoCodec(const VideoCodec vcodec) const;
   int TranslateScanType(const int escanType) const;
   int Translate3DType(const int e3DType) const;
 

@@ -21,7 +21,7 @@ namespace mcil {
 /**
  * Video Codec Type enum
  */
-enum VideoCodecType {
+enum VideoCodec {
   VIDEO_CODEC_NONE,
   VIDEO_CODEC_H264,
   VIDEO_CODEC_VC1,
@@ -212,6 +212,7 @@ class SupportedProfile {
 std::string GetProfileName(VideoCodecProfile profile);
 std::string VideoPixelFormatToString(VideoPixelFormat format);
 std::string FourccToString(uint32_t fourcc);
+VideoCodec VideoCodecProfileToVideoCodec(VideoCodecProfile profile);
 
 typedef std::vector<SupportedProfile> SupportedProfiles;
 typedef std::chrono::_V2::system_clock::time_point ChronoTime;

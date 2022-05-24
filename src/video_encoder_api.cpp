@@ -46,28 +46,30 @@ VideoEncoderAPI::~VideoEncoderAPI() {
                                          venc_port_index_);
 }
 
-bool VideoEncoderAPI::Initialize(const EncoderConfig* configData,
+bool VideoEncoderAPI::Initialize(const EncoderConfig* encoder_config,
                                  bool* should_control_buffer_feed,
                                  size_t* output_buffer_byte_size) {
-  MCIL_DEBUG_PRINT(" encoder_config = %p", configData);
+  MCIL_DEBUG_PRINT(" encoder_config = %p", encoder_config);
 
+  VideoCodec codec_type =
+      VideoCodecProfileToVideoCodec(encoder_config->profile);
   if (!VideoResource::GetInstance().Acquire(V4L2_ENCODER,
-                                            configData->codecType,
-                                            configData->width,
-                                            configData->height,
-                                            configData->frameRate,
+                                            codec_type,
+                                            encoder_config->width,
+                                            encoder_config->height,
+                                            encoder_config->frameRate,
                                             resources_,
                                             &venc_port_index_)) {
     MCIL_INFO_PRINT(" Failed to acquire resources");
     return false;
   }
 
-  videoEncoder_ = VideoEncoder::Create(configData->codecType);
+  videoEncoder_ = VideoEncoder::Create();
   if (!videoEncoder_) {
     MCIL_INFO_PRINT(" Encoder is not created or null.");
     return false;
   }
-  return videoEncoder_->Initialize(configData,
+  return videoEncoder_->Initialize(encoder_config,
                                    client_,
                                    venc_port_index_,
                                    should_control_buffer_feed,

@@ -48,7 +48,7 @@ VideoResource::~VideoResource() {
 }
 
 bool VideoResource::Acquire(DeviceType device_type,
-                            VideoCodecType video_codec,
+                            VideoCodec video_codec,
                             uint32_t frame_width,
                             uint32_t frame_height,
                             uint32_t frame_rate,

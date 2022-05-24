@@ -66,7 +66,6 @@ class DecoderConfig {
 
   uint32_t frameWidth;
   uint32_t frameHeight;
-  VideoCodecType codecType;
   VideoCodecProfile profile;
   OutputMode outputMode;
 };
