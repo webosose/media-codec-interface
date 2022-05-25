@@ -19,29 +19,21 @@ webos_modules_init(1 6 3)
 
 find_package(PkgConfig REQUIRED)
 
+include(FindPkgConfig)
+
 pkg_check_modules(PMLOGLIB QUIET PmLogLib)
 if (PMLOGLIB_FOUND)
   set(PMLOG_LIBRARIES PmLogLib)
 endif (PMLOGLIB_FOUND)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 include_directories(.)
-
 include_directories(./base)
-
+include_directories(./codec_api)
 include_directories(./codec_impl)
+include_directories(./resource)
 
-add_subdirectory(codec_impl)
-
-pkg_check_modules(RESOURCE-CALCULATOR REQUIRED media-resource-calculator)
-include_directories(${RESOURCE-CALCULATOR_INCLUDE_DIRS})
-
-find_package(Threads REQUIRED)
-
-set(MEDIA_CODEC_INTERFACE_LIB media-codec-interface)
-
-set(MEDIA_CODEC_INTERFACE_HEADERS
+set(MEDIA_CODEC_BASE_HEADERS
     base/codec_types.h
     base/decoder_types.h
     base/encoder_types.h
@@ -56,11 +48,9 @@ set(MEDIA_CODEC_INTERFACE_HEADERS
     base/video_encoder_client.h
     base/video_encoder.h
     base/video_frame.h
-    resource/video_resource.h
-    video_decoder_api.h
-    video_encoder_api.h)
+)
 
-set(MEDIA_CODEC_INTERFACE_SRC
+set(MEDIA_CODEC_BASE_SRC
     base/codec_types.cpp
     base/decoder_types.cpp
     base/encoder_types.cpp
@@ -71,25 +61,16 @@ set(MEDIA_CODEC_INTERFACE_SRC
     base/video_decoder.cpp
     base/video_encoder.cpp
     base/video_frame.cpp
+)
+
+set(MEDIA_CODEC_RESOURCE_SRC
     resource/requestor.cpp
     resource/video_resource.cpp
-    video_decoder_api.cpp
-    video_encoder_api.cpp
 )
 
-set(MEDIA_CODEC_INTERFACE_LIBRARIES
-    ${RESOURCE-CALCULATOR_LDFLAGS}
-    resource_mgr_client
-    resource_mgr_client_c
-)
-
-add_library(${MEDIA_CODEC_INTERFACE_LIB} SHARED ${MEDIA_CODEC_INTERFACE_SRC})
-target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} ${MEDIA_CODEC_INTERFACE_LIBRARIES} media-codec-impl)
-
-install(TARGETS ${MEDIA_CODEC_INTERFACE_LIB} DESTINATION lib)
-install(FILES ${MEDIA_CODEC_INTERFACE_HEADERS} DESTINATION include/mcil)
+include(codec_api/CMakeLists.txt)
+include(codec_impl/CMakeLists.txt)
 
 #install media-codec-interface.pc file
 configure_file(media-codec-interface.pc.in ${CMAKE_BINARY_DIR}/media-codec-interface.pc @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/media-codec-interface.pc DESTINATION share/pkgconfig)
-

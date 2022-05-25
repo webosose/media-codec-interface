@@ -20,5 +20,5 @@ includedir=@WEBOS_INSTALL_INCLUDEDIR@
 Name: @CMAKE_PROJECT_NAME@
 Description: @WEBOS_PROJECT_SUMMARY@
 Version: @WEBOS_COMPONENT_VERSION@
-Libs: -L${libdir} -lmedia-codec-interface
+Libs: -L${libdir} -lmedia-codec-interface -lmedia-codec-impl
 Cflags: -I${includedir}

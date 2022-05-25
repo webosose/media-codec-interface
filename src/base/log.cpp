@@ -14,7 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "base/log.h"
+#include "log.h"
 
 PmLogContext GetPmLogContext() {
   static PmLogContext mcil_log_context = 0;
