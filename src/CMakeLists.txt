@@ -28,9 +28,9 @@ endif (PMLOGLIB_FOUND)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(.)
+include_directories(./api)
 include_directories(./base)
-include_directories(./codec_api)
-include_directories(./codec_impl)
+include_directories(./impl)
 include_directories(./resource)
 
 set(MEDIA_CODEC_BASE_HEADERS
@@ -68,8 +68,8 @@ set(MEDIA_CODEC_RESOURCE_SRC
     resource/video_resource.cpp
 )
 
-include(codec_api/CMakeLists.txt)
-include(codec_impl/CMakeLists.txt)
+include(api/CMakeLists.txt)
+include(impl/CMakeLists.txt)
 
 #install media-codec-interface.pc file
 configure_file(media-codec-interface.pc.in ${CMAKE_BINARY_DIR}/media-codec-interface.pc @ONLY)
