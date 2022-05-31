@@ -23,14 +23,14 @@ set(MEDIA_CODEC_INTERFACE_LIB media-codec-interface)
 
 set(MEDIA_CODEC_INTERFACE_HEADERS
     ${MEDIA_CODEC_BASE_HEADERS}
-    codec_api/video_decoder_api.h
-    codec_api/video_encoder_api.h)
+    api/video_decoder_api.h
+    api/video_encoder_api.h)
 
 set(MEDIA_CODEC_INTERFACE_SRC
     ${MEDIA_CODEC_BASE_SRC}
     ${MEDIA_CODEC_RESOURCE_SRC}
-    codec_api/video_decoder_api.cpp
-    codec_api/video_encoder_api.cpp
+    api/video_decoder_api.cpp
+    api/video_encoder_api.cpp
 )
 
 set(MEDIA_CODEC_INTERFACE_LIBRARIES
