@@ -22,6 +22,10 @@ class ReadableBuffer : public RefCounted<ReadableBuffer> {
   virtual struct timeval GetTimeStamp() const;
   virtual size_t GetDataOffset(size_t plane) const { return 0; }
   virtual bool IsKeyframe() const { return false; }
+  virtual size_t PlanesCount() const { return 0; };
+
+  virtual void SetFlags(uint32_t flags) {};
+  virtual uint32_t GetFlags() const { return 0; }
 
  private:
   friend class RefCounted<ReadableBuffer>;

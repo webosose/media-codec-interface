@@ -45,9 +45,9 @@ V4L2Buffer::V4L2Buffer(scoped_refptr<V4L2Device> device,
   v4l2_buffer_.memory = memory;
   plane_mappings_.resize(v4l2_buffer_.length);
 
-  MCIL_DEBUG_PRINT(": %s index= %d",
+  MCIL_DEBUG_PRINT(": %s index= %d, length=%d",
       (buffer_type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ? "input" : "output"),
-      v4l2_buffer_.index);
+      v4l2_buffer_.index, v4l2_buffer_.length);
 }
 
 V4L2Buffer::~V4L2Buffer() {
@@ -261,6 +261,14 @@ size_t V4L2ReadableBuffer::PlanesCount() const {
   return buffer_data_->v4l2_buffer_.length;
 }
 
+void V4L2ReadableBuffer::SetFlags(uint32_t flags) {
+  buffer_data_->v4l2_buffer_.flags = flags;
+}
+
+uint32_t V4L2ReadableBuffer::GetFlags() const {
+  return buffer_data_->v4l2_buffer_.flags;
+}
+
 /* V4L2WritableBufferRef */
 V4L2WritableBufferRef::V4L2WritableBufferRef(
     const struct v4l2_buffer& v4l2_buffer, V4L2Queue* queue)
@@ -352,12 +360,38 @@ bool V4L2WritableBufferRef::QueueUserPtr() && {
   return std::move(self).DoQueue(nullptr);
 }
 
+bool V4L2WritableBufferRef::QueueUserPtr(const std::vector<void*>& ptrs) && {
+  V4L2WritableBufferRef self(std::move(*this));
+
+  if (self.Memory() != V4L2_MEMORY_USERPTR) {
+    MCIL_INFO_PRINT(" Called on invalid buffer type!");
+    return false;
+  }
+
+  if (ptrs.size() != self.PlanesCount()) {
+    MCIL_INFO_PRINT(" Provided [%ld] pointers while we require [%d]",
+                    ptrs.size(), self.buffer_data_->v4l2_buffer_.length);
+    return false;
+  }
+
+  for (size_t i = 0; i < ptrs.size(); i++) {
+    self.buffer_data_->v4l2_buffer_.m.planes[i].m.userptr =
+        reinterpret_cast<unsigned long>(ptrs[i]);
+  }
+
+  return std::move(self).DoQueue(nullptr);
+}
+
 size_t V4L2WritableBufferRef::PlanesCount() const {
   return buffer_data_->v4l2_buffer_.length;
 }
 
 enum v4l2_memory V4L2WritableBufferRef::Memory() const {
   return static_cast<enum v4l2_memory>(buffer_data_->v4l2_buffer_.memory);
+}
+
+void V4L2WritableBufferRef::SetFlags(uint32_t flags) {
+  buffer_data_->v4l2_buffer_.flags = flags;
 }
 
 bool V4L2WritableBufferRef::DoQueue(scoped_refptr<VideoFrame> video_frame) && {

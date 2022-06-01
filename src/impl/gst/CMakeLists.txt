@@ -36,6 +36,8 @@ link_directories(${PBNJSON_LIBRARY_DIRS})
 
 set(GSTAPP_LIB gstapp-1.0)
 
+add_definitions(-DUSE_GST_ENCODER)
+
 list(APPEND MEDIA_IMPL_LIBRARIES
     ${GSTPLAYER_LIBRARIES}
     ${GSTREAMER_LIBRARIES}

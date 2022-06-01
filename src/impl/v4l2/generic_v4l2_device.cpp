@@ -54,8 +54,8 @@ uint32_t V4L2PixFmtToDrmFormat(uint32_t format) {
 
 } // namespace
 
-GenericV4L2Device::GenericV4L2Device()
-  : V4L2Device() {
+GenericV4L2Device::GenericV4L2Device(DeviceType device_type)
+  : V4L2Device(device_type) {
   MCIL_DEBUG_PRINT(": Ctor");
 }
 

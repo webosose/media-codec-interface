@@ -57,6 +57,14 @@ class V4L2VideoEncoder : public VideoEncoder {
   };
 
   virtual void DequeueBuffers();
+  virtual const uint32_t GetCapsRequired();
+  virtual bool InitInputMemoryType();
+  virtual bool InitOutputMemoryType();
+  virtual bool DoStreamOnInEnqueueBuffers() { return true; };
+  virtual bool ShouldSetEncodingParams() { return true; };
+  virtual bool ShouldApplyCrop() { return true; };
+  virtual bool ShouldInjectSpsPps() { return false; };
+
   virtual bool SetFormats(VideoPixelFormat input_format,
                           VideoCodecProfile output_profile);
 
@@ -109,6 +117,10 @@ class V4L2VideoEncoder : public VideoEncoder {
   scoped_refptr<VideoFrame> device_input_frame_;
   std::queue<InputFrameInfo> encoder_input_queue_;
 
+  v4l2_memory input_memory_type_;
+  v4l2_memory output_memory_type_;
+  bool inject_sps_and_pps_ = false;
+
   Thread device_poll_thread_;
 
   ChronoTime start_time_;
@@ -117,6 +129,26 @@ class V4L2VideoEncoder : public VideoEncoder {
 
   std::atomic<CodecState> encoder_state_{kUninitialized};
 };
+
+#define NOTIFY_ERROR(x)                      \
+  do {                                       \
+    NotifyErrorState(x);                     \
+  } while (0)
+
+#define IOCTL_OR_ERROR_RETURN_VALUE(type, arg, value, error_str) \
+  do { \
+    if (v4l2_device_->Ioctl(type, arg) != 0) { \
+      MCIL_INFO_PRINT(": ioctl() failed: %s", error_str); \
+      NOTIFY_ERROR(kPlatformFailureError); \
+      return value; \
+    } \
+  } while (0)
+
+#define IOCTL_OR_ERROR_RETURN(type, arg) \
+  IOCTL_OR_ERROR_RETURN_VALUE(type, arg, ((void)0), #type)
+
+#define IOCTL_OR_ERROR_RETURN_FALSE(type, arg) \
+  IOCTL_OR_ERROR_RETURN_VALUE(type, arg, false, #type)
 
 }  // namespace mcil
 

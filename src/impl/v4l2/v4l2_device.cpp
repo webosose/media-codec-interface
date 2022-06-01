@@ -78,8 +78,8 @@ V4L2ProfileToVideoCodecProfile(VideoCodec codec, uint32_t profile) {
 
 #if !defined(PLATFORM_EXTENSION)
 // static
-scoped_refptr<V4L2Device> V4L2Device::Create() {
-  scoped_refptr<V4L2Device> device = new GenericV4L2Device();
+scoped_refptr<V4L2Device> V4L2Device::Create(DeviceType device_type) {
+  scoped_refptr<V4L2Device> device = new GenericV4L2Device(device_type);
   if (device->Initialize())
     return device;
 
@@ -334,7 +334,8 @@ scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
   return video_frame;
 }
 
-V4L2Device::V4L2Device() {
+V4L2Device::V4L2Device(DeviceType device_type)
+ : device_type_(device_type) {
   MCIL_DEBUG_PRINT(": Ctor");
 }
 
@@ -568,6 +569,10 @@ bool V4L2Device::SetGOPLength(uint32_t gop_length) {
     return false;
   }
   return true;
+}
+
+bool V4L2Device::IsDecoder() {
+  return device_type_ == V4L2_DECODER || device_type_ == JPEG_DECODER;
 }
 
 scoped_refptr<V4L2Queue> V4L2Device::GetQueue(enum v4l2_buf_type buffer_type) {

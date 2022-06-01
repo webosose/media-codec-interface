@@ -14,7 +14,7 @@ namespace mcil {
 
 class GenericV4L2Device : public V4L2Device {
  public:
-  GenericV4L2Device();
+  GenericV4L2Device(DeviceType device_type);
 
   GenericV4L2Device(const GenericV4L2Device&) = delete;
   GenericV4L2Device& operator=(const GenericV4L2Device&) = delete;

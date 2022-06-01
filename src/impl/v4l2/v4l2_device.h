@@ -20,7 +20,7 @@ class V4L2WritableBufferRef;
 
 class V4L2Device : public RefCounted<V4L2Device> {
  public:
-  static scoped_refptr<V4L2Device> Create();
+  static scoped_refptr<V4L2Device> Create(DeviceType device_type);
 
   static uint32_t VideoCodecProfileToV4L2PixFmt(VideoCodecProfile profile);
   static Size AllocatedSizeFromV4L2Format(const struct v4l2_format& format);
@@ -62,13 +62,14 @@ class V4L2Device : public RefCounted<V4L2Device> {
   virtual bool IsCtrlExposed(uint32_t ctrl_id);
   virtual bool SetGOPLength(uint32_t gop_length);
 
+  bool IsDecoder();
   scoped_refptr<V4L2Queue> GetQueue(enum v4l2_buf_type buffer_type);
 
  protected:
   friend class RefCounted<V4L2Device>;
   using Devices = std::vector<std::pair<std::string, std::vector<uint32_t>>>;
 
-  V4L2Device();
+  V4L2Device(DeviceType device_type);
   virtual ~V4L2Device();
 
   SupportedProfiles EnumerateSupportedDecodeProfiles(
@@ -80,6 +81,8 @@ class V4L2Device : public RefCounted<V4L2Device> {
   virtual bool Initialize() = 0;
 
   void OnQueueDestroyed(enum v4l2_buf_type buffer_type);
+
+  DeviceType device_type_ = V4L2_DECODER;
 
   // Associates a v4l2_buf_type to its queue.
   std::map<enum v4l2_buf_type, V4L2Queue*> queues_;

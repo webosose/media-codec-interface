@@ -33,6 +33,7 @@ list(APPEND MEDIA_IMPL_LIBRARIES
 )
 
 if (${USE_ENCODER_BUILD} STREQUAL "V4L2")
+add_definitions(-DUSE_V4L2_ENCODER)
 list(APPEND MEDIA_IMPL_SRC
     impl/v4l2/v4l2_video_encoder.cpp
 )

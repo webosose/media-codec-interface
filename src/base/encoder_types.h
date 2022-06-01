@@ -57,6 +57,7 @@ class EncoderClientConfig {
 
   bool should_control_buffer_feed = false;
   size_t output_buffer_byte_size = 0;
+  bool should_inject_sps_and_pps = false;
 };
 
 }  // namespace mcil

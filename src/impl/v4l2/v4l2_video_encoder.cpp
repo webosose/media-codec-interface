@@ -21,40 +21,24 @@
 
 namespace mcil {
 
-#define NOTIFY_ERROR(x)                      \
-  do {                                       \
-    NotifyErrorState(x);                     \
-  } while (0)
-
-#define IOCTL_OR_ERROR_RETURN_VALUE(type, arg, value, error_str) \
-  do { \
-    if (v4l2_device_->Ioctl(type, arg) != 0) { \
-      MCIL_INFO_PRINT(": ioctl() failed: %s", error_str); \
-      NOTIFY_ERROR(kPlatformFailureError); \
-      return value; \
-    } \
-  } while (0)
-
-#define IOCTL_OR_ERROR_RETURN(type, arg) \
-  IOCTL_OR_ERROR_RETURN_VALUE(type, arg, ((void)0), #type)
-
-#define IOCTL_OR_ERROR_RETURN_FALSE(type, arg) \
-  IOCTL_OR_ERROR_RETURN_VALUE(type, arg, false, #type)
-
+#if defined(USE_V4L2_ENCODER)
+#if !defined(PLATFORM_EXTENSION)
 scoped_refptr<VideoEncoder> VideoEncoder::Create() {
   return new V4L2VideoEncoder();
 }
+#endif
 
 // static
 SupportedProfiles VideoEncoder::GetSupportedProfiles() {
-  scoped_refptr<V4L2Device> device = V4L2Device::Create();
+  scoped_refptr<V4L2Device> device = V4L2Device::Create(V4L2_ENCODER);
 
-  MCIL_INFO_PRINT(": device (%p)", device.get());
+  MCIL_DEBUG_PRINT(": device (%p)", device.get());
   if (!device)
     return SupportedProfiles();
 
   return device->GetSupportedEncodeProfiles();
 }
+#endif
 
 V4L2VideoEncoder::InputFrameInfo::InputFrameInfo()
     : InputFrameInfo(nullptr, false) {}
@@ -71,7 +55,7 @@ V4L2VideoEncoder::InputFrameInfo::~InputFrameInfo() = default;
 
 V4L2VideoEncoder::V4L2VideoEncoder()
  : VideoEncoder(),
-   v4l2_device_(V4L2Device::Create()),
+   v4l2_device_(V4L2Device::Create(V4L2_ENCODER)),
    device_poll_thread_("V4L2EncoderDevicePollThread"),
    encoder_state_(kUninitialized) {
   MCIL_DEBUG_PRINT(": Ctor");
@@ -129,7 +113,7 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
 
   struct v4l2_capability caps;
   memset(&caps, 0, sizeof(caps));
-  const __u32 kCapsRequired = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
+  const __u32 kCapsRequired = GetCapsRequired();
   IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_QUERYCAP, &caps);
   if ((caps.capabilities & kCapsRequired) != kCapsRequired) {
     MCIL_INFO_PRINT(" caps check failed: %x", caps.capabilities);
@@ -149,6 +133,12 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
     return false;
   }
 
+  if (!InitInputMemoryType())
+    return false;
+
+  if (!InitOutputMemoryType())
+    return false;
+
   if (!InitControls(config))
     return false;
 
@@ -160,6 +150,7 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
   if (client_config) {
     client_config->should_control_buffer_feed = false;
     client_config->output_buffer_byte_size = encoder_config_.outputBufferSize;
+    client_config->should_inject_sps_and_pps = inject_sps_and_pps_;
   }
 
   MCIL_DEBUG_PRINT(": Success");
@@ -209,21 +200,23 @@ bool V4L2VideoEncoder::UpdateEncodingParams(
   if (bitrate == 0 || framerate == 0)
     return true;
 
-  if (current_bitrate_ != bitrate &&
-      !v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
-                             V4L2_CID_MPEG_VIDEO_BITRATE, bitrate)) {
-    MCIL_INFO_PRINT(" Failed changing bitrate");
-    NOTIFY_ERROR(kPlatformFailureError);
-    return false;
-  }
+  if (ShouldSetEncodingParams()) {
+    if (current_bitrate_ != bitrate &&
+        !v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+                               V4L2_CID_MPEG_VIDEO_BITRATE, bitrate)) {
+      MCIL_INFO_PRINT(" Failed changing bitrate");
+      NOTIFY_ERROR(kPlatformFailureError);
+      return false;
+    }
 
-  if (current_framerate_ != framerate) {
-    struct v4l2_streamparm parms;
-    memset(&parms, 0, sizeof(parms));
-    parms.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-    parms.parm.output.timeperframe.numerator = 1;
-    parms.parm.output.timeperframe.denominator = framerate;
-    IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_S_PARM, &parms);
+    if (current_framerate_ != framerate) {
+      struct v4l2_streamparm parms;
+      memset(&parms, 0, sizeof(parms));
+      parms.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+      parms.parm.output.timeperframe.numerator = 1;
+      parms.parm.output.timeperframe.denominator = framerate;
+      IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_S_PARM, &parms);
+    }
   }
 
   current_bitrate_ = bitrate;
@@ -352,7 +345,7 @@ void V4L2VideoEncoder::EnqueueBuffers() {
       return;
   }
 
-  if (do_streamon) {
+  if (do_streamon && DoStreamOnInEnqueueBuffers()) {
     output_queue_->StreamOn();
     input_queue_->StreamOn();
   }
@@ -384,6 +377,20 @@ void V4L2VideoEncoder::DequeueBuffers() {
 
   if (buffer_dequeued)
     client_->PumpBitstreamBuffers();
+}
+
+const uint32_t V4L2VideoEncoder::GetCapsRequired() {
+  return V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
+}
+
+bool V4L2VideoEncoder::InitInputMemoryType() {
+  input_memory_type_ = V4L2_MEMORY_MMAP;
+  return true;
+}
+
+bool V4L2VideoEncoder::InitOutputMemoryType() {
+  output_memory_type_ = V4L2_MEMORY_MMAP;
+  return true;
 }
 
 bool V4L2VideoEncoder::SetFormats(VideoPixelFormat input_format,
@@ -466,7 +473,7 @@ Optional<struct v4l2_format> V4L2VideoEncoder::SetInputFormat(
       return nullopt;
     }
 
-    if (!ApplyCrop())
+    if (ShouldApplyCrop() && !ApplyCrop())
       return nullopt;
 
     return format;
@@ -537,6 +544,8 @@ bool V4L2VideoEncoder::InitControls(const EncoderConfig* config) {
 }
 
 bool V4L2VideoEncoder::InitControlsH264(const EncoderConfig* config) {
+  inject_sps_and_pps_ = ShouldInjectSpsPps();
+
   v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG, V4L2_CID_MPEG_VIDEO_B_FRAMES, 0);
 
   int32_t profile_value =
@@ -578,7 +587,7 @@ void V4L2VideoEncoder::NotifyErrorState(EncoderError error_code) {
 }
 
 bool V4L2VideoEncoder::CreateInputBuffers() {
-  if (input_queue_->AllocateBuffers(kInputBufferCount, V4L2_MEMORY_MMAP) <
+  if (input_queue_->AllocateBuffers(kInputBufferCount, input_memory_type_) <
       kInputBufferCount) {
     MCIL_INFO_PRINT(" Failed to allocate V4L2 input buffers.");
     return false;
@@ -593,7 +602,7 @@ bool V4L2VideoEncoder::CreateInputBuffers() {
 }
 
 bool V4L2VideoEncoder::CreateOutputBuffers() {
-  if (output_queue_->AllocateBuffers(kOutputBufferCount, V4L2_MEMORY_MMAP) <
+  if (output_queue_->AllocateBuffers(kOutputBufferCount, output_memory_type_) <
       kOutputBufferCount) {
     MCIL_INFO_PRINT(" Failed to allocate V4L2 output buffers.");
     return false;
@@ -638,12 +647,12 @@ bool V4L2VideoEncoder::EnqueueInputBuffer(V4L2WritableBufferRef buffer) {
 
   scoped_refptr<VideoFrame> frame = std::move(frame_info.frame);
 
-  size_t buffer_id = buffer.BufferIndex();
+  size_t buffer_index = buffer.BufferIndex();
   buffer.SetTimeStamp(frame->timestamp);
 
   size_t num_planes = V4L2Device::GetNumPlanesOfV4L2PixFmt(
       Fourcc::FromVideoPixelFormat(device_input_frame_->format,
-                                        !device_input_frame_->is_multi_planar)
+                                   !device_input_frame_->is_multi_planar)
           ->ToV4L2PixFmt());
 
   for (size_t i = 0; i < num_planes; ++i) {
@@ -658,17 +667,44 @@ bool V4L2VideoEncoder::EnqueueInputBuffer(V4L2WritableBufferRef buffer) {
               .GetArea());
     }
 
-    size_t plane_size = buffer.GetBufferSize(i);
-    size_t bytes_used = buffer.GetBytesUsed(i);
-    void* mapping = buffer.GetPlaneBuffer(i);
-    memcpy(reinterpret_cast<uint8_t*>(mapping) + bytes_used,
-           frame->data[i], plane_size);
+    switch (buffer.Memory()) {
+      case V4L2_MEMORY_MMAP: {
+        size_t plane_size = buffer.GetBufferSize(i);
+        size_t bytes_used = buffer.GetBytesUsed(i);
+        void* mapping = buffer.GetPlaneBuffer(i);
+        memcpy(reinterpret_cast<uint8_t*>(mapping) + bytes_used,
+               frame->data[i], plane_size);
+        break;
+      }
+      case V4L2_MEMORY_USERPTR:
+        buffer.SetBufferSize(i, device_input_frame_->color_planes[i].size);
+        break;
+      default:
+        MCIL_DEBUG_PRINT("Unknown input memory type: %d",
+                         static_cast<int>(buffer.Memory()));
+        return false;
+    }
 
     buffer.SetBytesUsed(i, bytesused);
   }
 
-  size_t buffer_index = buffer.BufferIndex();
-  std::move(buffer).QueueMMap();
+  switch (buffer.Memory()) {
+    case V4L2_MEMORY_MMAP: {
+      std::move(buffer).QueueMMap();
+      break;
+    }
+    case V4L2_MEMORY_USERPTR: {
+      std::vector<void*> user_ptrs;
+      for (size_t i = 0; i < buffer.PlanesCount(); ++i)
+        user_ptrs.push_back(buffer.GetPlaneBuffer(i));
+      std::move(buffer).QueueUserPtr(std::move(user_ptrs));
+      break;
+    }
+    default:
+      MCIL_DEBUG_PRINT("Unknown input memory type: %d",
+                       static_cast<int>(buffer.Memory()));
+      return false;
+  }
 
   client_->EnqueueInputBuffer(buffer_index);
   encoder_input_queue_.pop();
@@ -699,8 +735,26 @@ bool V4L2VideoEncoder::DequeueInputBuffer() {
 bool V4L2VideoEncoder::EnqueueOutputBuffer(V4L2WritableBufferRef buffer) {
   MCIL_DEBUG_PRINT(": called");
 
-  if (!std::move(buffer).QueueMMap()) {
-    MCIL_INFO_PRINT("Failed to QueueMMap.");
+  size_t buffer_index = buffer.BufferIndex();
+  bool ret = false;
+  switch (buffer.Memory()) {
+    case V4L2_MEMORY_MMAP:
+      ret = std::move(buffer).QueueMMap();
+      break;
+    case V4L2_MEMORY_USERPTR: {
+      std::vector<void*> user_ptrs;
+      for (size_t i = 0; i < buffer.PlanesCount(); ++i)
+        user_ptrs.push_back(buffer.GetPlaneBuffer(i));
+      ret = std::move(buffer).QueueUserPtr(user_ptrs);
+      break;
+    }
+    default:
+      MCIL_DEBUG_PRINT(" Memory type (%d) not handled", buffer.Memory());
+      return false;
+  }
+
+  if (!ret) {
+    MCIL_INFO_PRINT(": Error in Enqueue output buffer");
     return false;
   }
 

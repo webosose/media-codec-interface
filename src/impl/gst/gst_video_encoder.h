@@ -34,6 +34,7 @@ class GstVideoEncoder : public VideoEncoder {
                   VideoEncoderClient* client,
                   int venc_port_index,
                   bool* should_control_buffer_feed,
+                  bool* should_inject_sps_and_pps,
                   size_t* output_buffer_byte_size) override;
   void Destroy() override;
   bool EncodeBuffer(const uint8_t* yBuf, size_t ySize,

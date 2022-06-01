@@ -34,6 +34,7 @@ class VideoDecoderClient {
   virtual void StartResolutionChange() = 0;
   virtual void NotifyFlushDone() = 0;
   virtual void NotifyFlushDoneIfNeeded() = 0;
+  virtual void NotifyResetDone() = 0;
   virtual bool IsDestroyPending() = 0;
   virtual void OnStartDevicePoll() = 0;
   virtual void OnStopDevicePoll() = 0;

@@ -34,9 +34,9 @@ scoped_refptr<VideoDecoder> VideoDecoder::Create() {
 
 // static
 SupportedProfiles VideoDecoder::GetSupportedProfiles() {
-  scoped_refptr<V4L2Device> device = V4L2Device::Create();
+  scoped_refptr<V4L2Device> device = V4L2Device::Create(V4L2_DECODER);
 
-  MCIL_INFO_PRINT(": device (%p)", device.get());
+  MCIL_DEBUG_PRINT(": device (%p)", device.get());
   if (!device)
     return SupportedProfiles();
 
@@ -46,7 +46,7 @@ SupportedProfiles VideoDecoder::GetSupportedProfiles() {
 
 V4L2VideoDecoder::V4L2VideoDecoder()
  : VideoDecoder(),
-   v4l2_device_(V4L2Device::Create()),
+   v4l2_device_(V4L2Device::Create(V4L2_DECODER)),
    output_mode_(OUTPUT_ALLOCATE),
    device_poll_thread_("V4L2DecoderDevicePollThread"),
    decoder_state_(kUninitialized) {
@@ -265,11 +265,6 @@ bool V4L2VideoDecoder::DidFlushBuffersDone() {
 void V4L2VideoDecoder::EnqueueBuffers() {
   if (client_->IsDestroyPending() || decoder_state_ == kChangingResolution) {
     MCIL_INFO_PRINT(": state[%d]", static_cast<int>(decoder_state_));
-    return;
-  }
-
-  if (IsReconfigurationPending()) {
-    MCIL_DEBUG_PRINT(" Reconfiguration pending... ");
     return;
   }
 
@@ -500,6 +495,32 @@ bool V4L2VideoDecoder::IsDecoderCmdSupported() {
   return true;
 }
 
+bool V4L2VideoDecoder::SendDecoderCmdStop() {
+  MCIL_DEBUG_PRINT(": called");
+
+  struct v4l2_decoder_cmd cmd;
+  memset(&cmd, 0, sizeof(cmd));
+  cmd.cmd = V4L2_DEC_CMD_STOP;
+  IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_DECODER_CMD, &cmd);
+
+  flush_awaiting_last_output_buffer_ = true;
+
+  return true;
+}
+
+bool V4L2VideoDecoder::SendDecoderCmdStart() {
+  MCIL_DEBUG_PRINT(": called");
+
+  flush_awaiting_last_output_buffer_ = false;
+
+  struct v4l2_decoder_cmd cmd;
+  memset(&cmd, 0, sizeof(cmd));
+  cmd.cmd = V4L2_DEC_CMD_START;
+  IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_DECODER_CMD, &cmd);
+
+  return true;
+}
+
 bool V4L2VideoDecoder::CheckConfig(const DecoderConfig* config) {
   MCIL_DEBUG_PRINT(": output_mode[%d]", config->outputMode);
 
@@ -518,16 +539,14 @@ bool V4L2VideoDecoder::CheckConfig(const DecoderConfig* config) {
     return false;
   }
 
-  if (ShouldCheckCapsRequired()) {
-    // Capabilities check.
-    struct v4l2_capability caps;
-    IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_QUERYCAP, &caps);
+  // Capabilities check.
+  struct v4l2_capability caps;
+  IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_QUERYCAP, &caps);
 
-    const __u32 kCapsRequired = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
-    if ((caps.capabilities & kCapsRequired) != kCapsRequired) {
-      MCIL_INFO_PRINT(": Check failed input_caps: 0x%x", caps.capabilities);
-      return false;
-    }
+  const __u32 kCapsRequired = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
+  if ((caps.capabilities & kCapsRequired) != kCapsRequired) {
+    MCIL_INFO_PRINT(": Check failed input_caps: 0x%x", caps.capabilities);
+    return false;
   }
 
   output_mode_ = config->outputMode;
@@ -635,19 +654,19 @@ bool V4L2VideoDecoder::UnsubscribeEvents() {
   return true;
 }
 
-bool V4L2VideoDecoder::DequeueResolutionChangeEvent() {
+int V4L2VideoDecoder::DequeueResolutionChangeEvent() {
   while (Optional<struct v4l2_event> event = v4l2_device_->DequeueEvent()) {
     if (event->type == V4L2_EVENT_SOURCE_CHANGE) {
       if (event->u.src_change.changes & V4L2_EVENT_SRC_CH_RESOLUTION) {
         MCIL_INFO_PRINT(": got resolution change event");
-        return true;
+        return 1;
       }
     } else {
       MCIL_DEBUG_PRINT(": got an event (%d) we haven't subscribed to.",
                        event->type);
     }
   }
-  return false;
+  return 0;
 }
 
 bool V4L2VideoDecoder::AllocateInputBuffers() {
@@ -772,32 +791,6 @@ bool V4L2VideoDecoder::CreateBuffersForFormat(
   return CreateOutputBuffers();
 }
 
-bool V4L2VideoDecoder::SendDecoderCmdStop() {
-  MCIL_DEBUG_PRINT(": called");
-
-  struct v4l2_decoder_cmd cmd;
-  memset(&cmd, 0, sizeof(cmd));
-  cmd.cmd = V4L2_DEC_CMD_STOP;
-  IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_DECODER_CMD, &cmd);
-
-  flush_awaiting_last_output_buffer_ = true;
-
-  return true;
-}
-
-bool V4L2VideoDecoder::SendDecoderCmdStart() {
-  MCIL_DEBUG_PRINT(": called");
-
-  flush_awaiting_last_output_buffer_ = false;
-
-  struct v4l2_decoder_cmd cmd;
-  memset(&cmd, 0, sizeof(cmd));
-  cmd.cmd = V4L2_DEC_CMD_START;
-  IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_DECODER_CMD, &cmd);
-
-  return true;
-}
-
 void V4L2VideoDecoder::NotifyErrorState(DecoderError error_code) {
   client_->NotifyDecoderError(error_code);
 }
@@ -814,9 +807,13 @@ bool V4L2VideoDecoder::EnqueueInputBuffer(V4L2WritableBufferRef buffer) {
     case V4L2_MEMORY_MMAP:
       ret = std::move(buffer).QueueMMap();
       break;
-    case V4L2_MEMORY_USERPTR:
-      ret = std::move(buffer).QueueUserPtr();
+    case V4L2_MEMORY_USERPTR: {
+      std::vector<void*> user_ptrs;
+      for (size_t i = 0; i < buffer.PlanesCount(); ++i)
+        user_ptrs.push_back(buffer.GetPlaneBuffer(i));
+      ret = std::move(buffer).QueueUserPtr(user_ptrs);
       break;
+    }
     default:
       MCIL_DEBUG_PRINT(" Memory type (%d) not handled", buffer.Memory());
       return false;
@@ -857,9 +854,13 @@ bool V4L2VideoDecoder::EnqueueOutputBuffer(V4L2WritableBufferRef buffer) {
     case V4L2_MEMORY_MMAP:
       ret = std::move(buffer).QueueMMap();
       break;
-    case V4L2_MEMORY_USERPTR:
-      ret = std::move(buffer).QueueUserPtr();
+    case V4L2_MEMORY_USERPTR: {
+      std::vector<void*> user_ptrs;
+      for (size_t i = 0; i < buffer.PlanesCount(); ++i)
+        user_ptrs.push_back(buffer.GetPlaneBuffer(i));
+      ret = std::move(buffer).QueueUserPtr(user_ptrs);
       break;
+    }
     default:
       MCIL_DEBUG_PRINT(" Memory type (%d) not handled", buffer.Memory());
       return false;

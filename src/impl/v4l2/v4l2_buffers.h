@@ -108,7 +108,9 @@ class V4L2ReadableBuffer : public ReadableBuffer {
   size_t GetDataOffset(size_t plane) const override;
   bool IsKeyframe() const override;
 
-  size_t PlanesCount() const;
+  size_t PlanesCount() const override;
+  void SetFlags(uint32_t flags) override;
+  uint32_t GetFlags() const override;
 
  private:
   V4L2ReadableBuffer(const struct v4l2_buffer& v4l2_buffer,
@@ -145,8 +147,10 @@ class V4L2WritableBufferRef : public WritableBufferRef {
 
   bool QueueMMap() &&;
   bool QueueUserPtr() &&;
+  bool QueueUserPtr(const std::vector<void*>& ptrs) &&;
   size_t PlanesCount() const;
   enum v4l2_memory Memory() const;
+  void SetFlags(uint32_t flags);
 
  private:
   V4L2WritableBufferRef(const struct v4l2_buffer& v4l2_buffer,

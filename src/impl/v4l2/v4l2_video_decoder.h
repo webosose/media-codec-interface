@@ -67,29 +67,27 @@ class V4L2VideoDecoder : public VideoDecoder {
     kDpbOutputBufferExtraCountForImageProcessor = 1,
   };
 
-  virtual bool ShouldCheckCapsRequired() { return true; }
-  virtual bool IsReconfigurationPending() { return false; }
   virtual bool IsDecoderCmdSupported();
+  virtual bool SendDecoderCmdStop();
+  virtual bool SendDecoderCmdStart();
 
   virtual bool CheckConfig(const DecoderConfig* config);
   virtual bool SetupFormats();
 
   virtual bool SubscribeEvents();
   virtual bool UnsubscribeEvents();
-  virtual bool DequeueResolutionChangeEvent();
+  virtual int DequeueResolutionChangeEvent();
 
   virtual bool AllocateInputBuffers();
   virtual bool CreateOutputBuffers();
   virtual bool DestroyOutputBuffers();
+  virtual void DestroyInputBuffers();
 
-  void DestroyInputBuffers();
   bool GetFormatInfo(struct v4l2_format* format,
                      Size* visible_size, bool* again);
   Size GetVisibleSize(const Size& coded_size);
   bool CreateBuffersForFormat(const struct v4l2_format& format,
                               const Size& visible_size);
-  bool SendDecoderCmdStop();
-  bool SendDecoderCmdStart();
 
   void NotifyErrorState(DecoderError error);
 
@@ -99,8 +97,8 @@ class V4L2VideoDecoder : public VideoDecoder {
   bool EnqueueOutputBuffer(V4L2WritableBufferRef buffer);
   bool DequeueOutputBuffer();
 
-  bool StartDevicePoll();
-  bool StopDevicePoll();
+  virtual bool StartDevicePoll();
+  virtual bool StopDevicePoll();
 
   bool StopInputStream();
   bool StopOutputStream();

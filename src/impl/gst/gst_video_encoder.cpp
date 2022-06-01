@@ -38,6 +38,7 @@
 
 namespace mcil {
 
+#if defined(USE_GST_ENCODER)
 scoped_refptr<VideoEncoder> VideoEncoder::Create() {
   return new GstVideoEncoder();
 }
@@ -54,6 +55,7 @@ SupportedProfiles VideoEncoder::GetSupportedProfiles() {
 
   return supported_profiles;
 }
+#endif
 
 GstVideoEncoder::GstVideoEncoder()
  : VideoEncoder() {
@@ -71,6 +73,7 @@ bool GstVideoEncoder::Initialize(const EncoderConfig* configData,
                                  VideoEncoderClient* client,
                                  int venc_port_index,
                                  bool* should_control_buffer_feed,
+                                 bool* should_inject_sps_and_pps,
                                  size_t* output_buffer_byte_size) {
   MCIL_INFO_PRINT(" called");
   client_ = client;
@@ -86,6 +89,7 @@ bool GstVideoEncoder::Initialize(const EncoderConfig* configData,
 
   bitrate_ = 0;
   *should_control_buffer_feed = true;
+  *should_inject_sps_and_pps = false;
 
   return true;
 }
