@@ -31,9 +31,8 @@ class VideoDecoder : public RefCounted<VideoDecoder> {
 
   virtual bool Initialize(const DecoderConfig* config,
                           VideoDecoderClient* client,
-                          VideoPixelFormat* output_pix_fmt,
-                          int32_t vdec_port_index,
-                          bool* should_control_buffer_feed);
+                          DecoderClientConfig* client_config,
+                          int32_t vdec_port_index);
   virtual void Destroy();
   virtual bool ResetInputBuffer();
   virtual bool ResetDecodingBuffers(bool* reset_pending);

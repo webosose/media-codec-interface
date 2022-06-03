@@ -70,6 +70,16 @@ class DecoderConfig {
   OutputMode outputMode;
 };
 
+/* DecoderClinet configure data structure */
+class DecoderClientConfig {
+ public:
+  DecoderClientConfig();
+  ~DecoderClientConfig();
+
+  VideoPixelFormat output_pixel_format = PIXEL_FORMAT_UNKNOWN;
+  bool should_control_buffer_feed = false;
+};
+
 }  // namespace mcil
 
 #endif  // SRC_BASE_DECODER_TYPES_H_

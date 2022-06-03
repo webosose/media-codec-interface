@@ -320,7 +320,7 @@ void GenericV4L2Device::EnumerateDevicesForType(DeviceType type) {
 std::vector<uint32_t>
 GenericV4L2Device::PreferredInputFormat(DeviceType type) const {
   if (type == V4L2_ENCODER)
-    return {V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_NV12};
+    return { V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_NV12 };
   return {};
 }
 

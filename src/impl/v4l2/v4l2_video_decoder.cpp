@@ -59,9 +59,8 @@ V4L2VideoDecoder::~V4L2VideoDecoder() {
 
 bool V4L2VideoDecoder::Initialize(const DecoderConfig* config,
                                   VideoDecoderClient* client,
-                                  VideoPixelFormat* output_pix_fmt,
-                                  int vdec_port_index,
-                                  bool* should_control_buffer_feed) {
+                                  DecoderClientConfig* client_config,
+                                  int vdec_port_index) {
   client_ = client;
   if (!client_) {
     NOTIFY_ERROR(INVALID_ARGUMENT);
@@ -88,13 +87,16 @@ bool V4L2VideoDecoder::Initialize(const DecoderConfig* config,
 
   decoder_cmd_supported_ = IsDecoderCmdSupported();
 
-  if (egl_image_format_fourcc_)
-    *output_pix_fmt = egl_image_format_fourcc_->ToVideoPixelFormat();
-
-  // Controlling the buffer feed is needed since we dont have
-  // feed and release based control because decode and capture
-  // devices are different in other platforms.
-  *should_control_buffer_feed = false;
+  if (client_config) {
+    if (egl_image_format_fourcc_) {
+      client_config->output_pixel_format =
+          egl_image_format_fourcc_->ToVideoPixelFormat();
+    }
+    // Controlling the buffer feed is needed since we dont have
+    // feed and release based control because decode and capture
+    // devices are different in other platforms.
+    client_config->should_control_buffer_feed = false;
+  }
 
   return StartDevicePoll();
 }

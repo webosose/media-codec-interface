@@ -23,9 +23,8 @@ class V4L2VideoEncoder : public VideoEncoder {
 
   bool Initialize(const EncoderConfig* config,
                   VideoEncoderClient* client,
-                  int venc_port_index,
-                  bool* should_control_buffer_feed,
-                  size_t* output_buffer_byte_size) override;
+                  EncoderClientConfig* client_config,
+                  int venc_port_index) override;
   void Destroy() override;
   bool IsFlushSupported() override;
   bool EncodeFrame(scoped_refptr<VideoFrame> frame,
@@ -37,8 +36,9 @@ class V4L2VideoEncoder : public VideoEncoder {
   void SetEncoderState(CodecState state) override;
   size_t GetFreeBuffersCount(QueueType queue_type) override;
   void EnqueueBuffers() override;
-
-  virtual void DequeueBuffers();
+  scoped_refptr<VideoFrame> GetDeviceInputFrame() override;
+  bool NegotiateInputFormat(VideoPixelFormat format,
+                            const Size& frame_size) override;
 
  protected:
   // These are rather subjectively tuned.
@@ -56,11 +56,12 @@ class V4L2VideoEncoder : public VideoEncoder {
     bool force_keyframe;
   };
 
+  virtual void DequeueBuffers();
   virtual bool SetFormats(VideoPixelFormat input_format,
                           VideoCodecProfile output_profile);
 
   virtual bool SetOutputFormat(VideoCodecProfile output_profile);
-  virtual Optional<struct v4l2_format> NegotiateInputFormat(
+  virtual Optional<struct v4l2_format> SetInputFormat(
       VideoPixelFormat format, const Size& frame_size);
   virtual bool ApplyCrop();
 

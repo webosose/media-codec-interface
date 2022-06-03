@@ -41,9 +41,8 @@ VideoEncoder::~VideoEncoder() = default;
 
 bool VideoEncoder::Initialize(const EncoderConfig* configData,
                               VideoEncoderClient* client,
-                              int venc_port_index,
-                              bool* should_control_buffer_feed,
-                              size_t* output_buffer_byte_size) {
+                              EncoderClientConfig* client_config,
+                              int venc_port_index) {
   return true;
 }
 
@@ -89,6 +88,15 @@ size_t VideoEncoder::GetFreeBuffersCount(QueueType queue_type) {
 }
 
 void VideoEncoder::EnqueueBuffers() {
+}
+
+scoped_refptr<VideoFrame> VideoEncoder::GetDeviceInputFrame() {
+  return nullptr;
+}
+
+bool VideoEncoder::NegotiateInputFormat(VideoPixelFormat format,
+                                        const Size& frame_size) {
+  return false;
 }
 
 }  // namespace mcil

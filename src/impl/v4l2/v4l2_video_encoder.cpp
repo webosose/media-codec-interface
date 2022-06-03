@@ -83,9 +83,8 @@ V4L2VideoEncoder::~V4L2VideoEncoder() {
 
 bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
                                   VideoEncoderClient* client,
-                                  int venc_port_index,
-                                  bool* should_control_buffer_feed,
-                                  size_t* output_buffer_byte_size) {
+                                  EncoderClientConfig* client_config,
+                                  int venc_port_index) {
   MCIL_DEBUG_PRINT(": Start");
   client_ = client;
   if (!client_) {
@@ -158,8 +157,11 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
 
   UpdateEncodingParams(encoder_config_.bitRate, encoder_config_.frameRate);
 
-  *should_control_buffer_feed = false;
-  *output_buffer_byte_size = encoder_config_.outputBufferSize;
+  if (client_config) {
+    client_config->should_control_buffer_feed = false;
+    client_config->output_buffer_byte_size = encoder_config_.outputBufferSize;
+  }
+
   MCIL_DEBUG_PRINT(": Success");
   return true;
 }
@@ -356,6 +358,15 @@ void V4L2VideoEncoder::EnqueueBuffers() {
   }
 }
 
+scoped_refptr<VideoFrame> V4L2VideoEncoder::GetDeviceInputFrame() {
+  return device_input_frame_;
+}
+
+bool V4L2VideoEncoder::NegotiateInputFormat(VideoPixelFormat format,
+                                            const Size& frame_size) {
+  return SetInputFormat(format, frame_size).has_value();
+}
+
 void V4L2VideoEncoder::DequeueBuffers() {
   MCIL_DEBUG_PRINT(" called");
 
@@ -388,7 +399,7 @@ bool V4L2VideoEncoder::SetFormats(VideoPixelFormat input_format,
     return false;
 
   Size input_size = Size(encoder_config_.width, encoder_config_.height);
-  auto v4l2_format = NegotiateInputFormat(input_format, input_size);
+  auto v4l2_format = SetInputFormat(input_format, input_size);
   if (!v4l2_format)
     return false;
 
@@ -413,9 +424,10 @@ bool V4L2VideoEncoder::SetOutputFormat(VideoCodecProfile output_profile) {
   return true;
 }
 
-Optional<struct v4l2_format>
-V4L2VideoEncoder::NegotiateInputFormat(VideoPixelFormat format,
-                                       const Size& size) {
+Optional<struct v4l2_format> V4L2VideoEncoder::SetInputFormat(
+    VideoPixelFormat format, const Size& frame_size) {
+  MCIL_DEBUG_PRINT(" frame_size[%dx%d]", frame_size.width, frame_size.height);
+
   std::vector<uint32_t> pix_fmt_candidates;
   auto input_fourcc = Fourcc::FromVideoPixelFormat(format, false);
   if (!input_fourcc) {
@@ -424,8 +436,6 @@ V4L2VideoEncoder::NegotiateInputFormat(VideoPixelFormat format,
     return nullopt;
   }
   pix_fmt_candidates.push_back(input_fourcc->ToV4L2PixFmt());
-  // Second try preferred input formats for both single-planar and
-  // multi-planar.
   for (auto preferred_format :
        v4l2_device_->PreferredInputFormat(V4L2_ENCODER)) {
     pix_fmt_candidates.push_back(preferred_format);
@@ -435,7 +445,7 @@ V4L2VideoEncoder::NegotiateInputFormat(VideoPixelFormat format,
     MCIL_DEBUG_PRINT("Trying S_FMT with %s", FourccToString(pix_fmt).c_str());
 
     Optional<struct v4l2_format> format =
-        input_queue_->SetFormat(pix_fmt, size, 0);
+        input_queue_->SetFormat(pix_fmt, frame_size, 0);
     if (!format)
       continue;
 
@@ -448,19 +458,20 @@ V4L2VideoEncoder::NegotiateInputFormat(VideoPixelFormat format,
     }
     MCIL_DEBUG_PRINT(" Negotiated device_input_frame_: %p",
                      device_input_frame_.get());
-    if (!Rect(device_input_frame_->coded_size).Contains(Rect(size))) {
+    if (!Rect(device_input_frame_->coded_size).Contains(Rect(frame_size))) {
       MCIL_INFO_PRINT(" Input size[%dx%d], exceeds encoder size[%dx%d]",
-          size.width, size.height, device_input_frame_->coded_size.width,
+          frame_size.width, frame_size.height,
+          device_input_frame_->coded_size.width,
           device_input_frame_->coded_size.height);
       return nullopt;
     }
 
-    if (!ApplyCrop()) {
+    if (!ApplyCrop())
       return nullopt;
-    }
 
     return format;
   }
+
   return nullopt;
 }
 

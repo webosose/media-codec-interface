@@ -45,8 +45,7 @@ VideoDecoderAPI::~VideoDecoderAPI() {
 }
 
 bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
-                                 VideoPixelFormat* output_pix_fmt,
-                                 bool* should_control_buffer_feed) {
+                                 DecoderClientConfig* client_config) {
   MCIL_DEBUG_PRINT(" decoder_config = %p", decoder_config);
 
   VideoCodec codec_type =
@@ -74,7 +73,7 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
   }
 
   return video_decoder_ ->Initialize(decoder_config, client_,
-      output_pix_fmt, vdec_port_index_, should_control_buffer_feed);
+                                     client_config, vdec_port_index_);
 }
 
 void VideoDecoderAPI::Destroy() {

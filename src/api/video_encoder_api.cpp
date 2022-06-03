@@ -47,8 +47,7 @@ VideoEncoderAPI::~VideoEncoderAPI() {
 }
 
 bool VideoEncoderAPI::Initialize(const EncoderConfig* encoder_config,
-                                 bool* should_control_buffer_feed,
-                                 size_t* output_buffer_byte_size) {
+                                 EncoderClientConfig* client_config) {
   MCIL_DEBUG_PRINT(" encoder_config = %p", encoder_config);
 
   VideoCodec codec_type =
@@ -71,9 +70,8 @@ bool VideoEncoderAPI::Initialize(const EncoderConfig* encoder_config,
   }
   return videoEncoder_->Initialize(encoder_config,
                                    client_,
-                                   venc_port_index_,
-                                   should_control_buffer_feed,
-                                   output_buffer_byte_size);
+                                   client_config,
+                                   venc_port_index_);
 }
 
 void VideoEncoderAPI::Destroy() {
@@ -184,6 +182,23 @@ void VideoEncoderAPI::EnqueueBuffers() {
   }
 
   videoEncoder_->EnqueueBuffers();
+}
+
+scoped_refptr<VideoFrame> VideoEncoderAPI::GetDeviceInputFrame() {
+  if (!videoEncoder_) {
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
+    return nullptr;
+  }
+  return videoEncoder_->GetDeviceInputFrame();
+}
+
+bool VideoEncoderAPI::NegotiateInputFormat(VideoPixelFormat format,
+                                           const Size& frame_size) {
+  if (!videoEncoder_) {
+    MCIL_INFO_PRINT(" Encoder is not created or null.");
+    return false;
+  }
+  return videoEncoder_->NegotiateInputFormat(format, frame_size);
 }
 
 }  // namespace mcil

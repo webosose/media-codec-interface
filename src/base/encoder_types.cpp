@@ -22,4 +22,8 @@ EncoderConfig::EncoderConfig() = default;
 
 EncoderConfig::~EncoderConfig() = default;
 
+EncoderClientConfig::EncoderClientConfig() = default;
+
+EncoderClientConfig::~EncoderClientConfig() = default;
+
 }  //  namespace mcil

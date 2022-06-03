@@ -33,8 +33,7 @@ class VideoDecoderAPI {
   static SupportedProfiles GetSupportedProfiles();
 
   bool Initialize(const DecoderConfig* decoder_config,
-                  VideoPixelFormat* output_pix_fmt,
-                  bool* should_control_buffer_feed);
+                  DecoderClientConfig* client_config);
   void Destroy();
   bool ResetInputBuffer();
   bool ResetDecodingBuffers(bool* reset_pending);

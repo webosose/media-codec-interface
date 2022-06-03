@@ -515,8 +515,9 @@ Optional<struct v4l2_ext_control> V4L2Device::GetCtrl(uint32_t ctrl_id) {
   return ctrl;
 }
 
-bool V4L2Device::SetCtrl(
-    uint32_t ctrl_class, uint32_t ctrl_id, int32_t ctrl_val) {
+bool V4L2Device::SetCtrl(uint32_t ctrl_class,
+                         uint32_t ctrl_id,
+                         int32_t ctrl_val) {
   MCIL_DEBUG_PRINT(" class[%x], id[%x], val[%d]",
                    ctrl_class, ctrl_id, ctrl_val);
 

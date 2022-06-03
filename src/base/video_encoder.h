@@ -30,9 +30,8 @@ class VideoEncoder : public RefCounted<VideoEncoder> {
 
   virtual bool Initialize(const EncoderConfig* configData,
                           VideoEncoderClient* client,
-                          int venc_port_index,
-                          bool* should_control_buffer_feed,
-                          size_t* output_buffer_byte_size);
+                          EncoderClientConfig* client_config,
+                          int venc_port_index);
   virtual void Destroy();
   virtual bool IsFlushSupported();
 
@@ -50,7 +49,9 @@ class VideoEncoder : public RefCounted<VideoEncoder> {
   virtual void SetEncoderState(CodecState state);
   virtual size_t GetFreeBuffersCount(QueueType queue_type);
   virtual void EnqueueBuffers();
-
+  virtual scoped_refptr<VideoFrame> GetDeviceInputFrame();
+  virtual bool NegotiateInputFormat(VideoPixelFormat format,
+                                    const Size& frame_size);
  protected:
   friend class RefCounted<VideoEncoder>;
 

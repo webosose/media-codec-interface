@@ -49,6 +49,16 @@ class EncoderConfig {
   VideoCodecProfile profile;
 };
 
+/* EncoderClinet configure data structure */
+class EncoderClientConfig {
+ public:
+  EncoderClientConfig();
+  ~EncoderClientConfig();
+
+  bool should_control_buffer_feed = false;
+  size_t output_buffer_byte_size = 0;
+};
+
 }  // namespace mcil
 
 #endif  // SRC_BASE_ENCODER_TYPES_H_

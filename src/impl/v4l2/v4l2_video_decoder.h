@@ -27,9 +27,8 @@ class V4L2VideoDecoder : public VideoDecoder {
 
   bool Initialize(const DecoderConfig* config,
                   VideoDecoderClient* client,
-                  VideoPixelFormat* output_pix_fmt,
-                  int vdec_port_index,
-                  bool* should_control_buffer_feed) override;
+                  DecoderClientConfig* client_config,
+                  int vdec_port_index) override;
   void Destroy() override;
   bool ResetInputBuffer() override;
   bool ResetDecodingBuffers(bool* reset_pending) override;

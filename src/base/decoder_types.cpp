@@ -24,4 +24,8 @@ DecoderConfig::DecoderConfig() = default;
 
 DecoderConfig::~DecoderConfig() = default;
 
+DecoderClientConfig::DecoderClientConfig() = default;
+
+DecoderClientConfig::~DecoderClientConfig() = default;
+
 }  //  namespace mcil

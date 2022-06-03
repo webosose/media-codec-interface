@@ -32,8 +32,7 @@ class VideoEncoderAPI {
   ~VideoEncoderAPI();
 
   bool Initialize(const EncoderConfig* configData,
-                  bool* should_control_buffer_feed,
-                  size_t* output_buffer_byte_size);
+                  EncoderClientConfig* client_config);
   void Destroy();
   bool IsFlushSupported();
   bool EncodeFrame(scoped_refptr<VideoFrame> frame,
@@ -50,6 +49,9 @@ class VideoEncoderAPI {
   void SetEncoderState(CodecState state);
   size_t GetFreeBuffersCount(QueueType queue_type);
   void EnqueueBuffers();
+  scoped_refptr<VideoFrame> GetDeviceInputFrame();
+  bool NegotiateInputFormat(VideoPixelFormat format,
+                            const Size& frame_size);
 
  private:
   VideoEncoderClient* client_;

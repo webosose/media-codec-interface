@@ -39,9 +39,8 @@ VideoDecoder::~VideoDecoder() = default;
 
 bool VideoDecoder::Initialize(const DecoderConfig* decoderConfig,
                               VideoDecoderClient* client,
-                              VideoPixelFormat* output_pix_fmt,
-                              int32_t vdec_port_index,
-                              bool* should_control_buffer_feed) {
+                              DecoderClientConfig* client_config,
+                              int32_t vdec_port_index) {
   return true;
 }
 
