@@ -14,65 +14,52 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-
 #ifndef SRC_BASE_ENCODER_TYPES_H_
 #define SRC_BASE_ENCODER_TYPES_H_
 
 #include "codec_types.h"
+#include "video_buffers.h"
+#include "video_frame.h"
 
-typedef enum MCIL_MEDIA_STATUS {
-  MCIL_MEDIA_OK = 0,
-  MCIL_MEDIA_ERROR = -1,
-  MCIL_MEDIA_NOT_IMPLEMENTED = -2,
-  MCIL_MEDIA_NOT_SUPPORTED = -6,
-  MCIL_MEDIA_BUFFER_FULL = -7,                         /**< function doesn't works cause buffer is full */
-  MCIL_MEDIA_INVALID_PARAMS = -3,                      /**< Invalid parameters */
-  MCIL_MEDIA_NOT_READY = -11,                          /**< API's resource is not ready */
-} MCIL_MEDIA_STATUS_T;
+namespace mcil {
 
-typedef struct ENCODING_ERRORS {
-  gint32 errorCode;
-  gchar* errorStr;
-} ENCODING_ERRORS_T;
+// Same as the enum Error defined in upstream Chromium file
+// media/video/video_encode_accelerator.h
+enum EncoderError {
+  kIllegalStateError,
+  kInvalidArgumentError,
+  kPlatformFailureError,
+  kErrorMax = kPlatformFailureError
+};
 
-/**
- * Data structure for encoding parameters
- */
-typedef struct ENCODING_PARAMS {
-  gint32 bitRate;
-  guint32 frameRate;
-} ENCODING_PARAMS_T;
+/* Encoder config data structure */
+class EncoderConfig {
+ public:
+  EncoderConfig();
+  ~EncoderConfig();
 
-/**
- * Load data structure for Buffer Player
- */
-typedef struct ENCODER_INIT_DATA {
-  /* config for video */
-  guint32 frameRate;
-  guint32 bitRate;
-  guint32 width;
-  guint32 height;
-  MCIL_PIXEL_FMT pixelFormat;
-  MCIL_VIDEO_CODEC codecType;
-  guint32 bufferSize;
-} ENCODER_INIT_DATA_T;
+  uint32_t frameRate;
+  uint32_t bitRate;
+  uint32_t width;
+  uint32_t height;
+  VideoPixelFormat pixelFormat;
+  uint32_t outputBufferSize;
+  uint8_t h264OutputLevel;
+  uint32_t gopLength;
+  VideoCodecProfile profile;
+};
 
-typedef enum {
-  ENCODER_CB_LOAD_COMPLETE = 0,
-  ENCODER_CB_NOTIFY_PLAYING,
-  ENCODER_CB_NOTIFY_PAUSED,
-  ENCODER_CB_BUFFER_ENCODED,
-  ENCODER_CB_NOTIFY_EOS,
-  ENCODER_CB_NOTIFY_ERROR,
-  ENCODER_CB_SOURCE_INFO,
-  ENCODER_CB_UNLOAD_COMPLETE,
-  ENCODER_CB_TYPE_MAX = ENCODER_CB_UNLOAD_COMPLETE,
-} ENCODER_CB_TYPE_T;
+/* EncoderClinet configure data structure */
+class EncoderClientConfig {
+ public:
+  EncoderClientConfig();
+  ~EncoderClientConfig();
 
-using ENCODER_CALLBACK_T = std::function<void(
-    const gint type, const void* cbData, void *userData)>;
+  bool should_control_buffer_feed = false;
+  size_t output_buffer_byte_size = 0;
+  bool should_inject_sps_and_pps = false;
+};
 
-using NEWFRAME_CALLBACK_T = std::function<void(
-    const uint8_t* buffer, uint32_t bufferSize, uint64_t timeStamp, bool isKeyFrame)>;
+}  // namespace mcil
 
 #endif  // SRC_BASE_ENCODER_TYPES_H_

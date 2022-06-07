@@ -14,7 +14,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+include(webOS/webOS)
+webos_modules_init(1 6 3)
+
 find_package(PkgConfig REQUIRED)
+
+include(FindPkgConfig)
 
 pkg_check_modules(PMLOGLIB QUIET PmLogLib)
 if (PMLOGLIB_FOUND)
@@ -22,36 +27,50 @@ if (PMLOGLIB_FOUND)
 endif (PMLOGLIB_FOUND)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 include_directories(.)
-
+include_directories(./api)
 include_directories(./base)
+include_directories(./impl)
+include_directories(./resource)
 
-include_directories(./codec_impl)
-
-add_subdirectory(codec_impl)
-
-find_package(Threads REQUIRED)
-
-set(MEDIA_CODEC_INTERFACE_LIB media-codec-interface)
-
-set(MEDIA_CODEC_INTERFACE_HEADERS
+set(MEDIA_CODEC_BASE_HEADERS
     base/codec_types.h
+    base/decoder_types.h
     base/encoder_types.h
+    base/fourcc.h
+    base/optional.h
+    base/ref_counted.h
+    base/scoped_refptr.h
+    base/thread.h
+    base/video_buffers.h
+    base/video_decoder.h
+    base/video_decoder_client.h
+    base/video_encoder_client.h
     base/video_encoder.h
-    video_encoder_api.h)
-
-set(MEDIA_CODEC_INTERFACE_SRC
-    base/log.cpp
-    video_encoder_api.cpp
+    base/video_frame.h
 )
 
-add_library(${MEDIA_CODEC_INTERFACE_LIB} SHARED ${MEDIA_CODEC_INTERFACE_SRC})
-target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} video-encoder)
+set(MEDIA_CODEC_BASE_SRC
+    base/codec_types.cpp
+    base/decoder_types.cpp
+    base/encoder_types.cpp
+    base/fourcc.cpp
+    base/log.cpp
+    base/thread.cpp
+    base/video_buffers.cpp
+    base/video_decoder.cpp
+    base/video_encoder.cpp
+    base/video_frame.cpp
+)
 
-install(TARGETS ${MEDIA_CODEC_INTERFACE_LIB} DESTINATION lib)
-install(FILES ${MEDIA_CODEC_INTERFACE_HEADERS} DESTINATION include/mcil)
+set(MEDIA_CODEC_RESOURCE_SRC
+    resource/requestor.cpp
+    resource/video_resource.cpp
+)
+
+include(api/CMakeLists.txt)
+include(impl/CMakeLists.txt)
 
 #install media-codec-interface.pc file
-install(FILES media-codec-interface.pc DESTINATION share/pkgconfig)
-
+configure_file(media-codec-interface.pc.in ${CMAKE_BINARY_DIR}/media-codec-interface.pc @ONLY)
+install(FILES ${CMAKE_BINARY_DIR}/media-codec-interface.pc DESTINATION share/pkgconfig)

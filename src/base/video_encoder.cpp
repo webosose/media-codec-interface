@@ -33,78 +33,70 @@
 
 #include "base/log.h"
 
-const std::string kFormatYUV = "YUY2";
-#define CURR_TIME_INTERVAL_MS    100
-#define LOAD_DONE_TIMEOUT_MS     10
-
-#define MEDIA_VIDEO_MAX      (15 * 1024 * 1024)  // 15MB
-#define QUEUE_MAX_SIZE       (12 * 1024 * 1024)  // 12MB
-#define QUEUE_MAX_TIME       (10 * GST_SECOND)   // 10Secs
-
-#define BUFFER_MIN_PERCENT 50
-#define MEDIA_CHANNEL_MAX  2
-
-
 namespace mcil {
 
-namespace encoder {
+VideoEncoder::VideoEncoder() = default;
 
-VideoEncoder::VideoEncoder() {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
-}
+VideoEncoder::~VideoEncoder() = default;
 
-VideoEncoder::~VideoEncoder() {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
-}
-
-bool VideoEncoder::Init(const ENCODER_INIT_DATA_T* loadData,
-                        NEWFRAME_CALLBACK_T new_frame_cb) {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
-  new_frame_cb_ = new_frame_cb;
+bool VideoEncoder::Initialize(const EncoderConfig* configData,
+                              VideoEncoderClient* client,
+                              EncoderClientConfig* client_config,
+                              int venc_port_index) {
   return true;
 }
 
-bool VideoEncoder::Deinit() {
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
+void VideoEncoder::Destroy() {
+}
+
+bool VideoEncoder::IsFlushSupported() {
   return true;
 }
 
-MCIL_MEDIA_STATUS_T VideoEncoder::Feed(const uint8_t* bufferPtr,
-                                       size_t bufferSize) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
-  return MCIL_MEDIA_ERROR;
-}
-
-MCIL_MEDIA_STATUS_T VideoEncoder::Feed(const uint8_t* yBuf, size_t ySize,
-                                       const uint8_t* uBuf, size_t uSize,
-                                       const uint8_t* vBuf, size_t vSize,
-                                       uint64_t bufferTimestamp,
-                                       const bool requestKeyFrame) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
-  return MCIL_MEDIA_ERROR;
-}
-
-bool VideoEncoder::IsEncoderAvailable() {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
+bool VideoEncoder::EncodeFrame(scoped_refptr<VideoFrame> frame,
+                               bool force_keyframe) {
   return false;
 }
 
-bool VideoEncoder::UpdateEncodingParams(const ENCODING_PARAMS_T* properties) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
-  return true;
-}
-
-bool VideoEncoder::UpdateEncodingResolution(uint32_t width, uint32_t height) {
-  MCIL_INFO_PRINT("%d %s : Error. Not Implemented", __LINE__, __FUNCTION__);
+bool VideoEncoder::EncodeBuffer(const uint8_t* yBuf, size_t ySize,
+                                const uint8_t* uBuf, size_t uSize,
+                                const uint8_t* vBuf, size_t vSize,
+                                uint64_t bufferTimestamp,
+                                bool requestKeyFrame) {
   return false;
 }
 
-void VideoEncoder::RegisterCbFunction(CALLBACK_T callBackFunction)
-{
-  MCIL_INFO_PRINT("%d %s", __LINE__, __FUNCTION__);
-  cbFunction_ = callBackFunction;
+bool VideoEncoder::UpdateEncodingParams(uint32_t bitrate, uint32_t framerate) {
+  return false;
 }
 
-}  // namespace encoder
+bool VideoEncoder::StartDevicePoll() {
+  return true;
+}
+
+void VideoEncoder::RunEncodeBufferTask() {
+}
+
+void VideoEncoder::SendStartCommand(bool start) {
+}
+
+void VideoEncoder::SetEncoderState(CodecState state) {
+}
+
+size_t VideoEncoder::GetFreeBuffersCount(QueueType queue_type) {
+  return 0;
+}
+
+void VideoEncoder::EnqueueBuffers() {
+}
+
+scoped_refptr<VideoFrame> VideoEncoder::GetDeviceInputFrame() {
+  return nullptr;
+}
+
+bool VideoEncoder::NegotiateInputFormat(VideoPixelFormat format,
+                                        const Size& frame_size) {
+  return false;
+}
 
 }  // namespace mcil

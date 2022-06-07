@@ -14,20 +14,16 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "log.h"
+#include "encoder_types.h"
 
-PmLogContext GetPmLogContext() {
-  static PmLogContext mcil_log_context = 0;
+namespace mcil {
 
-  if (0 == mcil_log_context) {
-    PmLogGetContext("mcil", &mcil_log_context);
-  }
+EncoderConfig::EncoderConfig() = default;
 
-  return mcil_log_context;
-}
+EncoderConfig::~EncoderConfig() = default;
 
-std::string BaseFile(const char* file_path) {
-  std::string filename = std::string(file_path);
-  size_t last_slash_pos = filename.find_last_of("/");
-  return filename.substr(last_slash_pos + 1);
-}
+EncoderClientConfig::EncoderClientConfig() = default;
+
+EncoderClientConfig::~EncoderClientConfig() = default;
+
+}  //  namespace mcil
