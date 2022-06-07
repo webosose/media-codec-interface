@@ -58,8 +58,8 @@ class V4L2VideoEncoder : public VideoEncoder {
 
   virtual void DequeueBuffers();
   virtual const uint32_t GetCapsRequired();
-  virtual bool InitInputMemoryType();
-  virtual bool InitOutputMemoryType();
+  virtual void InitInputMemoryType();
+  virtual void InitOutputMemoryType();
   virtual bool DoStreamOnInEnqueueBuffers() { return true; };
   virtual bool ShouldSetEncodingParams() { return true; };
   virtual bool ShouldApplyCrop() { return true; };

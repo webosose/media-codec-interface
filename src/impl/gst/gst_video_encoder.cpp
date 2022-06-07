@@ -69,12 +69,10 @@ GstVideoEncoder::~GstVideoEncoder() {
     gst_element_set_state(pipeline_, GST_STATE_NULL);
 }
 
-bool GstVideoEncoder::Initialize(const EncoderConfig* configData,
-                                 VideoEncoderClient* client,
-                                 int venc_port_index,
-                                 bool* should_control_buffer_feed,
-                                 bool* should_inject_sps_and_pps,
-                                 size_t* output_buffer_byte_size) {
+bool GstVideoEncoder::Initialize(const EncoderConfig* config_data,
+                                  VideoEncoderClient* client,
+                                  EncoderClientConfig* client_config,
+                                  int venc_port_index) {
   MCIL_INFO_PRINT(" called");
   client_ = client;
   if (!client_) {
@@ -82,14 +80,17 @@ bool GstVideoEncoder::Initialize(const EncoderConfig* configData,
     return false;
   }
 
-  if (!CreatePipeline(configData)) {
+  if (!CreatePipeline(config_data)) {
     MCIL_INFO_PRINT("CreatePipeline Failed");
     return false;
   }
 
   bitrate_ = 0;
-  *should_control_buffer_feed = true;
-  *should_inject_sps_and_pps = false;
+
+  if (client_config) {
+    client_config->should_control_buffer_feed = true;
+    client_config->should_inject_sps_and_pps = false;
+  }
 
   return true;
 }

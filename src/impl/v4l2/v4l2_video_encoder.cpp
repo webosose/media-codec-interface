@@ -133,11 +133,8 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
     return false;
   }
 
-  if (!InitInputMemoryType())
-    return false;
-
-  if (!InitOutputMemoryType())
-    return false;
+  InitInputMemoryType();
+  InitOutputMemoryType();
 
   if (!InitControls(config))
     return false;
@@ -383,14 +380,12 @@ const uint32_t V4L2VideoEncoder::GetCapsRequired() {
   return V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
 }
 
-bool V4L2VideoEncoder::InitInputMemoryType() {
+void V4L2VideoEncoder::InitInputMemoryType() {
   input_memory_type_ = V4L2_MEMORY_MMAP;
-  return true;
 }
 
-bool V4L2VideoEncoder::InitOutputMemoryType() {
+void V4L2VideoEncoder::InitOutputMemoryType() {
   output_memory_type_ = V4L2_MEMORY_MMAP;
-  return true;
 }
 
 bool V4L2VideoEncoder::SetFormats(VideoPixelFormat input_format,
