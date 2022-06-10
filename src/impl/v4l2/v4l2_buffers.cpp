@@ -75,7 +75,7 @@ scoped_refptr<VideoFrame> V4L2Buffer::GetVideoFrame() {
 
 void* V4L2Buffer::GetPlaneBuffer(const size_t plane) {
   if (plane >= plane_mappings_.size()) {
-    MCIL_INFO_PRINT(": Invalid plane");
+    MCIL_ERROR_PRINT(": Invalid plane");
     return nullptr;
   }
 
@@ -84,7 +84,7 @@ void* V4L2Buffer::GetPlaneBuffer(const size_t plane) {
     return p;
 
   if (v4l2_buffer_.memory != V4L2_MEMORY_MMAP) {
-    MCIL_INFO_PRINT(": Cannot create mapping on non-MMAP buffer");
+    MCIL_ERROR_PRINT(": Cannot create mapping on non-MMAP buffer");
     return nullptr;
   }
 
@@ -92,7 +92,7 @@ void* V4L2Buffer::GetPlaneBuffer(const size_t plane) {
                     PROT_READ | PROT_WRITE, MAP_SHARED,
                     v4l2_buffer_.m.planes[plane].m.mem_offset);
   if (p == MAP_FAILED) {
-    MCIL_INFO_PRINT(": mmap() failed:");
+    MCIL_ERROR_PRINT(": mmap() failed:");
     return nullptr;
   }
 
@@ -102,11 +102,10 @@ void* V4L2Buffer::GetPlaneBuffer(const size_t plane) {
 
 bool V4L2Buffer::Query() {
   if (device_->Ioctl(VIDIOC_QUERYBUF, &v4l2_buffer_)) {
-    MCIL_INFO_PRINT(": VIDIOC_QUERYBUF failed");
+    MCIL_ERROR_PRINT(": VIDIOC_QUERYBUF failed");
     return false;
   }
-  if (v4l2_buffer_.memory != V4L2_MEMORY_USERPTR)
-    MCIL_DEBUG_PRINT(": length[%d]", v4l2_buffer_.m.planes[0].length);
+
   return true;
 }
 
@@ -118,7 +117,7 @@ scoped_refptr<VideoFrame> V4L2Buffer::CreateVideoFrame() {
       v4l2_buffer_.index, v4l2_buffer_.length,
       static_cast<enum v4l2_buf_type>(v4l2_buffer_.type));
   if (video_frame->dmabuf_fds.empty()) {
-    MCIL_INFO_PRINT(": Failed to get DMABUFs of V4L2 buffer");
+    MCIL_ERROR_PRINT(": Failed to get DMABUFs of V4L2 buffer");
     return nullptr;
   }
 
@@ -127,7 +126,7 @@ scoped_refptr<VideoFrame> V4L2Buffer::CreateVideoFrame() {
     if (video_frame->dmabuf_fds.back() != 0) {
       duped_fd = HANDLE_EINTR(dup(video_frame->dmabuf_fds.back()));
       if (duped_fd == -1) {
-        MCIL_INFO_PRINT(": Failed duplicating dmabuf fd");
+        MCIL_ERROR_PRINT(": Failed duplicating dmabuf fd");
         return nullptr;
       }
     }
@@ -187,7 +186,7 @@ V4L2BufferRefBase::~V4L2BufferRefBase() {
 
 void* V4L2BufferRefBase::GetPlaneBuffer(const size_t plane) {
   if (!queue_) {
-    MCIL_INFO_PRINT(": Failed: Queue is not set yet.");
+    MCIL_DEBUG_PRINT(": Failed: Queue is not set yet.");
     return nullptr;
   }
 
@@ -196,7 +195,7 @@ void* V4L2BufferRefBase::GetPlaneBuffer(const size_t plane) {
 
 bool V4L2BufferRefBase::QueueBuffer(scoped_refptr<VideoFrame> video_frame) {
   if (!queue_) {
-    MCIL_INFO_PRINT(": Failed: Queue is not set yet.");
+    MCIL_DEBUG_PRINT(": Failed: Queue is not set yet.");
     return false;
   }
 
@@ -207,7 +206,7 @@ bool V4L2BufferRefBase::QueueBuffer(scoped_refptr<VideoFrame> video_frame) {
 scoped_refptr<VideoFrame> V4L2BufferRefBase::GetVideoFrame() {
   static const scoped_refptr<VideoFrame> null_videoframe;
   if (!queue_) {
-    MCIL_INFO_PRINT(": Failed: Queue is not set yet.");
+    MCIL_DEBUG_PRINT(": Failed: Queue is not set yet.");
     return null_videoframe;
   }
   return queue_->buffers_[BufferIndex()]->GetVideoFrame();
@@ -314,8 +313,8 @@ size_t V4L2WritableBufferRef::GetBytesUsed(const size_t plane) const {
 void V4L2WritableBufferRef::SetBytesUsed(const size_t plane,
                                          const size_t bytes_used) {
   if (bytes_used > GetBufferSize(plane)) {
-    MCIL_INFO_PRINT(": Set bytes used(%lu), larger than plane size(%lu)",
-                    bytes_used, GetBufferSize(plane));
+    MCIL_DEBUG_PRINT(": Set bytes used(%lu), larger than plane size(%lu)",
+                     bytes_used, GetBufferSize(plane));
     return;
   }
 
@@ -342,7 +341,7 @@ bool V4L2WritableBufferRef::QueueMMap() && {
   V4L2WritableBufferRef self(std::move(*this));
 
   if (self.Memory() != V4L2_MEMORY_MMAP) {
-    MCIL_INFO_PRINT(" Called on invalid buffer type!");
+    MCIL_ERROR_PRINT(" Called on invalid buffer type!");
     return false;
   }
 
@@ -353,7 +352,7 @@ bool V4L2WritableBufferRef::QueueUserPtr() && {
   V4L2WritableBufferRef self(std::move(*this));
 
   if (self.Memory() != V4L2_MEMORY_USERPTR) {
-    MCIL_INFO_PRINT(" Called on invalid buffer type!");
+    MCIL_ERROR_PRINT(" Called on invalid buffer type!");
     return false;
   }
 
@@ -364,13 +363,13 @@ bool V4L2WritableBufferRef::QueueUserPtr(const std::vector<void*>& ptrs) && {
   V4L2WritableBufferRef self(std::move(*this));
 
   if (self.Memory() != V4L2_MEMORY_USERPTR) {
-    MCIL_INFO_PRINT(" Called on invalid buffer type!");
+    MCIL_ERROR_PRINT(" Called on invalid buffer type!");
     return false;
   }
 
   if (ptrs.size() != self.PlanesCount()) {
-    MCIL_INFO_PRINT(" Provided [%ld] pointers while we require [%d]",
-                    ptrs.size(), self.buffer_data_->v4l2_buffer_.length);
+    MCIL_ERROR_PRINT(" Provided [%ld] pointers while we require [%d]",
+                     ptrs.size(), self.buffer_data_->v4l2_buffer_.length);
     return false;
   }
 

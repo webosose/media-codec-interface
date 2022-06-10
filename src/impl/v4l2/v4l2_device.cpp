@@ -17,11 +17,6 @@
 #include "v4l2/generic_v4l2_device.h"
 #include "v4l2/v4l2_queue.h"
 
-#ifdef MCIL_DEBUG_PRINT
-//#undef MCIL_DEBUG_PRINT
-#endif
-//#define MCIL_DEBUG_PRINT MCIL_INFO_PRINT
-
 namespace mcil {
 
 namespace {
@@ -83,7 +78,7 @@ scoped_refptr<V4L2Device> V4L2Device::Create(DeviceType device_type) {
   if (device->Initialize())
     return device;
 
-  MCIL_INFO_PRINT(" Failed to create a V4L2Device");
+  MCIL_ERROR_PRINT(" Failed to create a V4L2Device");
   return nullptr;
 }
 #endif
@@ -97,7 +92,7 @@ uint32_t V4L2Device::VideoCodecProfileToV4L2PixFmt(VideoCodecProfile profile) {
   } else if (profile >= VP9PROFILE_MIN && profile <= VP9PROFILE_MAX) {
     return V4L2_PIX_FMT_VP9;
   } else {
-    MCIL_INFO_PRINT(": Unrecognized: %s", GetProfileName(profile).c_str());
+    MCIL_DEBUG_PRINT(": Unrecognized: %s", GetProfileName(profile).c_str());
     return 0;
   }
 }
@@ -121,8 +116,7 @@ Size V4L2Device::AllocatedSizeFromV4L2Format(const struct v4l2_format& format) {
     const uint32_t pix_fmt = format.fmt.pix_mp.pixelformat;
     const auto frame_fourcc = Fourcc::FromV4L2PixFmt(pix_fmt);
     if (!frame_fourcc) {
-      MCIL_INFO_PRINT(" Unsupported format: %s",
-                      FourccToString(pix_fmt).c_str());
+      MCIL_ERROR_PRINT(" Unsupported : %s", FourccToString(pix_fmt).c_str());
       return coded_size;
     }
     frame_format = frame_fourcc->ToVideoPixelFormat();
@@ -133,8 +127,7 @@ Size V4L2Device::AllocatedSizeFromV4L2Format(const struct v4l2_format& format) {
     const uint32_t fourcc = format.fmt.pix.pixelformat;
     const auto frame_fourcc = Fourcc::FromV4L2PixFmt(fourcc);
     if (!frame_fourcc) {
-      MCIL_INFO_PRINT(" Unsupported format: %s",
-                      FourccToString(fourcc).c_str());
+      MCIL_ERROR_PRINT(" Unsupported : %s", FourccToString(fourcc).c_str());
       return coded_size;
     }
     frame_format = frame_fourcc ? frame_fourcc->ToVideoPixelFormat()
@@ -150,7 +143,7 @@ Size V4L2Device::AllocatedSizeFromV4L2Format(const struct v4l2_format& format) {
 
   if (sizeimage == 0 || bytesperline == 0 || plane_horiz_bits_per_pixel == 0 ||
       total_bpp == 0 || (bytesperline * 8) % plane_horiz_bits_per_pixel != 0) {
-    MCIL_INFO_PRINT(" Invalid format provided"); 
+    MCIL_ERROR_PRINT(" Invalid format provided"); 
     return coded_size;
   }
 
@@ -250,7 +243,7 @@ size_t V4L2Device::GetNumPlanesOfV4L2PixFmt(uint32_t pix_fmt) {
 scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
     const struct v4l2_format& format) {
   if (!V4L2_TYPE_IS_MULTIPLANAR(format.type)) {
-    MCIL_INFO_PRINT(": buf_type[%d] is not multiplanar", format.type);
+    MCIL_DEBUG_PRINT(": buf_type[%d] is not multiplanar", format.type);
     return nullptr;
   }
 
@@ -258,8 +251,8 @@ scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
   const uint32_t& pix_fmt = pix_mp.pixelformat;
   const auto video_fourcc = Fourcc::FromV4L2PixFmt(pix_fmt);
   if (!video_fourcc) {
-    MCIL_INFO_PRINT(": Failed to convert Fourcc value: %s",
-                    FourccToString(pix_fmt).c_str());
+    MCIL_DEBUG_PRINT(": Failed to convert Fourcc value: %s",
+                     FourccToString(pix_fmt).c_str());
     return nullptr;
   }
 
@@ -268,17 +261,16 @@ scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
 
   size_t num_buffers = pix_mp.num_planes;
   video_frame->format = video_fourcc->ToVideoPixelFormat();
-  MCIL_DEBUG_PRINT(": format[%d]", video_frame->format);
   const size_t num_color_planes = VideoFrame::NumPlanes(video_frame->format);
   if (num_color_planes == 0) {
-    MCIL_INFO_PRINT(": Unsupported video format for NumPlanes(): %d",
+    MCIL_DEBUG_PRINT(": Unsupported video format for NumPlanes(): %d",
                     video_frame->format);
     return nullptr;
   }
   if (num_buffers > num_color_planes) {
-    MCIL_INFO_PRINT(": pix_mp.num_planes[%d], should not be \
-                    larger than NumPlanes for %d",
-                    pix_mp.num_planes, video_frame->format);
+    MCIL_DEBUG_PRINT(": pix_mp.num_planes[%d], should not be \
+                     larger than NumPlanes for %d",
+                     pix_mp.num_planes, video_frame->format);
     return nullptr;
   }
 
@@ -301,7 +293,7 @@ scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
       case V4L2_PIX_FMT_YUV420:
       case V4L2_PIX_FMT_YVU420: {
         if (y_stride % 2 != 0 || pix_mp.height % 2 != 0) {
-          MCIL_INFO_PRINT(": Plane-Y stride and height should be even; \
+          MCIL_DEBUG_PRINT(": Plane-Y stride and height should be even; \
               stride: [%d], height:[%d]", y_stride, pix_mp.height);
           return nullptr;
         }
@@ -315,8 +307,8 @@ scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
         break;
       }
       default:
-        MCIL_INFO_PRINT(": Cannot derive stride for each plane for pixel \
-                        format: %s", FourccToString(pix_fmt).c_str());
+        MCIL_DEBUG_PRINT(": Cannot derive stride for each plane for pixel \
+                         format: %s", FourccToString(pix_fmt).c_str());
         return nullptr;
     }
   }
@@ -336,11 +328,9 @@ scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
 
 V4L2Device::V4L2Device(DeviceType device_type)
  : device_type_(device_type) {
-  MCIL_DEBUG_PRINT(": Ctor");
 }
 
 V4L2Device::~V4L2Device() {
-  MCIL_DEBUG_PRINT(": Dtor");
 }
 
 void V4L2Device::GetSupportedResolution(uint32_t pixelformat,
@@ -395,8 +385,6 @@ void V4L2Device::GetSupportedResolution(uint32_t pixelformat,
 
 std::vector<uint32_t> V4L2Device::EnumerateSupportedPixelformats(
     v4l2_buf_type buf_type) {
-  MCIL_DEBUG_PRINT(": buf_type[%d]", buf_type);
-
   std::vector<uint32_t> pixelformats;
 
   v4l2_fmtdesc fmtdesc;
@@ -414,8 +402,6 @@ std::vector<uint32_t> V4L2Device::EnumerateSupportedPixelformats(
 
 std::vector<VideoCodecProfile> V4L2Device::V4L2PixFmtToVideoCodecProfiles(
     uint32_t pix_fmt) {
-  MCIL_DEBUG_PRINT(": pix_fmt[0x%x]", pix_fmt);
-
   auto get_supported_profiles = [this](
       VideoCodec codec, std::vector<VideoCodecProfile>* profiles) {
     uint32_t query_id = 0;
@@ -459,7 +445,7 @@ std::vector<VideoCodecProfile> V4L2Device::V4L2PixFmtToVideoCodecProfiles(
   switch (pix_fmt) {
     case V4L2_PIX_FMT_H264:
       if (!get_supported_profiles(VIDEO_CODEC_H264, &profiles)) {
-        MCIL_INFO_PRINT(": Driver doesn't support QUERY H264 profiles");
+        MCIL_DEBUG_PRINT(": Driver doesn't support QUERY H264 profiles");
         profiles = {
             H264PROFILE_BASELINE,
             H264PROFILE_MAIN,
@@ -472,7 +458,7 @@ std::vector<VideoCodecProfile> V4L2Device::V4L2PixFmtToVideoCodecProfiles(
       break;
     case V4L2_PIX_FMT_VP9:
       if (!get_supported_profiles(VIDEO_CODEC_VP9, &profiles)) {
-        MCIL_INFO_PRINT(": Driver doesn't support QUERY VP9 profiles");
+        MCIL_DEBUG_PRINT(": Driver doesn't support QUERY VP9 profiles");
         profiles = {VP9PROFILE_PROFILE0};
       }
       break;
@@ -509,7 +495,7 @@ Optional<struct v4l2_ext_control> V4L2Device::GetCtrl(uint32_t ctrl_id) {
   ext_ctrls.count = 1;
 
   if (Ioctl(VIDIOC_G_EXT_CTRLS, &ext_ctrls) != 0) {
-    MCIL_INFO_PRINT(": Failed to get control");
+    MCIL_DEBUG_PRINT(": Failed to get control");
     return nullopt;
   }
 
@@ -519,9 +505,6 @@ Optional<struct v4l2_ext_control> V4L2Device::GetCtrl(uint32_t ctrl_id) {
 bool V4L2Device::SetCtrl(uint32_t ctrl_class,
                          uint32_t ctrl_id,
                          int32_t ctrl_val) {
-  MCIL_DEBUG_PRINT(" class[%x], id[%x], val[%d]",
-                   ctrl_class, ctrl_id, ctrl_val);
-
   struct v4l2_ext_control ext_ctrl;
   memset(&ext_ctrl, 0, sizeof(ext_ctrl));
   ext_ctrl.id = ctrl_id;
@@ -534,7 +517,7 @@ bool V4L2Device::SetCtrl(uint32_t ctrl_class,
   ext_ctrls.controls = &ext_ctrl;
 
   if (Ioctl(VIDIOC_S_EXT_CTRLS, &ext_ctrls) != 0) {
-    MCIL_INFO_PRINT(": Failed to set control id[%x]", ctrl_id);
+    MCIL_DEBUG_PRINT(": Failed to set control id[%x]", ctrl_id);
     return false;
   }
 
@@ -550,8 +533,6 @@ bool V4L2Device::IsCtrlExposed(uint32_t ctrl_id) {
 }
 
 bool V4L2Device::SetGOPLength(uint32_t gop_length) {
-  MCIL_DEBUG_PRINT(" gop_length[%d]", gop_length);
-
   if (!SetCtrl(V4L2_CTRL_CLASS_MPEG,
                V4L2_CID_MPEG_VIDEO_GOP_SIZE, gop_length)) {
     if (gop_length == 0) {
@@ -560,8 +541,8 @@ bool V4L2Device::SetGOPLength(uint32_t gop_length) {
 
       queryctrl.id = V4L2_CTRL_CLASS_MPEG | V4L2_CID_MPEG_VIDEO_GOP_SIZE;
       if (Ioctl(VIDIOC_QUERY_EXT_CTRL, &queryctrl) == 0) {
-        MCIL_INFO_PRINT(" Unable to set GOP to 0, instead using max[%lld]",
-                        queryctrl.maximum);
+        MCIL_DEBUG_PRINT(" Unable to set GOP to 0, instead using max[%lld]",
+                         queryctrl.maximum);
         return SetCtrl(V4L2_CTRL_CLASS_MPEG,
                        V4L2_CID_MPEG_VIDEO_GOP_SIZE, queryctrl.maximum);
       }
@@ -576,14 +557,12 @@ bool V4L2Device::IsDecoder() {
 }
 
 scoped_refptr<V4L2Queue> V4L2Device::GetQueue(enum v4l2_buf_type buffer_type) {
-  MCIL_DEBUG_PRINT(": Called");
-
   switch (buffer_type) {
     case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
     case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
       break;
     default:
-      MCIL_INFO_PRINT(": Unsupported V4L2 queue type [%d]", buffer_type);
+      MCIL_ERROR_PRINT(": Unsupported V4L2 queue type [%d]", buffer_type);
       return nullptr;
   }
 
@@ -620,7 +599,6 @@ V4L2Device::EnumerateSupportedDecodeProfiles(const size_t num_formats,
     for (const auto& video_codec_profile : video_codec_profiles) {
       profile.profile = video_codec_profile;
       profiles.push_back(profile);
-
       MCIL_DEBUG_PRINT(": profile [%d], min[%dx%d], max[%dx%d]", profile.profile,
                        profile.min_resolution.width, profile.min_resolution.width,
                        profile.max_resolution.width, profile.max_resolution.width);

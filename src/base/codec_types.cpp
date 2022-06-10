@@ -27,6 +27,13 @@ bool Rect::Contains(const Rect& rect) const {
           rect.height <= height);
 }
 
+SupportedProfile::SupportedProfile(
+    VideoCodecProfile prof, Size min, Size max) {
+  profile = prof;
+  min_resolution = min;
+  max_resolution = max;
+}
+
 std::string GetProfileName(VideoCodecProfile profile) {
   switch (profile) {
     case VIDEO_CODEC_PROFILE_UNKNOWN:

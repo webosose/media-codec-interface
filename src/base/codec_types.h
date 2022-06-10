@@ -204,6 +204,7 @@ class SupportedProfile {
   SupportedProfile() = default;
   ~SupportedProfile() = default;
   SupportedProfile(VideoCodecProfile prof, Size min, Size max);
+
   VideoCodecProfile profile;
   Size max_resolution;
   Size min_resolution;

@@ -27,11 +27,6 @@
 #include "base/log.h"
 #include "decoder_types.h"
 
-#ifdef MCIL_DEBUG_PRINT
-//#undef MCIL_DEBUG_PRINT
-#endif
-//#define MCIL_DEBUG_PRINT MCIL_INFO_PRINT
-
 namespace mcil {
 
 //Static member definition
@@ -65,11 +60,9 @@ bool VideoResource::Acquire(DeviceType device_type,
   video_stream_info.frame_rate.den = 1;
 
   if (device_type == V4L2_DECODER) {
-    MCIL_DEBUG_PRINT(": decoder resource needed");
     video_stream_info.encode = VIDEO_CODEC_NONE;
     video_stream_info.decode = video_codec;
   } else if (device_type == V4L2_ENCODER) {
-    MCIL_DEBUG_PRINT(": encoder resource needed");
     video_stream_info.encode = video_codec;
     video_stream_info.decode = VIDEO_CODEC_NONE;
   } else {
@@ -100,7 +93,7 @@ bool VideoResource::Acquire(DeviceType device_type,
 
   if (!requestor_->AcquireResources(resourceMMap,
            source_info, resources)) {
-    MCIL_INFO_PRINT("Resource acquisition failed");
+    MCIL_ERROR_PRINT("Resource acquisition failed");
     return false;
   }
 
@@ -129,7 +122,7 @@ bool VideoResource::Acquire(DeviceType device_type,
   }
 
   } else {
-    MCIL_INFO_PRINT(" failed creating requestor_");
+    MCIL_ERROR_PRINT(" failed creating requestor_");
     return false;
   }
 

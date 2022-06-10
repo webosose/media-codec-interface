@@ -14,11 +14,6 @@
 #include "v4l2/v4l2_device.h"
 #include "v4l2/v4l2_queue.h"
 
-#ifdef MCIL_DEBUG_PRINT
-//#undef MCIL_DEBUG_PRINT
-#endif
-//#define MCIL_DEBUG_PRINT MCIL_INFO_PRINT
-
 namespace mcil {
 
 #if defined(USE_V4L2_ENCODER)
@@ -32,7 +27,6 @@ scoped_refptr<VideoEncoder> VideoEncoder::Create() {
 SupportedProfiles VideoEncoder::GetSupportedProfiles() {
   scoped_refptr<V4L2Device> device = V4L2Device::Create(V4L2_ENCODER);
 
-  MCIL_DEBUG_PRINT(": device (%p)", device.get());
   if (!device)
     return SupportedProfiles();
 
@@ -58,22 +52,21 @@ V4L2VideoEncoder::V4L2VideoEncoder()
    v4l2_device_(V4L2Device::Create(V4L2_ENCODER)),
    device_poll_thread_("V4L2EncoderDevicePollThread"),
    encoder_state_(kUninitialized) {
-  MCIL_DEBUG_PRINT(": Ctor");
 }
 
 V4L2VideoEncoder::~V4L2VideoEncoder() {
-  MCIL_DEBUG_PRINT(": Dtor");
 }
 
 bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
                                   VideoEncoderClient* client,
                                   EncoderClientConfig* client_config,
                                   int venc_port_index) {
-  MCIL_DEBUG_PRINT(": Start");
+  MCIL_DEBUG_PRINT(": resource index received: %d", venc_port_index);
+
   client_ = client;
   if (!client_) {
     NOTIFY_ERROR(kInvalidArgumentError);
-    MCIL_INFO_PRINT(" Delegate not provided");
+    MCIL_ERROR_PRINT(" Delegate not provided");
     return false;
   }
 
@@ -96,9 +89,9 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
     return false;
 
   if (!v4l2_device_->Open(V4L2_ENCODER, output_format_fourcc_)) {
-    MCIL_INFO_PRINT(" Failed to open device for profile=%s, format=%s",
-                    GetProfileName(config->profile).c_str(),
-                    FourccToString(output_format_fourcc_).c_str());
+    MCIL_ERROR_PRINT(" Failed to open device for profile=%s, format=%s",
+                     GetProfileName(config->profile).c_str(),
+                     FourccToString(output_format_fourcc_).c_str());
     return false;
   }
 
@@ -108,7 +101,7 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
   is_flush_supported_ =
       (v4l2_device_->Ioctl(VIDIOC_TRY_ENCODER_CMD, &cmd) == 0);
   if (!is_flush_supported_) {
-    MCIL_INFO_PRINT(" V4L2_ENC_CMD_STOP is not supported.");
+    MCIL_DEBUG_PRINT(" V4L2_ENC_CMD_STOP is not supported.");
   }
 
   struct v4l2_capability caps;
@@ -116,20 +109,20 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
   const __u32 kCapsRequired = GetCapsRequired();
   IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_QUERYCAP, &caps);
   if ((caps.capabilities & kCapsRequired) != kCapsRequired) {
-    MCIL_INFO_PRINT(" caps check failed: %x", caps.capabilities);
+    MCIL_ERROR_PRINT(" caps check failed: %x", caps.capabilities);
     return false;
   }
 
   input_queue_ = v4l2_device_->GetQueue(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
   output_queue_ = v4l2_device_->GetQueue(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
   if (!input_queue_ || !output_queue_) {
-    MCIL_INFO_PRINT(" Failed to get V4L2Queue.");
+    MCIL_ERROR_PRINT(" Failed to get V4L2Queue.");
     NOTIFY_ERROR(kPlatformFailureError);
     return false;
   }
 
   if (!SetFormats(config->pixelFormat, config->profile)) {
-    MCIL_INFO_PRINT(" Failed setting up formats.");
+    MCIL_ERROR_PRINT(" Failed setting up formats.");
     return false;
   }
 
@@ -150,13 +143,10 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
     client_config->should_inject_sps_and_pps = inject_sps_and_pps_;
   }
 
-  MCIL_DEBUG_PRINT(": Success");
   return true;
 }
 
 void V4L2VideoEncoder::Destroy() {
-  MCIL_DEBUG_PRINT(": called");
-
   StopDevicePoll();
 
   DestroyInputBuffers();
@@ -164,8 +154,6 @@ void V4L2VideoEncoder::Destroy() {
 
   v4l2_device_ = nullptr;
   start_time_ = ChronoTime();
-
-  MCIL_DEBUG_PRINT(": Success");
 }
 
 bool V4L2VideoEncoder::IsFlushSupported() {
@@ -177,7 +165,7 @@ bool V4L2VideoEncoder::EncodeFrame(scoped_refptr<VideoFrame> frame,
   MCIL_DEBUG_PRINT(": force_keyframe[%d]", force_keyframe);
 
   if (encoder_state_ == kEncoderError) {
-    MCIL_INFO_PRINT(" early out: kError state");
+    MCIL_DEBUG_PRINT(" early out: kError state");
     return false;
   }
 
@@ -201,7 +189,7 @@ bool V4L2VideoEncoder::UpdateEncodingParams(
     if (current_bitrate_ != bitrate &&
         !v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                                V4L2_CID_MPEG_VIDEO_BITRATE, bitrate)) {
-      MCIL_INFO_PRINT(" Failed changing bitrate");
+      MCIL_ERROR_PRINT(" Failed changing bitrate");
       NOTIFY_ERROR(kPlatformFailureError);
       return false;
     }
@@ -222,23 +210,18 @@ bool V4L2VideoEncoder::UpdateEncodingParams(
 }
 
 bool V4L2VideoEncoder::StartDevicePoll() {
-  MCIL_DEBUG_PRINT(" called");
-
   if (device_poll_thread_.IsRunning())
     return true;
 
   device_poll_thread_.Start();
   device_poll_thread_.PostTask(std::bind(&V4L2VideoEncoder::DevicePollTask,
                                          this, false));
-  MCIL_DEBUG_PRINT(" device poll thread started");
   return true;
 }
 
 void V4L2VideoEncoder::RunEncodeBufferTask() {
-  MCIL_DEBUG_PRINT(" called");
-
   if (encoder_state_ == kEncoderError) {
-    MCIL_INFO_PRINT(" early out: kError state");
+    MCIL_DEBUG_PRINT(" early out: kError state");
     return;
   }
 
@@ -263,8 +246,6 @@ void V4L2VideoEncoder::RunEncodeBufferTask() {
 }
 
 void V4L2VideoEncoder::SendStartCommand(bool start) {
-  MCIL_DEBUG_PRINT(" start[%d]", start);
-
   struct v4l2_encoder_cmd cmd;
   memset(&cmd, 0, sizeof(cmd));
   cmd.cmd = V4L2_ENC_CMD_START;
@@ -305,7 +286,7 @@ void V4L2VideoEncoder::EnqueueBuffers() {
       memset(&cmd, 0, sizeof(cmd));
       cmd.cmd = V4L2_ENC_CMD_STOP;
       if (v4l2_device_->Ioctl(VIDIOC_ENCODER_CMD, &cmd) != 0) {
-        MCIL_INFO_PRINT(" ioctl() failed: VIDIOC_ENCODER_CMD");
+        MCIL_ERROR_PRINT(" ioctl() failed: VIDIOC_ENCODER_CMD");
         NOTIFY_ERROR(kPlatformFailureError);
         client_->NotifyFlushIfNeeded(false);
         return;
@@ -358,8 +339,6 @@ bool V4L2VideoEncoder::NegotiateInputFormat(VideoPixelFormat format,
 }
 
 void V4L2VideoEncoder::DequeueBuffers() {
-  MCIL_DEBUG_PRINT(" called");
-
   while (input_queue_->QueuedBuffersCount() > 0) {
     if (!DequeueInputBuffer())
       break;
@@ -393,7 +372,7 @@ bool V4L2VideoEncoder::SetFormats(VideoPixelFormat input_format,
   MCIL_DEBUG_PRINT(": format[%d], profile[%d]", input_format, output_profile);
 
   if (input_queue_->IsStreaming() || output_queue_->IsStreaming()) {
-    MCIL_INFO_PRINT(": Already streaming. Return.");
+    MCIL_DEBUG_PRINT(": Already streaming. Return.");
     return true;
   }
 
@@ -433,8 +412,8 @@ Optional<struct v4l2_format> V4L2VideoEncoder::SetInputFormat(
   std::vector<uint32_t> pix_fmt_candidates;
   auto input_fourcc = Fourcc::FromVideoPixelFormat(format, false);
   if (!input_fourcc) {
-    MCIL_INFO_PRINT(", Invalid input format: %s",
-                    VideoPixelFormatToString(format).c_str());
+    MCIL_DEBUG_PRINT(", Invalid input format: %s",
+                     VideoPixelFormatToString(format).c_str());
     return nullopt;
   }
   pix_fmt_candidates.push_back(input_fourcc->ToV4L2PixFmt());
@@ -451,20 +430,19 @@ Optional<struct v4l2_format> V4L2VideoEncoder::SetInputFormat(
     if (!format)
       continue;
 
-    MCIL_DEBUG_PRINT("Success S_FMT with %s", FourccToString(pix_fmt).c_str());
+    MCIL_DEBUG_PRINT("Set S_FMT with %s", FourccToString(pix_fmt).c_str());
 
     device_input_frame_ = V4L2Device::VideoFrameFromV4L2Format(*format);
     if (!device_input_frame_) {
-      MCIL_INFO_PRINT(" Invalid device_input_frame_");
+      MCIL_DEBUG_PRINT(" Invalid device_input_frame_");
       return nullopt;
     }
-    MCIL_DEBUG_PRINT(" Negotiated device_input_frame_: %p",
-                     device_input_frame_.get());
+
     if (!Rect(device_input_frame_->coded_size).Contains(Rect(frame_size))) {
-      MCIL_INFO_PRINT(" Input size[%dx%d], exceeds encoder size[%dx%d]",
-          frame_size.width, frame_size.height,
-          device_input_frame_->coded_size.width,
-          device_input_frame_->coded_size.height);
+      MCIL_DEBUG_PRINT(" Input size[%dx%d], exceeds encoder size[%dx%d]",
+                       frame_size.width, frame_size.height,
+                       device_input_frame_->coded_size.width,
+                       device_input_frame_->coded_size.height);
       return nullopt;
     }
 
@@ -507,9 +485,9 @@ bool V4L2VideoEncoder::ApplyCrop() {
   const Rect adjusted_visible_rect(visible_rect.left, visible_rect.top,
                                    visible_rect.width, visible_rect.height);
   if (input_visible_rect_ != adjusted_visible_rect) {
-    MCIL_INFO_PRINT(" input_visible_rect_[%dx%d], adjusted_visible_rect[%dx%d",
-        input_visible_rect_.width, input_visible_rect_.height,
-        adjusted_visible_rect.width, adjusted_visible_rect.height);
+    MCIL_ERROR_PRINT(" input_visible_rect_[%dx%d], adjusted_visible_rect[%dx%d",
+                     input_visible_rect_.width, input_visible_rect_.height,
+                     adjusted_visible_rect.width, adjusted_visible_rect.height);
     return false;
   }
   return true;
@@ -526,8 +504,8 @@ bool V4L2VideoEncoder::InitControls(const EncoderConfig* config) {
       InitControlsVP8(config);
       break;
     default:
-      MCIL_INFO_PRINT("Unsupported codec %s",
-                      FourccToString(output_format_fourcc_).c_str());
+      MCIL_ERROR_PRINT("Unsupported codec %s",
+                       FourccToString(output_format_fourcc_).c_str());
       return false;
   }
 
@@ -546,7 +524,7 @@ bool V4L2VideoEncoder::InitControlsH264(const EncoderConfig* config) {
   int32_t profile_value =
       V4L2Device::VideoCodecProfileToV4L2H264Profile(config->profile);
   if (profile_value < 0) {
-    MCIL_INFO_PRINT(" Invalid H264 profile value");
+    MCIL_ERROR_PRINT(" Invalid H264 profile value");
     NOTIFY_ERROR(kInvalidArgumentError);
     return false;
   }
@@ -584,7 +562,7 @@ void V4L2VideoEncoder::NotifyErrorState(EncoderError error_code) {
 bool V4L2VideoEncoder::CreateInputBuffers() {
   if (input_queue_->AllocateBuffers(kInputBufferCount, input_memory_type_) <
       kInputBufferCount) {
-    MCIL_INFO_PRINT(" Failed to allocate V4L2 input buffers.");
+    MCIL_ERROR_PRINT(" Failed to allocate V4L2 input buffers.");
     return false;
   }
 
@@ -599,7 +577,7 @@ bool V4L2VideoEncoder::CreateInputBuffers() {
 bool V4L2VideoEncoder::CreateOutputBuffers() {
   if (output_queue_->AllocateBuffers(kOutputBufferCount, output_memory_type_) <
       kOutputBufferCount) {
-    MCIL_INFO_PRINT(" Failed to allocate V4L2 output buffers.");
+    MCIL_ERROR_PRINT(" Failed to allocate V4L2 output buffers.");
     return false;
   }
 
@@ -609,8 +587,6 @@ bool V4L2VideoEncoder::CreateOutputBuffers() {
 }
 
 void V4L2VideoEncoder::DestroyInputBuffers() {
-  MCIL_DEBUG_PRINT(" called");
-
   if (!input_queue_ || input_queue_->AllocatedBuffersCount() == 0)
     return;
 
@@ -619,8 +595,6 @@ void V4L2VideoEncoder::DestroyInputBuffers() {
 }
 
 void V4L2VideoEncoder::DestroyOutputBuffers() {
-  MCIL_DEBUG_PRINT(" called");
-
   if (!output_queue_ || output_queue_->AllocatedBuffersCount() == 0)
     return;
 
@@ -628,13 +602,11 @@ void V4L2VideoEncoder::DestroyOutputBuffers() {
 }
 
 bool V4L2VideoEncoder::EnqueueInputBuffer(V4L2WritableBufferRef buffer) {
-  MCIL_DEBUG_PRINT(": called");
-
   InputFrameInfo frame_info = encoder_input_queue_.front();
   if (frame_info.force_keyframe) {
     if (!v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                                V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME, 1)) {
-      MCIL_INFO_PRINT(" Failed requesting keyframe");
+      MCIL_ERROR_PRINT(" Failed requesting keyframe");
       NOTIFY_ERROR(kPlatformFailureError);
       return false;
     }
@@ -675,8 +647,6 @@ bool V4L2VideoEncoder::EnqueueInputBuffer(V4L2WritableBufferRef buffer) {
         buffer.SetBufferSize(i, device_input_frame_->color_planes[i].size);
         break;
       default:
-        MCIL_DEBUG_PRINT("Unknown input memory type: %d",
-                         static_cast<int>(buffer.Memory()));
         return false;
     }
 
@@ -696,15 +666,12 @@ bool V4L2VideoEncoder::EnqueueInputBuffer(V4L2WritableBufferRef buffer) {
       break;
     }
     default:
-      MCIL_DEBUG_PRINT("Unknown input memory type: %d",
-                       static_cast<int>(buffer.Memory()));
       return false;
   }
 
   client_->EnqueueInputBuffer(buffer_index);
   encoder_input_queue_.pop();
 
-  MCIL_DEBUG_PRINT(": Success");
   return true;
 }
 
@@ -728,8 +695,6 @@ bool V4L2VideoEncoder::DequeueInputBuffer() {
 }
 
 bool V4L2VideoEncoder::EnqueueOutputBuffer(V4L2WritableBufferRef buffer) {
-  MCIL_DEBUG_PRINT(": called");
-
   size_t buffer_index = buffer.BufferIndex();
   bool ret = false;
   switch (buffer.Memory()) {
@@ -744,16 +709,14 @@ bool V4L2VideoEncoder::EnqueueOutputBuffer(V4L2WritableBufferRef buffer) {
       break;
     }
     default:
-      MCIL_DEBUG_PRINT(" Memory type (%d) not handled", buffer.Memory());
       return false;
   }
 
   if (!ret) {
-    MCIL_INFO_PRINT(": Error in Enqueue output buffer");
+    MCIL_DEBUG_PRINT(": Error in Enqueue output buffer");
     return false;
   }
 
-  MCIL_DEBUG_PRINT(" Success.");
   return true;
 }
 
@@ -777,8 +740,8 @@ bool V4L2VideoEncoder::DequeueOutputBuffer() {
       std::chrono::system_clock::now() - start_time_;
   if (time_past >= std::chrono::seconds(1)) {
     current_secs_++;
-    MCIL_INFO_PRINT(": Encoder @ %d secs => %d fps",
-                    current_secs_, frames_per_sec_);
+    MCIL_DEBUG_PRINT(": Encoder @ %d secs => %d fps",
+                     current_secs_, frames_per_sec_);
     start_time_ = std::chrono::system_clock::now();
     frames_per_sec_ = 0;
   }
@@ -788,8 +751,6 @@ bool V4L2VideoEncoder::DequeueOutputBuffer() {
 }
 
 bool V4L2VideoEncoder::StopDevicePoll() {
-  MCIL_DEBUG_PRINT(": called");
-
   if (!device_poll_thread_.IsRunning())
     return true;
 
@@ -821,8 +782,6 @@ bool V4L2VideoEncoder::StopDevicePoll() {
 }
 
 void V4L2VideoEncoder::DevicePollTask(bool poll_device) {
-  MCIL_DEBUG_PRINT(": called");
-
   bool event_pending;
   if (!v4l2_device_->Poll(poll_device, &event_pending)) {
     NOTIFY_ERROR(kPlatformFailureError);

@@ -27,11 +27,6 @@
 
 #include "base/log.h"
 
-#ifdef MCIL_DEBUG_PRINT
-//#undef MCIL_DEBUG_PRINT
-#endif
-//#define MCIL_DEBUG_PRINT MCIL_INFO_PRINT
-
 using namespace std;
 using mrc::ResourceCalculator;
 using namespace pbnjson;
@@ -47,8 +42,6 @@ ResourceRequestor::ResourceRequestor(const std::string& connectionId)
   try {
     if (connectionId.empty()) {
       umsRMC_ = make_shared<uMediaServer::ResourceManagerClient> ();
-      MCIL_DEBUG_PRINT("ResourceRequestor creation done");
-
       umsRMC_->registerPipeline("media"); // only rmc case
       connectionId_ = umsRMC_->getConnectionID(); // after registerPipeline
     }
@@ -58,12 +51,12 @@ ResourceRequestor::ResourceRequestor(const std::string& connectionId)
     }
   }
   catch (const std::exception &e) {
-    MCIL_DEBUG_PRINT("Failed to create ResourceRequestor [%s]", e.what());
+    MCIL_ERROR_PRINT("Failed to create ResourceRequestor [%s]", e.what());
     exit(0);
   }
 
   if (connectionId_.empty()) {
-    MCIL_INFO_PRINT("Connection id is empty");
+    MCIL_ERROR_PRINT("Connection id is empty");
     assert(0);
   }
 
@@ -87,7 +80,7 @@ bool ResourceRequestor::AcquireResources(PortResource_t& resourceMMap,
   mrc::ResourceListOptions finalOptions;
 
   if (!SetSourceInfo(sourceInfo)) {
-    MCIL_DEBUG_PRINT("Failed to set source info!");
+    MCIL_ERROR_PRINT("Failed to set source info!");
     return false;
   }
 
@@ -123,30 +116,25 @@ bool ResourceRequestor::AcquireResources(PortResource_t& resourceMMap,
       objArray << obj;
     }
   }
-  MCIL_DEBUG_PRINT("jsonify options done");
+
   if (!serializer.toString(objArray, input_schema, payload)) {
-    MCIL_DEBUG_PRINT("[%s], fail to serializer to string", __func__);
+    MCIL_ERROR_PRINT("[%s], fail to serializer to string", __func__);
     return false;
   }
-
-  MCIL_DEBUG_PRINT("send acquire to uMediaServer payload:%s", payload.c_str());
 
   if (!umsRMC_->acquire(payload, response)) {
-    MCIL_DEBUG_PRINT("fail to acquire!!! response : %s", response.c_str());
+    MCIL_ERROR_PRINT("fail to acquire!!! response : %s", response.c_str());
     return false;
   }
-  MCIL_DEBUG_PRINT("acquire response:%s", response.c_str());
 
   try {
     ParsePortInformation(response, resourceMMap);
     ParseResources(response, resources);
   } catch (const std::runtime_error & err) {
-    MCIL_DEBUG_PRINT("[%s:%d] err=%s, response:%s",
-          __func__, __LINE__, err.what(), response.c_str());
+    MCIL_ERROR_PRINT(" err=%s, response:%s", err.what(), response.c_str());
     return false;
   }
 
-  MCIL_INFO_PRINT("acquired Resource : %s", resources.c_str());
   return true;
 }
 
@@ -177,7 +165,6 @@ mrc::ResourceListOptions ResourceRequestor::CalcVencResources() {
         videoResData_.height,
         videoResData_.frameRate);
   }
-  MCIL_DEBUG_PRINT("Codec type:%d", videoResData_.vencode);
 
   return venc_resource;
 }
@@ -188,11 +175,8 @@ bool ResourceRequestor::ReleaseResource(std::string& resources) {
     return true;
   }
 
-  MCIL_DEBUG_PRINT("send release to uMediaServer. resource : %s",
-                  resources.c_str());
-
   if (!umsRMC_->release(resources)) {
-    MCIL_DEBUG_PRINT("release error : %s", resources.c_str());
+    MCIL_ERROR_PRINT("release error : %s", resources.c_str());
     return false;
   }
 
@@ -234,7 +218,7 @@ bool ResourceRequestor::PolicyActionHandler(const char *action,
       cb_();
     }
     if (!umsRMC_->release(resources)) {
-      MCIL_DEBUG_PRINT("release error : %s", resources);
+      MCIL_ERROR_PRINT("release error : %s", resources);
       return false;
     }
   }
@@ -323,8 +307,6 @@ int ResourceRequestor::TranslateVideoCodec(const VideoCodec vcodec) const {
       ev = MRC::kVideoH264;   break;
   }
 
-  MCIL_DEBUG_PRINT("vcodec[%d] => ev[%d]", vcodec, ev);
-
   return static_cast<int>(ev);
 }
 
@@ -353,7 +335,7 @@ int ResourceRequestor::Translate3DType(const int e3DType) const {
 
 bool ResourceRequestor::SetSourceInfo(const source_info_t &sourceInfo) {
   if (sourceInfo.video_streams.empty()){
-    MCIL_DEBUG_PRINT("Video/Audio streams are empty!");
+    MCIL_ERROR_PRINT("Video/Audio streams are empty!");
     return false;
   }
 

@@ -55,7 +55,7 @@ class VideoEncoderAPI {
 
  private:
   VideoEncoderClient* client_;
-  scoped_refptr<VideoEncoder> videoEncoder_;
+  scoped_refptr<VideoEncoder> video_encoder_;
   int32_t venc_port_index_ = -1;
   std::string resources_ = "";
 };

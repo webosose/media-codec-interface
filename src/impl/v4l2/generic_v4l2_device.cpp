@@ -20,11 +20,6 @@
 #include "base/log.h"
 #include "v4l2/v4l2_queue.h"
 
-#ifdef MCIL_DEBUG_PRINT
-//#undef MCIL_DEBUG_PRINT
-#endif
-//#define MCIL_DEBUG_PRINT MCIL_INFO_PRINT
-
 namespace mcil {
 
 namespace {
@@ -48,7 +43,7 @@ uint32_t V4L2PixFmtToDrmFormat(uint32_t format) {
     default:
       break;
   }
-  MCIL_INFO_PRINT(": Unrecognized: %s", FourccToString(format).c_str());
+  MCIL_DEBUG_PRINT(": Unrecognized: %s", FourccToString(format).c_str());
   return 0;
 }
 
@@ -56,35 +51,32 @@ uint32_t V4L2PixFmtToDrmFormat(uint32_t format) {
 
 GenericV4L2Device::GenericV4L2Device(DeviceType device_type)
   : V4L2Device(device_type) {
-  MCIL_DEBUG_PRINT(": Ctor");
 }
 
 GenericV4L2Device::~GenericV4L2Device() {
-  MCIL_DEBUG_PRINT(": Dtor");
   CloseDevice();
 }
 
 bool GenericV4L2Device::Initialize() {
-  MCIL_DEBUG_PRINT(": called");
   return true;
 }
 
 bool GenericV4L2Device::Open(DeviceType type, uint32_t v4l2_pixfmt) {
   std::string path = GetDevicePathFor(type, v4l2_pixfmt);
   if (path.empty()) {
-    MCIL_INFO_PRINT(": No devices supporting: %s",
-                    FourccToString(v4l2_pixfmt).c_str());
+    MCIL_ERROR_PRINT(": No devices supporting: %s",
+                     FourccToString(v4l2_pixfmt).c_str());
     return false;
   }
 
   if (!OpenDevice(path, type)) {
-    MCIL_INFO_PRINT(": Failed opening: %s", path.c_str());
+    MCIL_ERROR_PRINT(": Failed opening: %s", path.c_str());
     return false;
   }
 
   device_poll_interrupt_fd_ = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
   if (device_poll_interrupt_fd_ <= 0) {
-    MCIL_INFO_PRINT(": Failed creating a poll interrupt fd");
+    MCIL_ERROR_PRINT(": Failed creating a poll interrupt fd");
     return false;
   }
 
@@ -94,7 +86,7 @@ bool GenericV4L2Device::Open(DeviceType type, uint32_t v4l2_pixfmt) {
 
 int GenericV4L2Device::Ioctl(int request, void* arg) {
   if (device_fd_ == -1) {
-    MCIL_INFO_PRINT(": Invalid device_fd_[%d]", device_fd_);
+    MCIL_DEBUG_PRINT(": Invalid device_fd_[%d]", device_fd_);
     return 0;
   }
 
@@ -112,7 +104,6 @@ bool GenericV4L2Device::Poll(bool poll_device, bool* event_pending) {
   nfds = 1;
 
   if (poll_device) {
-    MCIL_DEBUG_PRINT(": adding device fd to poll() set");
     pollfds[nfds].fd = device_fd_;
     pollfds[nfds].events = POLLIN | POLLOUT | POLLERR | POLLPRI;
     pollfds[nfds].revents = 0;
@@ -121,7 +112,7 @@ bool GenericV4L2Device::Poll(bool poll_device, bool* event_pending) {
   }
 
   if (HANDLE_EINTR(poll(pollfds, nfds, -1)) == -1) {
-    MCIL_DEBUG_PRINT(": poll() failed");
+    MCIL_ERROR_PRINT(": poll() failed");
     return false;
   }
 
@@ -133,7 +124,7 @@ bool GenericV4L2Device::SetDevicePollInterrupt() {
   const uint64_t buf = 1;
   if (HANDLE_EINTR(write(device_poll_interrupt_fd_, &buf, sizeof(buf))) ==
       -1) {
-    MCIL_INFO_PRINT(": write() failed");
+    MCIL_ERROR_PRINT(": write() failed");
     return false;
   }
   return true;
@@ -146,7 +137,7 @@ bool GenericV4L2Device::ClearDevicePollInterrupt() {
     if (errno == EAGAIN) {
       return true;
     } else {
-      MCIL_INFO_PRINT(": read() failed");
+      MCIL_ERROR_PRINT(": read() failed");
       return false;
     }
   }
@@ -215,7 +206,7 @@ SupportedProfiles GenericV4L2Device::GetSupportedDecodeProfiles(
   const auto& devices = GetDevicesForType(type);
   for (const auto& device : devices) {
     if (!OpenDevice(device.first, type)) {
-      MCIL_INFO_PRINT(": Failed opening: %s", device.first.c_str());
+      MCIL_DEBUG_PRINT(": Failed opening: %s", device.first.c_str());
       continue;
     }
 
@@ -241,7 +232,7 @@ SupportedProfiles GenericV4L2Device::GetSupportedEncodeProfiles() {
   const auto& devices = GetDevicesForType(type);
   for (const auto& device : devices) {
     if (!OpenDevice(device.first, type)) {
-      MCIL_INFO_PRINT(": Failed opening: %s", device.first.c_str());
+      MCIL_DEBUG_PRINT(": Failed opening: %s", device.first.c_str());
       continue;
     }
 
@@ -260,8 +251,6 @@ SupportedProfiles GenericV4L2Device::GetSupportedEncodeProfiles() {
 }
 
 void GenericV4L2Device::EnumerateDevicesForType(DeviceType type) {
-  MCIL_DEBUG_PRINT(": type[%d]", type);
-
   /* On Raspberry Pi 4, video device files are "video1*" */
   static const std::string kDecoderDevicePattern = "/dev/video10";
   static const std::string kEncoderDevicePattern = "/dev/video11";
@@ -300,7 +289,7 @@ void GenericV4L2Device::EnumerateDevicesForType(DeviceType type) {
   Devices devices;
   for (const auto& path : candidate_paths) {
     if (!OpenDevice(path, type)) {
-      MCIL_INFO_PRINT(": Failed opening: %s", path.c_str());
+      MCIL_DEBUG_PRINT(": Failed opening: %s", path.c_str());
       continue;
     }
 
@@ -328,14 +317,14 @@ bool GenericV4L2Device::OpenDevice(const std::string& path, DeviceType type) {
   MCIL_DEBUG_PRINT(": path = %s", path.c_str());
 
   if (device_fd_ > 0) {
-    MCIL_INFO_PRINT(": device_fd_[%d] already Open", device_fd_);
+    MCIL_DEBUG_PRINT(": device_fd_[%d] already Open", device_fd_);
     return true;
   }
 
   device_fd_ =
       HANDLE_EINTR(open(path.c_str(), O_RDWR | O_NONBLOCK | O_CLOEXEC));
   if (device_fd_ <= 0) {
-    MCIL_INFO_PRINT(": type[%d], path: %s Failed", type, path.c_str());
+    MCIL_ERROR_PRINT(": type[%d], path: %s Failed", type, path.c_str());
     return false;
   }
 

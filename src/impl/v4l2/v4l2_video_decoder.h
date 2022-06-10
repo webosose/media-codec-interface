@@ -154,7 +154,7 @@ class V4L2VideoDecoder : public VideoDecoder {
 #define IOCTL_OR_ERROR_RETURN_VALUE(type, arg, value, error_str) \
   do { \
     if (v4l2_device_->Ioctl(type, arg) != 0) { \
-      MCIL_INFO_PRINT(": ioctl() failed: %s", error_str); \
+      MCIL_ERROR_PRINT(": ioctl() failed: %s", error_str); \
       NOTIFY_ERROR(PLATFORM_FAILURE); \
       return value; \
     } \

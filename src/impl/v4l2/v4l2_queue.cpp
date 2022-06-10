@@ -8,11 +8,6 @@
 #include "v4l2/v4l2_buffers.h"
 #include "v4l2/v4l2_device.h"
 
-#ifdef MCIL_DEBUG_PRINT
-//#undef MCIL_DEBUG_PRINT
-#endif
-//#define MCIL_DEBUG_PRINT MCIL_INFO_PRINT
-
 namespace mcil {
 
 namespace {
@@ -77,11 +72,9 @@ V4L2Queue::V4L2Queue(scoped_refptr<V4L2Device> device,
                      V4L2BufferDestroyCb destroy_cb)
   : buffer_type_(buffer_type),
     device_(device) {
-  MCIL_DEBUG_PRINT(": Called");
 }
 
 V4L2Queue::~V4L2Queue() {
-  MCIL_DEBUG_PRINT(": Called");
 }
 
 Optional<Rect> V4L2Queue::GetVisibleRect() {
@@ -105,7 +98,7 @@ Optional<Rect> V4L2Queue::GetVisibleRect() {
   if (device_->Ioctl(VIDIOC_G_SELECTION, &selection) == 0) {
     return V4L2RectToMCILRect(selection.r);
   } else {
-    MCIL_INFO_PRINT(": Fallback to VIDIOC_G_CROP");
+    MCIL_DEBUG_PRINT(": Fallback to VIDIOC_G_CROP");
   }
 
   struct v4l2_crop crop;
@@ -115,18 +108,16 @@ Optional<Rect> V4L2Queue::GetVisibleRect() {
     return V4L2RectToMCILRect(crop.c);
   }
 
-  MCIL_INFO_PRINT(": Failed to get visible rect");
   return nullopt;
 }
 
 std::pair<Optional<struct v4l2_format>, int> V4L2Queue::GetFormat() {
-  MCIL_DEBUG_PRINT(": Called");
   struct v4l2_format format;
   memset(&format, 0, sizeof(format));
   format.type = buffer_type_;
 
   if (device_->Ioctl(VIDIOC_G_FMT, &format) != 0) {
-    MCIL_INFO_PRINT(": Failed to VIDIOC_G_FMT get format");
+    MCIL_DEBUG_PRINT(": Failed to VIDIOC_G_FMT get format");
     return std::make_pair(nullopt, errno);
   }
 
@@ -140,7 +131,7 @@ Optional<struct v4l2_format> V4L2Queue::SetFormat(uint32_t fourcc,
       BuildV4L2Format(buffer_type_, fourcc, size, buffer_size);
   if (device_->Ioctl(VIDIOC_S_FMT, &format) != 0 ||
       format.fmt.pix_mp.pixelformat != fourcc) {
-    MCIL_INFO_PRINT(": Failed to set format fourcc [0x%x]", fourcc);
+    MCIL_DEBUG_PRINT(": Failed to set format fourcc [0x%x]", fourcc);
     return nullopt;
   }
 
@@ -155,7 +146,7 @@ bool V4L2Queue::StreamOn() {
   int arg = static_cast<int>(buffer_type_);
   int ret = device_->Ioctl(VIDIOC_STREAMON, &arg);
   if (ret) {
-    MCIL_INFO_PRINT(": VIDIOC_STREAMON Failed");
+    MCIL_ERROR_PRINT(": VIDIOC_STREAMON Failed");
     return false;
   }
 
@@ -167,7 +158,7 @@ bool V4L2Queue::StreamOff() {
   int arg = static_cast<int>(buffer_type_);
   int ret = device_->Ioctl(VIDIOC_STREAMOFF, &arg);
   if (ret) {
-    MCIL_INFO_PRINT(": VIDIOC_STREAMOFF Failed");
+    MCIL_ERROR_PRINT(": VIDIOC_STREAMOFF Failed");
     return false;
   }
 
@@ -186,24 +177,24 @@ bool V4L2Queue::IsStreaming() const {
 size_t V4L2Queue::AllocateBuffers(size_t count, enum v4l2_memory memory) {
   size_t buffer_count = count;
   if (buffer_count == 0) {
-    MCIL_INFO_PRINT(": Attempting to allocate 0 buffers");
+    MCIL_ERROR_PRINT(": Attempting to allocate 0 buffers");
     return 0;
   }
 
   if (IsStreaming()) {
-    MCIL_INFO_PRINT(": Cannot allocate buffers while streaming.");
+    MCIL_ERROR_PRINT(": Cannot allocate buffers while streaming.");
     return 0;
   }
 
   if (buffers_.size() != 0) {
-    MCIL_INFO_PRINT(": Cannot allocate new buffers while others \
-                    are still allocated.");
+    MCIL_ERROR_PRINT(": Cannot allocate new buffers while others \
+                     are still allocated.");
     return 0;
   }
 
   Optional<v4l2_format> format = GetFormat().first;
   if (!format) {
-    MCIL_INFO_PRINT(": Cannot get format");
+    MCIL_ERROR_PRINT(": Cannot get format");
     return 0;
   }
 
@@ -216,7 +207,7 @@ size_t V4L2Queue::AllocateBuffers(size_t count, enum v4l2_memory memory) {
 
   int ret = device_->Ioctl(VIDIOC_REQBUFS, &reqbufs);
   if (ret) {
-    MCIL_INFO_PRINT(": VIDIOC_REQBUFS Failed, %s", strerror(errno));
+    MCIL_ERROR_PRINT(": VIDIOC_REQBUFS Failed, %s", strerror(errno));
     return 0;
   }
 
@@ -244,7 +235,7 @@ size_t V4L2Queue::AllocateBuffers(size_t count, enum v4l2_memory memory) {
 
 bool V4L2Queue::DeallocateBuffers() {
   if (IsStreaming()) {
-    MCIL_INFO_PRINT(": Cannot deallocate buffers while streaming.");
+    MCIL_DEBUG_PRINT(": Cannot deallocate buffers while streaming.");
     return false;
   }
 
@@ -262,7 +253,7 @@ bool V4L2Queue::DeallocateBuffers() {
 
   int ret = device_->Ioctl(VIDIOC_REQBUFS, &reqbufs);
   if (ret) {
-    MCIL_INFO_PRINT(": VIDIOC_REQBUFS errno(%d)", errno);
+    MCIL_DEBUG_PRINT(": VIDIOC_REQBUFS errno(%d)", errno);
     return false;
   }
   return true;
@@ -283,7 +274,7 @@ size_t V4L2Queue::QueuedBuffersCount() const {
 Optional<V4L2WritableBufferRef> V4L2Queue::GetFreeBuffer() {
   // No buffers allocated at the moment?
   if (!free_buffers_) {
-    MCIL_INFO_PRINT(": free_buffers_ not set");
+    MCIL_DEBUG_PRINT(": free_buffers_ not set");
     return nullopt;
   }
 
@@ -298,7 +289,7 @@ Optional<V4L2WritableBufferRef> V4L2Queue::GetFreeBuffer() {
 V4L2WritableBufferRef* V4L2Queue::GetFreeBufferPtr() {
   // No buffers allocated at the moment?
   if (!free_buffers_) {
-    MCIL_INFO_PRINT(": free_buffers_ not set");
+    MCIL_DEBUG_PRINT(": free_buffers_ not set");
     return nullptr;
   }
 
@@ -312,12 +303,12 @@ V4L2WritableBufferRef* V4L2Queue::GetFreeBufferPtr() {
 
 std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
   if (QueuedBuffersCount() == 0) {
-    MCIL_INFO_PRINT(": No buffers queued yet");
+    MCIL_DEBUG_PRINT(": No buffers queued yet");
     return std::make_pair(true, nullptr);
   }
 
   if (!IsStreaming()) {
-    MCIL_INFO_PRINT(": Attempting to dequeue a buffer while not streaming.");
+    MCIL_DEBUG_PRINT(": Attempting to dequeue a buffer while not streaming.");
     return std::make_pair(true, nullptr);
   }
 
@@ -337,7 +328,7 @@ std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
       case EPIPE:
         return std::make_pair(true, nullptr);
       default: {
-        MCIL_INFO_PRINT(": %s VIDIOC_DQBUF failed errno(%d)",
+        MCIL_DEBUG_PRINT(": %s VIDIOC_DQBUF failed errno(%d)",
             (buffer_type_ == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ?
                 "input" : "output"),
             errno);

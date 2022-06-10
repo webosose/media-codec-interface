@@ -37,7 +37,7 @@ Fourcc Fourcc::FromUint32(uint32_t fourcc) {
     default:
       break;
   }
-  MCIL_INFO_PRINT(": Unmapped fourcc: %s", FourccToString(fourcc).c_str());
+  MCIL_DEBUG_PRINT(": Unmapped fourcc: %s", FourccToString(fourcc).c_str());
   return Fourcc(NONE);
 }
 
@@ -88,8 +88,8 @@ Optional<Fourcc> Fourcc::FromVideoPixelFormat(
     }
   }
 
-  MCIL_INFO_PRINT(": Unmapped %d for %s", pixel_format,
-                  (single_planar ? "single-planar" : "multi-planar"));
+  MCIL_DEBUG_PRINT(": Unmapped %d for %s", pixel_format,
+                   (single_planar ? "single-planar" : "multi-planar"));
   return Fourcc(NONE);
 }
 
@@ -135,7 +135,7 @@ VideoPixelFormat Fourcc::ToVideoPixelFormat() const {
     case P010:
       return PIXEL_FORMAT_P016LE;
   }
-  MCIL_INFO_PRINT(": Unmapped fourcc: %s", ToString().c_str());
+  MCIL_DEBUG_PRINT(": Unmapped fourcc: %s", ToString().c_str());
   return PIXEL_FORMAT_UNKNOWN;
 }
 

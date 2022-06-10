@@ -59,12 +59,9 @@ SupportedProfiles VideoEncoder::GetSupportedProfiles() {
 
 GstVideoEncoder::GstVideoEncoder()
  : VideoEncoder() {
-  MCIL_INFO_PRINT(" Ctor");
 }
 
 GstVideoEncoder::~GstVideoEncoder() {
-  MCIL_INFO_PRINT(" Dtor");
-
   if (pipeline_)
     gst_element_set_state(pipeline_, GST_STATE_NULL);
 }
@@ -73,15 +70,14 @@ bool GstVideoEncoder::Initialize(const EncoderConfig* config_data,
                                   VideoEncoderClient* client,
                                   EncoderClientConfig* client_config,
                                   int venc_port_index) {
-  MCIL_INFO_PRINT(" called");
   client_ = client;
   if (!client_) {
-    MCIL_INFO_PRINT(" Delegate not provided");
+    MCIL_ERROR_PRINT(" Delegate not provided");
     return false;
   }
 
   if (!CreatePipeline(config_data)) {
-    MCIL_INFO_PRINT("CreatePipeline Failed");
+    MCIL_ERROR_PRINT("CreatePipeline Failed");
     return false;
   }
 
@@ -96,7 +92,6 @@ bool GstVideoEncoder::Initialize(const EncoderConfig* config_data,
 }
 
 void GstVideoEncoder::Destroy() {
-  MCIL_INFO_PRINT(" called");
   if (pipeline_) {
     gst_element_set_state(pipeline_, GST_STATE_NULL);
     pipeline_ = nullptr;
@@ -108,17 +103,15 @@ bool GstVideoEncoder::EncodeBuffer(const uint8_t* yBuf, size_t ySize,
                                    const uint8_t* vBuf, size_t vSize,
                                    uint64_t bufferTimestamp,
                                    const bool requestKeyFrame) {
-  MCIL_DEBUG_PRINT(" called");
-
   if (!pipeline_) {
-    MCIL_INFO_PRINT("Pipeline is null");
+    MCIL_ERROR_PRINT("Pipeline is null");
     return false;
   }
 
   size_t bufferSize = ySize + uSize * 2;
   guint8 *feedBuffer = (guint8 *)g_malloc(bufferSize);
   if (feedBuffer == NULL) {
-    MCIL_DEBUG_PRINT("memory allocation error!!!!!");
+    MCIL_ERROR_PRINT("memory allocation error!!!!!");
     return false;
   }
 
@@ -128,14 +121,14 @@ bool GstVideoEncoder::EncodeBuffer(const uint8_t* yBuf, size_t ySize,
 
   GstBuffer *gstBuffer = gst_buffer_new_wrapped(feedBuffer, bufferSize);
   if (!gstBuffer) {
-    MCIL_INFO_PRINT("Buffer wrapping error");
+    MCIL_ERROR_PRINT("Buffer wrapping error");
     return false;
   }
 
   GstFlowReturn gstReturn = gst_app_src_push_buffer((GstAppSrc*)source_,
                                                     gstBuffer);
   if (gstReturn < GST_FLOW_OK) {
-    MCIL_INFO_PRINT("gst_app_src_push_buffer errCode[ %d ]", gstReturn);
+    MCIL_ERROR_PRINT("gst_app_src_push_buffer errCode[ %d ]", gstReturn);
     return false;
   }
   return true;
@@ -143,8 +136,9 @@ bool GstVideoEncoder::EncodeBuffer(const uint8_t* yBuf, size_t ySize,
 
 bool GstVideoEncoder::UpdateEncodingParams(uint32_t bitrate,
                                            uint32_t framerate) {
+  MCIL_DEBUG_PRINT(": bitrate=%d, framerate=%d", bitrate, framerate);
+
   if (encoder_ && bitrate > 0 && bitrate_ != bitrate) {
-    MCIL_DEBUG_PRINT(": video_bitrate=%d", bitrate);
 #if defined(GST_V4L2_ENCODER)
     GstStructure* extraCtrls = gst_structure_new ("extra-controls",
                                "video_bitrate", G_TYPE_INT, bitrate, NULL);
@@ -163,30 +157,27 @@ bool GstVideoEncoder::CreateEncoder(VideoCodecProfile profile) {
   if (profile >= H264PROFILE_MIN && profile <= H264PROFILE_MAX) {
 #if defined(GST_V4L2_ENCODER)
     encoder_ = gst_element_factory_make ("v4l2h264enc", "encoder");
-    MCIL_DEBUG_PRINT("use v4l2h264enc");
 #else
     encoder_ = gst_element_factory_make ("omxh264enc", "encoder");
-    MCIL_DEBUG_PRINT("use omxh264enc");
 #endif
   } else if (profile >= VP8PROFILE_MIN && profile <= VP8PROFILE_MAX) {
     encoder_ = gst_element_factory_make ("omxvp8enc", "encoder");
   } else {
-    MCIL_INFO_PRINT(": Unsupported Codedc");
+    MCIL_ERROR_PRINT(": Unsupported Codedc");
     return false;
   }
 
   if (!encoder_) {
-    MCIL_INFO_PRINT("encoder_ element creation failed.");
+    MCIL_ERROR_PRINT("encoder_ element creation failed.");
     return false;
   }
   return true;
 }
 
 bool GstVideoEncoder::CreateSink() {
-  MCIL_DEBUG_PRINT(" called");
   sink_ = gst_element_factory_make ("appsink", "sink");
   if (!sink_) {
-    MCIL_INFO_PRINT("sink_ element creation failed.");
+    MCIL_ERROR_PRINT("sink_ element creation failed.");
     return false;
   }
   g_object_set (G_OBJECT (sink_), "emit-signals", TRUE, "sync", FALSE, NULL);
@@ -197,11 +188,11 @@ bool GstVideoEncoder::CreateSink() {
 
 bool GstVideoEncoder::LinkElements(const EncoderConfig* configData) {
   MCIL_DEBUG_PRINT(": width: %d, height: %d",
-                  configData->width, configData->height);
+                   configData->width, configData->height);
 
   filter_YUY2_ = gst_element_factory_make("capsfilter", "filter-YUY2");
   if (!filter_YUY2_) {
-    MCIL_INFO_PRINT("filter_YUY2_(%p) Failed", filter_YUY2_);
+    MCIL_ERROR_PRINT("filter_YUY2_(%p) Failed", filter_YUY2_);
     return false;
   }
 
@@ -219,7 +210,7 @@ bool GstVideoEncoder::LinkElements(const EncoderConfig* configData) {
 #else
   filter_NV12_ = gst_element_factory_make("capsfilter", "filter-NV");
   if (!filter_NV12_) {
-    MCIL_INFO_PRINT("filter_ element creation failed.");
+    MCIL_ERROR_PRINT("filter_ element creation failed.");
     return false;
   }
 
@@ -231,13 +222,13 @@ bool GstVideoEncoder::LinkElements(const EncoderConfig* configData) {
 
   converter_ = gst_element_factory_make("videoconvert", "converted");
   if (!converter_) {
-    MCIL_INFO_PRINT("converter_(%p) Failed", converter_);
+    MCIL_ERROR_PRINT("converter_(%p) Failed", converter_);
     return false;
   }
 
   parse_ = gst_element_factory_make("rawvideoparse", "parser");
   if (!parse_) {
-    MCIL_INFO_PRINT("parse_(%p) Failed", parse_);
+    MCIL_ERROR_PRINT("parse_(%p) Failed", parse_);
     return false;
   }
 
@@ -256,39 +247,39 @@ bool GstVideoEncoder::LinkElements(const EncoderConfig* configData) {
 #endif
 
   if (!gst_element_link(source_, filter_YUY2_)) {
-    MCIL_INFO_PRINT ("elements could not be linked - source_ & filter_YUY2 \n");
+    MCIL_ERROR_PRINT ("Linkerror - source_ & filter_YUY2");
     return false;
   }
 
   if (!gst_element_link(filter_YUY2_, parse_)) {
-    MCIL_INFO_PRINT ("elements could not be linked - filter_YUY2 & converter_ \n");
+    MCIL_ERROR_PRINT ("Link error - filter_YUY2 & converter_");
       return false;
   }
 
   if (!gst_element_link(parse_, converter_)) {
-    MCIL_INFO_PRINT ("elements could not be linked - parse_ & converter_ \n");
+    MCIL_ERROR_PRINT ("Link error - parse_ & converter_");
     return false;
   }
 
 #if defined(GST_V4L2_ENCODER)
   if (!gst_element_link(converter_, encoder_)) {
-    MCIL_INFO_PRINT ("elements could not be linked - converter_ & encoder_ \n");
+    MCIL_ERROR_PRINT ("Link error - converter_ & encoder_");
     return false;
   }
 #else
   if (!gst_element_link(converter_, filter_NV12_)) {
-    MCIL_INFO_PRINT ("elements could not be linked - converter_ & filter_NV12_ \n");
+    MCIL_ERROR_PRINT ("Link error - converter_ & filter_NV12_");
     return false;
   }
 
   if (!gst_element_link(filter_NV12_, encoder_)) {
-    MCIL_INFO_PRINT ("elements could not be linked - filter_NV12_ & encoder_ \n");
+    MCIL_ERROR_PRINT ("Link error - filter_NV12_ & encoder_");
     return false;
   }
 #endif
 
   if (!gst_element_link(encoder_, sink_)) {
-    MCIL_INFO_PRINT ("elements could not be linked - encoder_ & sink_ \n");
+    MCIL_ERROR_PRINT ("Link error - encoder_ & sink_");
     return false;
   }
 
@@ -307,19 +298,17 @@ gboolean GstVideoEncoder::HandleBusMessage(
 }
 
 bool GstVideoEncoder::CreatePipeline(const EncoderConfig* configData) {
-  MCIL_DEBUG_PRINT(" called");
-
   gst_init(NULL, NULL);
   gst_pb_utils_init();
   pipeline_ = gst_pipeline_new("video-encoder");
   if (!pipeline_) {
-    MCIL_INFO_PRINT("Cannot create encoder pipeline!");
+    MCIL_ERROR_PRINT("Cannot create encoder pipeline!");
     return false;
   }
 
   source_ = gst_element_factory_make ("appsrc", "app-source");
   if (!source_) {
-    MCIL_INFO_PRINT("source_ element creation failed.");
+    MCIL_ERROR_PRINT("source_ element creation failed.");
     return false;
   }
 
@@ -327,17 +316,17 @@ bool GstVideoEncoder::CreatePipeline(const EncoderConfig* configData) {
   g_object_set(source_, "do-timestamp", true, NULL);
 
   if (!CreateEncoder(configData->profile)) {
-    MCIL_INFO_PRINT("Encoder creation failed !!!");
+    MCIL_ERROR_PRINT("Encoder creation failed !!!");
     return false;
   }
 
   if (!CreateSink()) {
-    MCIL_INFO_PRINT("Sink creation failed !!!");
+    MCIL_ERROR_PRINT("Sink creation failed !!!");
     return false;
   }
 
   if (!LinkElements(configData)) {
-    MCIL_INFO_PRINT("element linking failed !!!");
+    MCIL_ERROR_PRINT("element linking failed !!!");
     return false;
   }
 
@@ -384,7 +373,7 @@ GstFlowReturn GstVideoEncoder::OnEncodedBuffer(
         std::chrono::system_clock::now() - encoder->start_time_;
     if (time_past >= std::chrono::seconds(1)) {
       encoder->current_seconds_++;
-      MCIL_INFO_PRINT(": Encoder @ %d secs => %d fps",
+      MCIL_DEBUG_PRINT(": Encoder @ %d secs => %d fps",
           encoder->current_seconds_, encoder->buffers_per_sec_);
       encoder->start_time_ = std::chrono::system_clock::now();
       encoder->buffers_per_sec_ = 0;
