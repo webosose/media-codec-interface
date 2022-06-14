@@ -11,7 +11,7 @@ const void* ReadableBuffer::GetPlaneBuffer(const size_t plane) const {
 }
 
 struct timeval ReadableBuffer::GetTimeStamp() const {
-  struct timeval timestamp;
+  struct timeval timestamp = { 0, 0 };
   return timestamp;
 }
 
@@ -20,7 +20,7 @@ WritableBufferRef& WritableBufferRef::operator=(WritableBufferRef&& other) {
 }
 
 struct timeval WritableBufferRef::GetTimeStamp() const {
-  struct timeval timestamp;
+  struct timeval timestamp = { 0, 0 };
   return timestamp;
 }
 
