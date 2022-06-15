@@ -37,6 +37,7 @@ class VideoEncoderAPI {
   bool IsFlushSupported();
   bool EncodeFrame(scoped_refptr<VideoFrame> frame,
                    bool force_keyframe);
+  bool FlushFrames();
   bool EncodeBuffer(const uint8_t* yBuf, size_t ySize,
                     const uint8_t* uBuf, size_t uSize,
                     const uint8_t* vBuf, size_t vSize,

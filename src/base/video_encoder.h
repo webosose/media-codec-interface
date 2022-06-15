@@ -37,6 +37,7 @@ class VideoEncoder : public RefCounted<VideoEncoder> {
 
   virtual bool EncodeFrame(scoped_refptr<VideoFrame> frame,
                            bool force_keyframe);
+  virtual bool FlushFrames();
   virtual bool EncodeBuffer(const uint8_t* yBuf, size_t ySize,
                             const uint8_t* uBuf, size_t uSize,
                             const uint8_t* vBuf, size_t vSize,

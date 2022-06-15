@@ -101,6 +101,15 @@ bool VideoEncoderAPI::EncodeFrame(scoped_refptr<VideoFrame> frame,
   return video_encoder_->EncodeFrame(frame, force_keyframe);
 }
 
+bool VideoEncoderAPI::FlushFrames() {
+  if (!video_encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+    return false;
+  }
+
+  return video_encoder_->FlushFrames();
+}
+
 bool VideoEncoderAPI::EncodeBuffer(const uint8_t* yBuf, size_t ySize,
                                    const uint8_t* uBuf, size_t uSize,
                                    const uint8_t* vBuf, size_t vSize,

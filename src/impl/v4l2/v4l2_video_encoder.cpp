@@ -178,6 +178,23 @@ bool V4L2VideoEncoder::EncodeFrame(scoped_refptr<VideoFrame> frame,
   return true;
 }
 
+bool V4L2VideoEncoder::FlushFrames() {
+  if (encoder_state_ == kEncoderError) {
+    MCIL_DEBUG_PRINT(" early out: kError state");
+    return false;
+  }
+
+  if (!input_buffer_created_) {
+    MCIL_DEBUG_PRINT(" Valid input frames are not queued yet.");
+    return false;
+  }
+
+  encoder_input_queue_.emplace(nullptr, false);
+  EnqueueBuffers();
+
+  return true;
+}
+
 bool V4L2VideoEncoder::UpdateEncodingParams(
     uint32_t bitrate, uint32_t framerate) {
   MCIL_DEBUG_PRINT(": bitrate[%d], framerate[%d]", bitrate, framerate);

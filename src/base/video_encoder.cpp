@@ -58,6 +58,10 @@ bool VideoEncoder::EncodeFrame(scoped_refptr<VideoFrame> frame,
   return false;
 }
 
+bool VideoEncoder::FlushFrames() {
+  return false;
+}
+
 bool VideoEncoder::EncodeBuffer(const uint8_t* yBuf, size_t ySize,
                                 const uint8_t* uBuf, size_t uSize,
                                 const uint8_t* vBuf, size_t vSize,

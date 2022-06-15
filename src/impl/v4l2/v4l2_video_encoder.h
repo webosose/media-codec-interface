@@ -29,6 +29,7 @@ class V4L2VideoEncoder : public VideoEncoder {
   bool IsFlushSupported() override;
   bool EncodeFrame(scoped_refptr<VideoFrame> frame,
                    bool force_keyframe) override;
+  bool FlushFrames() override;
   bool UpdateEncodingParams(uint32_t bitrate, uint32_t framerate) override;
   bool StartDevicePoll() override;
   void RunEncodeBufferTask() override;
