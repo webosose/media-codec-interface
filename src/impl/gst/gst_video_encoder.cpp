@@ -38,13 +38,13 @@
 
 namespace mcil {
 
-#if defined(USE_GST_ENCODER)
-scoped_refptr<VideoEncoder> VideoEncoder::Create() {
+// static
+scoped_refptr<VideoEncoder> GstVideoEncoder::Create() {
   return new GstVideoEncoder();
 }
 
 // static
-SupportedProfiles VideoEncoder::GetSupportedProfiles() {
+SupportedProfiles GstVideoEncoder::GetSupportedProfiles() {
   SupportedProfiles supported_profiles;
 
   SupportedProfile supported_profile;
@@ -55,7 +55,7 @@ SupportedProfiles VideoEncoder::GetSupportedProfiles() {
 
   return supported_profiles;
 }
-#endif
+
 
 GstVideoEncoder::GstVideoEncoder()
  : VideoEncoder() {
@@ -373,8 +373,8 @@ GstFlowReturn GstVideoEncoder::OnEncodedBuffer(
         std::chrono::system_clock::now() - encoder->start_time_;
     if (time_past >= std::chrono::seconds(1)) {
       encoder->current_seconds_++;
-      MCIL_DEBUG_PRINT(": Encoder @ %d secs => %d fps",
-          encoder->current_seconds_, encoder->buffers_per_sec_);
+      MCIL_INFO_PRINT(": Encoder @ %d secs => %d fps",
+                      encoder->current_seconds_, encoder->buffers_per_sec_);
       encoder->start_time_ = std::chrono::system_clock::now();
       encoder->buffers_per_sec_ = 0;
     }

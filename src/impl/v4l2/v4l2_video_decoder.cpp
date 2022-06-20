@@ -16,34 +16,37 @@
 
 namespace mcil {
 
-// static
-static const uint32_t supported_input_fourccs_[] = {
-    V4L2_PIX_FMT_H264,
+namespace {
+
+const uint32_t kSupportedInputFourccs[] = {
+  V4L2_PIX_FMT_H264,
 };
 
+}  // namespace
+
 #if !defined(PLATFORM_EXTENSION)
-scoped_refptr<VideoDecoder> VideoDecoder::Create() {
+// static
+scoped_refptr<VideoDecoder> V4L2VideoDecoder::Create() {
   return new V4L2VideoDecoder();
 }
-#endif
 
 // static
-SupportedProfiles VideoDecoder::GetSupportedProfiles() {
+SupportedProfiles V4L2VideoDecoder::GetSupportedProfiles() {
   scoped_refptr<V4L2Device> device = V4L2Device::Create(V4L2_DECODER);
 
   if (!device)
     return SupportedProfiles();
 
   return device->GetSupportedDecodeProfiles(
-      ARRAY_SIZE(supported_input_fourccs_), supported_input_fourccs_);
+      ARRAY_SIZE(kSupportedInputFourccs), kSupportedInputFourccs);
 }
+#endif
 
 V4L2VideoDecoder::V4L2VideoDecoder()
  : VideoDecoder(),
    v4l2_device_(V4L2Device::Create(V4L2_DECODER)),
    output_mode_(OUTPUT_ALLOCATE),
    device_poll_thread_("V4L2DecoderDevicePollThread"),
-   client_(nullptr),
    decoder_state_(kUninitialized) {
 }
 
@@ -446,8 +449,7 @@ bool V4L2VideoDecoder::AllocateOutputBuffers(
 
 bool V4L2VideoDecoder::CanCreateEGLImageFrom(VideoPixelFormat pixel_format) {
   if (v4l2_device_) {
-    Optional<Fourcc> fourcc =
-        Fourcc::FromVideoPixelFormat(pixel_format);
+    auto fourcc = Fourcc::FromVideoPixelFormat(pixel_format);
     if (!fourcc)
       return false;
     return v4l2_device_->CanCreateEGLImageFrom(*fourcc);
@@ -820,10 +822,6 @@ bool V4L2VideoDecoder::DequeueInputBuffer() {
     MCIL_DEBUG_PRINT(": Dequeue input buffer. Waiting");
     return false;
   }
-
-  ReadableBufferRef buffer(std::move(ret.second));
-  MCIL_DEBUG_PRINT(": buffer index[%lu] success", buffer->BufferIndex());
-
   return true;
 }
 
@@ -885,8 +883,8 @@ bool V4L2VideoDecoder::DequeueOutputBuffer() {
       std::chrono::system_clock::now() - start_time_;
   if (time_past >= std::chrono::seconds(1)) {
     current_secs_++;
-    MCIL_DEBUG_PRINT(": Decoder @ %d secs => %d fps",
-                     current_secs_, frames_per_sec_);
+    MCIL_INFO_PRINT(": Decoder @ %d secs => %d fps",
+                    current_secs_, frames_per_sec_);
     start_time_ = std::chrono::system_clock::now();
     frames_per_sec_ = 0;
   }

@@ -32,32 +32,32 @@ class VideoDecoder : public RefCounted<VideoDecoder> {
   virtual bool Initialize(const DecoderConfig* config,
                           VideoDecoderClient* client,
                           DecoderClientConfig* client_config,
-                          int32_t vdec_port_index);
-  virtual void Destroy();
-  virtual bool ResetInputBuffer();
-  virtual bool ResetDecodingBuffers(bool* reset_pending);
-  virtual bool CanNotifyResetDone();
+                          int32_t vdec_port_index) = 0;
+  virtual void Destroy() = 0;
+  virtual bool ResetInputBuffer() = 0;
+  virtual bool ResetDecodingBuffers(bool* reset_pending) = 0;
+  virtual bool CanNotifyResetDone() = 0;
 
   virtual bool DecodeBuffer(const void* buffer, size_t size,
-                            const int32_t id, int64_t buffer_pts);
-  virtual bool FlushInputBuffers();
-  virtual bool DidFlushBuffersDone();
+                            const int32_t id, int64_t buffer_pts) = 0;
+  virtual bool FlushInputBuffers() = 0;
+  virtual bool DidFlushBuffersDone() = 0;
 
-  virtual void EnqueueBuffers();
-  virtual void DequeueBuffers();
-  virtual void ReusePictureBuffer(int32_t pic_buffer_id);
+  virtual void EnqueueBuffers() = 0;
+  virtual void DequeueBuffers() = 0;
+  virtual void ReusePictureBuffer(int32_t pic_buffer_id) = 0;
 
-  virtual void RunDecodeBufferTask(bool event_pending, bool has_output);
-  virtual void RunDecoderPostTask(PostTaskType task, bool value);
+  virtual void RunDecodeBufferTask(bool event_pending, bool has_output) = 0;
+  virtual void SetDecoderState(CodecState state) = 0;
 
-  virtual void SetDecoderState(CodecState state);
-
-  virtual bool GetCurrentInputBufferId(int32_t* buffer_id);
-  virtual size_t GetFreeBuffersCount(QueueType queue_type);
+  virtual bool GetCurrentInputBufferId(int32_t* buffer_id) = 0;
+  virtual size_t GetFreeBuffersCount(QueueType queue_type) = 0;
   virtual bool AllocateOutputBuffers(
-      uint32_t count, std::vector<WritableBufferRef*>& buffers);
-  virtual bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format);
-  virtual void OnEGLImagesCreationCompleted();
+      uint32_t count, std::vector<WritableBufferRef*>& buffers) = 0;
+  virtual bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format) = 0;
+
+  virtual void RunDecoderPostTask(PostTaskType task, bool value) = 0;
+  virtual void OnEGLImagesCreationCompleted() = 0;
 
  protected:
   friend class RefCounted<VideoDecoder>;

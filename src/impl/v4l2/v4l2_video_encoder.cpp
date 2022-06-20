@@ -16,15 +16,14 @@
 
 namespace mcil {
 
-#if defined(USE_V4L2_ENCODER)
 #if !defined(PLATFORM_EXTENSION)
-scoped_refptr<VideoEncoder> VideoEncoder::Create() {
+// static
+scoped_refptr<VideoEncoder> V4L2VideoEncoder::Create() {
   return new V4L2VideoEncoder();
 }
-#endif
 
 // static
-SupportedProfiles VideoEncoder::GetSupportedProfiles() {
+SupportedProfiles V4L2VideoEncoder::GetSupportedProfiles() {
   scoped_refptr<V4L2Device> device = V4L2Device::Create(V4L2_ENCODER);
 
   if (!device)
@@ -34,25 +33,16 @@ SupportedProfiles VideoEncoder::GetSupportedProfiles() {
 }
 #endif
 
-V4L2VideoEncoder::InputFrameInfo::InputFrameInfo()
-    : InputFrameInfo(nullptr, false) {}
-
 V4L2VideoEncoder::InputFrameInfo::InputFrameInfo(
     scoped_refptr<VideoFrame> frame,
     bool force_keyframe)
     : frame(frame), force_keyframe(force_keyframe) {}
-
-V4L2VideoEncoder::InputFrameInfo::InputFrameInfo(
-    const InputFrameInfo&) = default;
-
-V4L2VideoEncoder::InputFrameInfo::~InputFrameInfo() = default;
 
 V4L2VideoEncoder::V4L2VideoEncoder()
  : VideoEncoder(),
    v4l2_device_(V4L2Device::Create(V4L2_ENCODER)),
    device_poll_thread_("V4L2EncoderDevicePollThread"),
    encoder_state_(kUninitialized),
-   client_(nullptr),
    input_memory_type_(V4L2_MEMORY_MMAP),
    output_memory_type_(V4L2_MEMORY_MMAP) {
 }
@@ -109,7 +99,7 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
 
   struct v4l2_capability caps;
   memset(&caps, 0, sizeof(caps));
-  __u32 kCapsRequired = GetCapsRequired();
+  uint32_t kCapsRequired = GetCapsRequired();
   IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_QUERYCAP, &caps);
   if ((caps.capabilities & kCapsRequired) != kCapsRequired) {
     MCIL_ERROR_PRINT(" caps check failed: %x", caps.capabilities);
@@ -760,8 +750,8 @@ bool V4L2VideoEncoder::DequeueOutputBuffer() {
       std::chrono::system_clock::now() - start_time_;
   if (time_past >= std::chrono::seconds(1)) {
     current_secs_++;
-    MCIL_DEBUG_PRINT(": Encoder @ %d secs => %d fps",
-                     current_secs_, frames_per_sec_);
+    MCIL_INFO_PRINT(": Encoder @ %d secs => %d fps",
+                    current_secs_, frames_per_sec_);
     start_time_ = std::chrono::system_clock::now();
     frames_per_sec_ = 0;
   }

@@ -44,27 +44,24 @@ scoped_refptr<V4L2Queue> V4L2Queue::Create(scoped_refptr<V4L2Device> dev,
 #endif
 
 /* V4L2BufferRefFactory */
-class V4L2BufferRefFactory {
- public:
-  static V4L2WritableBufferRef CreateWritableRef(
-      const struct v4l2_buffer& v4l2_buffer, V4L2Queue* queue) {
-    return V4L2WritableBufferRef(v4l2_buffer, queue);
-  }
+V4L2WritableBufferRef V4L2BufferRefFactory::CreateWritableRef(
+    const struct v4l2_buffer& v4l2_buffer, V4L2Queue* queue) {
+  return V4L2WritableBufferRef(v4l2_buffer, queue);
+}
 
-  static V4L2WritableBufferRef* CreateWritableRefPtr(
-      const struct v4l2_buffer& v4l2_buffer, V4L2Queue* queue) {
-    return new V4L2WritableBufferRef(v4l2_buffer, queue);
-  }
+V4L2WritableBufferRef* V4L2BufferRefFactory::CreateWritableRefPtr(
+    const struct v4l2_buffer& v4l2_buffer, V4L2Queue* queue) {
+  return new V4L2WritableBufferRef(v4l2_buffer, queue);
+}
 
-  static ReadableBufferRef CreateReadableRef(
-      const struct v4l2_buffer& v4l2_buffer,
-      V4L2Queue* queue,
-      scoped_refptr<VideoFrame> video_frame) {
-    V4L2ReadableBuffer* readable_buffer =
-        new V4L2ReadableBuffer(v4l2_buffer, queue, std::move(video_frame));
-    return (ReadableBuffer*)readable_buffer;
-  }
-};
+ReadableBufferRef V4L2BufferRefFactory::CreateReadableRef(
+    const struct v4l2_buffer& v4l2_buffer,
+    V4L2Queue* queue,
+    scoped_refptr<VideoFrame> video_frame) {
+  V4L2ReadableBuffer* readable_buffer =
+      new V4L2ReadableBuffer(v4l2_buffer, queue, std::move(video_frame));
+  return (ReadableBuffer*)readable_buffer;
+}
 
 /* V4L2Queue */
 V4L2Queue::V4L2Queue(scoped_refptr<V4L2Device> device,

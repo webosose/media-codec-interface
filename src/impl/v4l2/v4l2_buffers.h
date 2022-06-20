@@ -32,6 +32,9 @@ class V4L2Buffer {
   virtual const struct v4l2_buffer& v4l2_buffer() const { return v4l2_buffer_; }
   virtual bool Query();
 
+  virtual int64_t GetBufferPTS();
+  virtual void SetBufferPTS(int64_t buffer_pts);
+
  protected:
   V4L2Buffer(scoped_refptr<V4L2Device> device,
              enum v4l2_buf_type buffer_type,
@@ -43,6 +46,8 @@ class V4L2Buffer {
 
   scoped_refptr<V4L2Device> device_;
   std::vector<void*> plane_mappings_;
+
+  int64_t timestamp_ = 0;
 
   struct v4l2_buffer v4l2_buffer_;
   enum v4l2_buf_type buffer_type_;
@@ -81,8 +86,13 @@ class V4L2BufferRefBase {
   bool QueueBuffer(scoped_refptr<VideoFrame> video_frame);
   scoped_refptr<VideoFrame> GetVideoFrame();
 
+  int64_t GetBufferPTS();
+  void SetBufferPTS(int64_t buffer_pts);
+
   struct v4l2_buffer v4l2_buffer_;
   struct v4l2_plane v4l2_planes_[VIDEO_MAX_PLANES];
+
+  int32_t buffer_id_ = -1;
 
  private:
   friend class V4L2ReadableBuffer;
@@ -140,8 +150,6 @@ class V4L2WritableBufferRef : public WritableBufferRef {
   void SetBytesUsed(const size_t plane, const size_t bytes_used) override;
   struct timeval GetTimeStamp() const override;
   void SetTimeStamp(const struct timeval& timestamp) override;
-  int32_t GetBufferId() { return buffer_id_; }
-  void SetBufferId(int32_t buffer_id) { buffer_id_ = buffer_id; }
   size_t BufferIndex() const override;
   scoped_refptr<VideoFrame> GetVideoFrame() override;
 
@@ -152,6 +160,12 @@ class V4L2WritableBufferRef : public WritableBufferRef {
   enum v4l2_memory Memory() const;
   void SetFlags(uint32_t flags);
 
+  int32_t GetBufferId();
+  void SetBufferId(int32_t buffer_id);
+
+  int64_t GetBufferPTS();
+  void SetBufferPTS(int64_t buffer_pts);
+
  private:
   V4L2WritableBufferRef(const struct v4l2_buffer& v4l2_buffer,
                         V4L2Queue* queue);
@@ -160,7 +174,6 @@ class V4L2WritableBufferRef : public WritableBufferRef {
 
   friend class V4L2BufferRefFactory;
 
-  int32_t buffer_id_ = -1;
   std::unique_ptr<V4L2BufferRefBase> buffer_data_;
 }; /* V4L2WritableBufferRef */
 

@@ -109,6 +109,14 @@ bool V4L2Buffer::Query() {
   return true;
 }
 
+int64_t V4L2Buffer::GetBufferPTS() {
+  return timestamp_;
+}
+
+void V4L2Buffer::SetBufferPTS(int64_t timestamp) {
+  timestamp_ = timestamp;
+}
+
 scoped_refptr<VideoFrame> V4L2Buffer::CreateVideoFrame() {
   scoped_refptr<VideoFrame> video_frame =
       V4L2Device::VideoFrameFromV4L2Format(format_);
@@ -212,6 +220,14 @@ scoped_refptr<VideoFrame> V4L2BufferRefBase::GetVideoFrame() {
   return queue_->buffers_[BufferIndex()]->GetVideoFrame();
 }
 
+int64_t V4L2BufferRefBase::GetBufferPTS() {
+  return queue_->buffers_[BufferIndex()]->GetBufferPTS();
+}
+
+void V4L2BufferRefBase::SetBufferPTS(int64_t timestamp) {
+  queue_->buffers_[BufferIndex()]->SetBufferPTS(timestamp);
+}
+
 /* V4L2ReadableBuffer */
 V4L2ReadableBuffer::V4L2ReadableBuffer(const struct v4l2_buffer& v4l2_buffer,
                                        V4L2Queue* queue,
@@ -276,8 +292,7 @@ V4L2WritableBufferRef::V4L2WritableBufferRef(
 }
 
 V4L2WritableBufferRef::V4L2WritableBufferRef(V4L2WritableBufferRef&& other)
-    : buffer_data_(std::move(other.buffer_data_)),
-      buffer_id_(other.buffer_id_) {
+    : buffer_data_(std::move(other.buffer_data_)) {
 }
 
 V4L2WritableBufferRef& V4L2WritableBufferRef::operator=(
@@ -286,7 +301,6 @@ V4L2WritableBufferRef& V4L2WritableBufferRef::operator=(
     return *this;
 
   buffer_data_ = std::move(other.buffer_data_);
-  buffer_id_ = other.buffer_id_;
   return *this;
 }
 
@@ -391,6 +405,22 @@ enum v4l2_memory V4L2WritableBufferRef::Memory() const {
 
 void V4L2WritableBufferRef::SetFlags(uint32_t flags) {
   buffer_data_->v4l2_buffer_.flags = flags;
+}
+
+int64_t V4L2WritableBufferRef::GetBufferPTS() {
+  return buffer_data_->GetBufferPTS();
+}
+
+void V4L2WritableBufferRef::SetBufferPTS(int64_t timestamp) {
+  buffer_data_->SetBufferPTS(timestamp);
+}
+
+int32_t V4L2WritableBufferRef::GetBufferId() {
+  return  buffer_data_->buffer_id_;
+}
+
+void V4L2WritableBufferRef::SetBufferId(int32_t buffer_id) {
+  buffer_data_->buffer_id_ = buffer_id;
 }
 
 bool V4L2WritableBufferRef::DoQueue(scoped_refptr<VideoFrame> video_frame) && {

@@ -18,6 +18,9 @@ class V4L2Device;
 
 class V4L2VideoEncoder : public VideoEncoder {
  public:
+  static scoped_refptr<VideoEncoder> Create();
+  static SupportedProfiles GetSupportedProfiles();
+
   V4L2VideoEncoder();
   ~V4L2VideoEncoder() override;
 
@@ -49,12 +52,12 @@ class V4L2VideoEncoder : public VideoEncoder {
   };
 
   struct InputFrameInfo {
-    InputFrameInfo();
+    InputFrameInfo() = default;
     InputFrameInfo(scoped_refptr<VideoFrame> frame, bool force_keyframe);
-    InputFrameInfo(const InputFrameInfo&);
-    ~InputFrameInfo();
-    scoped_refptr<VideoFrame> frame;
-    bool force_keyframe;
+    InputFrameInfo(const InputFrameInfo&) = default;
+    ~InputFrameInfo() = default;
+    scoped_refptr<VideoFrame> frame = nullptr;
+    bool force_keyframe = false;
   };
 
   virtual void DequeueBuffers();
@@ -95,7 +98,6 @@ class V4L2VideoEncoder : public VideoEncoder {
   virtual bool StopDevicePoll();
   virtual void DevicePollTask(bool poll_device);
 
-  VideoEncoderClient* client_;
   EncoderConfig encoder_config_ = {0};
 
   scoped_refptr<V4L2Device> v4l2_device_;
@@ -123,6 +125,8 @@ class V4L2VideoEncoder : public VideoEncoder {
   bool inject_sps_and_pps_ = false;
 
   Thread device_poll_thread_;
+
+  VideoEncoderClient* client_ = nullptr;
 
   ChronoTime start_time_;
   uint32_t frames_per_sec_ = 0;

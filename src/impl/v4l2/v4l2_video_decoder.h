@@ -22,6 +22,9 @@ class V4L2Device;
 
 class V4L2VideoDecoder : public VideoDecoder {
  public:
+  static scoped_refptr<VideoDecoder> Create();
+  static SupportedProfiles GetSupportedProfiles();
+
   V4L2VideoDecoder();
   ~V4L2VideoDecoder() override;
 
@@ -54,6 +57,7 @@ class V4L2VideoDecoder : public VideoDecoder {
       uint32_t count, std::vector<WritableBufferRef*>& buffers) override;
   bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format) override;
   void OnEGLImagesCreationCompleted() override;
+  void RunDecoderPostTask(PostTaskType task, bool value) override {}
 
   void DevicePollTask(bool poll_device);
 
@@ -83,28 +87,28 @@ class V4L2VideoDecoder : public VideoDecoder {
   virtual bool DestroyOutputBuffers();
   virtual void DestroyInputBuffers();
 
-  bool GetFormatInfo(struct v4l2_format* format,
-                     Size* visible_size, bool* again);
-  Size GetVisibleSize(const Size& coded_size);
-  bool CreateBuffersForFormat(const struct v4l2_format& format,
-                              const Size& visible_size);
+  virtual bool GetFormatInfo(struct v4l2_format* format,
+                             Size* visible_size, bool* again);
+  virtual Size GetVisibleSize(const Size& coded_size);
+  virtual bool CreateBuffersForFormat(const struct v4l2_format& format,
+                                      const Size& visible_size);
 
-  void NotifyErrorState(DecoderError error);
+  virtual void NotifyErrorState(DecoderError error);
 
-  bool EnqueueInputBuffer(V4L2WritableBufferRef buffer);
-  bool DequeueInputBuffer();
+  virtual bool EnqueueInputBuffer(V4L2WritableBufferRef buffer);
+  virtual bool DequeueInputBuffer();
 
-  bool EnqueueOutputBuffer(V4L2WritableBufferRef buffer);
-  bool DequeueOutputBuffer();
+  virtual bool EnqueueOutputBuffer(V4L2WritableBufferRef buffer);
+  virtual bool DequeueOutputBuffer();
 
   virtual bool StartDevicePoll();
   virtual bool StopDevicePoll();
 
-  bool StopInputStream();
-  bool StopOutputStream();
+  virtual bool StopInputStream();
+  virtual bool StopOutputStream();
 
-  void StartResolutionChange();
-  void FinishResolutionChange();
+  virtual void StartResolutionChange();
+  virtual void FinishResolutionChange();
 
   scoped_refptr<V4L2Device> v4l2_device_;
 
@@ -133,7 +137,7 @@ class V4L2VideoDecoder : public VideoDecoder {
 
   DecoderConfig decoder_config_ = {0};
 
-  VideoDecoderClient* client_;
+  VideoDecoderClient* client_ = nullptr;
 
   ChronoTime start_time_;
   uint32_t frames_per_sec_ = 0;

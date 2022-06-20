@@ -27,6 +27,9 @@ namespace mcil {
 
 class GstVideoEncoder : public VideoEncoder {
  public:
+  static scoped_refptr<VideoEncoder> Create();
+  static SupportedProfiles GetSupportedProfiles();
+
   GstVideoEncoder();
   ~GstVideoEncoder() override;
 
@@ -42,6 +45,21 @@ class GstVideoEncoder : public VideoEncoder {
                     const bool requestKeyFrame) override;
   bool UpdateEncodingParams(uint32_t bitrate, uint32_t framerate) override;
 
+  bool IsFlushSupported() override { return false; }
+  bool EncodeFrame(scoped_refptr<VideoFrame> frame,
+                           bool force_keyframe) override { return true; }
+  bool FlushFrames() override { return true; }
+  bool StartDevicePoll() override { return true; }
+  void RunEncodeBufferTask() override {}
+  void SendStartCommand(bool start) override {}
+  void SetEncoderState(CodecState state) override {}
+  size_t GetFreeBuffersCount(QueueType queue_type) override { return 0; }
+  void EnqueueBuffers() override {}
+  scoped_refptr<VideoFrame> GetDeviceInputFrame() override { return nullptr; }
+  bool NegotiateInputFormat(VideoPixelFormat format,
+                            const Size& frame_size) override { return true; }
+
+
   static gboolean HandleBusMessage(
       GstBus *bus_, GstMessage *message, gpointer user_data);
 
@@ -52,8 +70,6 @@ class GstVideoEncoder : public VideoEncoder {
   bool LinkElements(const EncoderConfig* configData);
 
   static GstFlowReturn OnEncodedBuffer(GstElement* elt, gpointer* data);
-
-  VideoEncoderClient* client_;
 
   GstBus *bus_ = nullptr;
   bool load_complete_ = false;
@@ -69,6 +85,8 @@ class GstVideoEncoder : public VideoEncoder {
   GstCaps *caps_NV12_ = nullptr;
 
   int32_t bitrate_ = 0;
+
+  VideoEncoderClient* client_ = nullptr;
 
   ChronoTime start_time_;
   uint32_t current_seconds_ = 0;

@@ -72,6 +72,21 @@ class V4L2Queue : public RefCounted<V4L2Queue> {
   Optional<struct v4l2_format> current_format_;
 }; /* V4L2Queue */
 
+/* V4L2BufferRefFactory */
+class V4L2BufferRefFactory {
+ public:
+  static V4L2WritableBufferRef CreateWritableRef(
+      const struct v4l2_buffer& v4l2_buffer, V4L2Queue* queue);
+
+  static V4L2WritableBufferRef* CreateWritableRefPtr(
+      const struct v4l2_buffer& v4l2_buffer, V4L2Queue* queue);
+
+  static ReadableBufferRef CreateReadableRef(
+      const struct v4l2_buffer& v4l2_buffer,
+      V4L2Queue* queue,
+      scoped_refptr<VideoFrame> video_frame);
+};
+
 }  //  namespace mcil
 
 #endif  // SRC_IMPL_V4L2_V4L2_QUEUE_H_

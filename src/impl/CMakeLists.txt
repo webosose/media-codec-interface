@@ -29,7 +29,9 @@ link_directories(${Boost_LIBRARY_DIRS})
 set(MEDIA_IMPL_LIB media-codec-impl)
 
 set(MEDIA_IMPL_SRC
-    base/log.cpp
+  base/log.cpp
+  impl/video_decoder.cpp
+  impl/video_encoder.cpp
 )
 
 set(MEDIA_IMPL_LIBRARIES
@@ -39,16 +41,13 @@ set(MEDIA_IMPL_LIBRARIES
     ${PMLOG_LIBRARIES}
 )
 
+include(impl/gst/CMakeLists.txt)
 include(impl/v4l2/CMakeLists.txt)
 
 get_filename_component(DIR_PATH "${_dir}" REALPATH)
 if(EXISTS "${DIR_PATH}/impl/ext" AND EXISTS "${DIR_PATH}/impl/ext/CMakeLists.txt")
   include(impl/ext/CMakeLists.txt)
   add_definitions(-DPLATFORM_EXTENSION)
-endif()
-
-if (${USE_ENCODER_BUILD} STREQUAL "GST")
-  include(impl/gst/CMakeLists.txt)
 endif()
 
 add_library(${MEDIA_IMPL_LIB} SHARED ${MEDIA_IMPL_SRC})

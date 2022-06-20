@@ -58,8 +58,6 @@ set(MEDIA_CODEC_BASE_SRC
     base/log.cpp
     base/thread.cpp
     base/video_buffers.cpp
-    base/video_decoder.cpp
-    base/video_encoder.cpp
     base/video_frame.cpp
 )
 
