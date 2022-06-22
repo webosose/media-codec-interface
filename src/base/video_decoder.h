@@ -62,8 +62,8 @@ class VideoDecoder : public RefCounted<VideoDecoder> {
  protected:
   friend class RefCounted<VideoDecoder>;
 
-  VideoDecoder();
-  virtual ~VideoDecoder();
+  VideoDecoder() = default;
+  virtual ~VideoDecoder() = default;
 };
 
 }  // namespace mcil

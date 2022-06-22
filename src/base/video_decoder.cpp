@@ -33,9 +33,6 @@
 
 namespace mcil {
 
-VideoDecoder::VideoDecoder() = default;
-
-VideoDecoder::~VideoDecoder() = default;
 
 bool VideoDecoder::Initialize(const DecoderConfig* decoderConfig,
                               VideoDecoderClient* client,

@@ -131,7 +131,7 @@ class V4L2VideoDecoder : public VideoDecoder {
 
   int output_dpb_size_ = 0;
 
-  DecoderConfig decoder_config_;
+  DecoderConfig decoder_config_ = {0};
 
   VideoDecoderClient* client_;
 

@@ -107,7 +107,7 @@ bool ResourceRequestor::AcquireResources(PortResource_t& resourceMMap,
 
   JValue objArray = pbnjson::Array();
   for (auto option : finalOptions) {
-    for (auto it : option) {
+    for (auto const & it : option) {
       JValue obj = pbnjson::Object();
       obj.put("resource", it.type);
       obj.put("qty", it.quantity);

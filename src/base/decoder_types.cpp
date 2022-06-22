@@ -19,13 +19,7 @@
 #include <sstream>
 
 namespace mcil {
-
-DecoderConfig::DecoderConfig() = default;
-
-DecoderConfig::~DecoderConfig() = default;
-
-DecoderClientConfig::DecoderClientConfig() = default;
-
-DecoderClientConfig::~DecoderClientConfig() = default;
+// To Avoid ODR_VIOALTION all function declaration and definition moved
+// to one place that is corresponding header file
 
 }  //  namespace mcil

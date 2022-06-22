@@ -43,6 +43,7 @@ V4L2VideoDecoder::V4L2VideoDecoder()
    v4l2_device_(V4L2Device::Create(V4L2_DECODER)),
    output_mode_(OUTPUT_ALLOCATE),
    device_poll_thread_("V4L2DecoderDevicePollThread"),
+   client_(nullptr),
    decoder_state_(kUninitialized) {
 }
 
@@ -773,7 +774,8 @@ bool V4L2VideoDecoder::CreateBuffersForFormat(
 }
 
 void V4L2VideoDecoder::NotifyErrorState(DecoderError error_code) {
-  client_->NotifyDecoderError(error_code);
+  if(client_)
+      client_->NotifyDecoderError(error_code);
 }
 
 bool V4L2VideoDecoder::EnqueueInputBuffer(V4L2WritableBufferRef buffer) {

@@ -17,13 +17,7 @@
 #include "encoder_types.h"
 
 namespace mcil {
-
-EncoderConfig::EncoderConfig() = default;
-
-EncoderConfig::~EncoderConfig() = default;
-
-EncoderClientConfig::EncoderClientConfig() = default;
-
-EncoderClientConfig::~EncoderClientConfig() = default;
+// To Avoid ODR_VIOALTION all function declaration and definition moved
+// to one place that is corresponding header file
 
 }  //  namespace mcil

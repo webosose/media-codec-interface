@@ -255,7 +255,9 @@ scoped_refptr<VideoFrame> VideoFrame::Create(const Size& size) {
 }
 
 VideoFrame::VideoFrame(const Size& size)
- : coded_size(size.width, size.height) {
+ :format(PIXEL_FORMAT_UNKNOWN),
+  coded_size(size.width, size.height),
+  is_multi_planar(false) {
   memset(&timestamp, 0, sizeof(timestamp));
 }
 

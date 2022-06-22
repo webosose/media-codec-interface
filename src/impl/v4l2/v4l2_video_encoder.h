@@ -58,7 +58,7 @@ class V4L2VideoEncoder : public VideoEncoder {
   };
 
   virtual void DequeueBuffers();
-  virtual const uint32_t GetCapsRequired();
+  virtual uint32_t GetCapsRequired();
   virtual void InitInputMemoryType();
   virtual void InitOutputMemoryType();
   virtual bool DoStreamOnInEnqueueBuffers() { return true; };
@@ -96,7 +96,7 @@ class V4L2VideoEncoder : public VideoEncoder {
   virtual void DevicePollTask(bool poll_device);
 
   VideoEncoderClient* client_;
-  EncoderConfig encoder_config_;
+  EncoderConfig encoder_config_ = {0};
 
   scoped_refptr<V4L2Device> v4l2_device_;
 

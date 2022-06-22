@@ -61,8 +61,8 @@ enum PostTaskType {
 /* Decoder configure data structure */
 class DecoderConfig {
  public:
-  DecoderConfig();
-  ~DecoderConfig();
+  DecoderConfig() = default;
+  ~DecoderConfig() = default;
 
   uint32_t frameWidth;
   uint32_t frameHeight;
@@ -73,8 +73,8 @@ class DecoderConfig {
 /* DecoderClinet configure data structure */
 class DecoderClientConfig {
  public:
-  DecoderClientConfig();
-  ~DecoderClientConfig();
+  DecoderClientConfig() = default;
+  ~DecoderClientConfig() = default;
 
   VideoPixelFormat output_pixel_format = PIXEL_FORMAT_UNKNOWN;
   bool should_control_buffer_feed = false;

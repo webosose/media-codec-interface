@@ -35,8 +35,8 @@ enum EncoderError {
 /* Encoder config data structure */
 class EncoderConfig {
  public:
-  EncoderConfig();
-  ~EncoderConfig();
+  EncoderConfig() = default;
+  ~EncoderConfig() = default;
 
   uint32_t frameRate;
   uint32_t bitRate;
@@ -52,8 +52,8 @@ class EncoderConfig {
 /* EncoderClinet configure data structure */
 class EncoderClientConfig {
  public:
-  EncoderClientConfig();
-  ~EncoderClientConfig();
+  EncoderClientConfig() = default;
+  ~EncoderClientConfig() = default;
 
   bool should_control_buffer_feed = false;
   size_t output_buffer_byte_size = 0;

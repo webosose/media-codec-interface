@@ -51,7 +51,10 @@ V4L2VideoEncoder::V4L2VideoEncoder()
  : VideoEncoder(),
    v4l2_device_(V4L2Device::Create(V4L2_ENCODER)),
    device_poll_thread_("V4L2EncoderDevicePollThread"),
-   encoder_state_(kUninitialized) {
+   encoder_state_(kUninitialized),
+   client_(nullptr),
+   input_memory_type_(V4L2_MEMORY_MMAP),
+   output_memory_type_(V4L2_MEMORY_MMAP) {
 }
 
 V4L2VideoEncoder::~V4L2VideoEncoder() {
@@ -106,7 +109,7 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
 
   struct v4l2_capability caps;
   memset(&caps, 0, sizeof(caps));
-  const __u32 kCapsRequired = GetCapsRequired();
+  __u32 kCapsRequired = GetCapsRequired();
   IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_QUERYCAP, &caps);
   if ((caps.capabilities & kCapsRequired) != kCapsRequired) {
     MCIL_ERROR_PRINT(" caps check failed: %x", caps.capabilities);
@@ -372,7 +375,7 @@ void V4L2VideoEncoder::DequeueBuffers() {
     client_->PumpBitstreamBuffers();
 }
 
-const uint32_t V4L2VideoEncoder::GetCapsRequired() {
+uint32_t V4L2VideoEncoder::GetCapsRequired() {
   return V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
 }
 
@@ -423,14 +426,14 @@ bool V4L2VideoEncoder::SetOutputFormat(VideoCodecProfile output_profile) {
 }
 
 Optional<struct v4l2_format> V4L2VideoEncoder::SetInputFormat(
-    VideoPixelFormat format, const Size& frame_size) {
+    VideoPixelFormat pixel_format, const Size& frame_size) {
   MCIL_DEBUG_PRINT(" frame_size[%dx%d]", frame_size.width, frame_size.height);
 
   std::vector<uint32_t> pix_fmt_candidates;
-  auto input_fourcc = Fourcc::FromVideoPixelFormat(format, false);
+  auto input_fourcc = Fourcc::FromVideoPixelFormat(pixel_format, false);
   if (!input_fourcc) {
     MCIL_DEBUG_PRINT(", Invalid input format: %s",
-                     VideoPixelFormatToString(format).c_str());
+                     VideoPixelFormatToString(pixel_format).c_str());
     return nullopt;
   }
   pix_fmt_candidates.push_back(input_fourcc->ToV4L2PixFmt());

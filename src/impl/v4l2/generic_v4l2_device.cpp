@@ -217,7 +217,7 @@ SupportedProfiles GenericV4L2Device::GetSupportedDecodeProfiles(
     CloseDevice();
   }
 
-  for (const auto profile : supported_profiles) {
+  for (auto const & profile : supported_profiles) {
     MCIL_DEBUG_PRINT(": profile[%d] min[%dx%d] max[%dx%d]", profile.profile,
                      profile.min_resolution.width, profile.min_resolution.height,
                      profile.max_resolution.width, profile.max_resolution.height);
@@ -242,7 +242,7 @@ SupportedProfiles GenericV4L2Device::GetSupportedEncodeProfiles() {
     CloseDevice();
   }
 
-  for (const auto profile : supported_profiles) {
+  for (auto const & profile : supported_profiles) {
     MCIL_DEBUG_PRINT(": profile[%d] min[%dx%d] max[%dx%d]", profile.profile,
                     profile.min_resolution.width, profile.min_resolution.height,
                     profile.max_resolution.width, profile.max_resolution.height);

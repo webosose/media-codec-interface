@@ -184,7 +184,7 @@ void VideoDecoderAPI::RunDecoderPostTask(PostTaskType task, bool value) {
 
 void VideoDecoderAPI::SetDecoderState(CodecState state) {
   if (!video_decoder_) {
-    state_ == state;
+    state_ = state;
     MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
     return;
   }
