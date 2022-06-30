@@ -95,8 +95,6 @@ class ResourceRequestor {
 
   bool NotifyForeground() const;
   bool NotifyBackground() const;
-  bool NotifyActivity() const;
-  bool NotifyPipelineStatus(const std::string& status) const;
   void AllowPolicyAction(const bool allow);
 
  private:

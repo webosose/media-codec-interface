@@ -192,15 +192,6 @@ bool ResourceRequestor::NotifyBackground() const {
   return umsRMC_->notifyBackground();
 }
 
-bool ResourceRequestor::NotifyActivity() const {
-  return umsRMC_->notifyActivity();
-}
-
-bool ResourceRequestor::NotifyPipelineStatus(const std::string& status) const {
-  umsRMC_->notifyPipelineStatus(status);
-  return true;
-}
-
 void ResourceRequestor::AllowPolicyAction(const bool allow) {
   allowPolicy_ = allow;
 }
