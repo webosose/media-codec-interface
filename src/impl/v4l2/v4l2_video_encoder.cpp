@@ -54,7 +54,8 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
                                   VideoEncoderClient* client,
                                   EncoderClientConfig* client_config,
                                   int venc_port_index) {
-  MCIL_DEBUG_PRINT(": resource index received: %d", venc_port_index);
+  MCIL_DEBUG_PRINT(": profile[%d], resource index[%d]",
+                   config->profile, venc_port_index);
 
   client_ = client;
   if (!client_) {

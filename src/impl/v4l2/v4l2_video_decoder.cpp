@@ -16,14 +16,6 @@
 
 namespace mcil {
 
-namespace {
-
-const uint32_t kSupportedInputFourccs[] = {
-  V4L2_PIX_FMT_H264,
-};
-
-}  // namespace
-
 #if !defined(PLATFORM_EXTENSION)
 // static
 scoped_refptr<VideoDecoder> V4L2VideoDecoder::Create() {
@@ -37,8 +29,7 @@ SupportedProfiles V4L2VideoDecoder::GetSupportedProfiles() {
   if (!device)
     return SupportedProfiles();
 
-  return device->GetSupportedDecodeProfiles(
-      ARRAY_SIZE(kSupportedInputFourccs), kSupportedInputFourccs);
+  return device->GetSupportedDecodeProfiles();
 }
 #endif
 
@@ -508,7 +499,7 @@ bool V4L2VideoDecoder::SendDecoderCmdStart() {
 }
 
 bool V4L2VideoDecoder::CheckConfig(const DecoderConfig* config) {
-  MCIL_DEBUG_PRINT(": output_mode[%d]", config->outputMode);
+  MCIL_DEBUG_PRINT(": profile[%d]", config->profile);
 
   decoder_config_.frameWidth = config->frameWidth;
   decoder_config_.frameHeight = config->frameHeight;

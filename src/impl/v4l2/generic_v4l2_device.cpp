@@ -197,9 +197,7 @@ unsigned int GenericV4L2Device::GetTextureTarget() const {
   return GL_TEXTURE_EXTERNAL_OES;
 }
 
-SupportedProfiles GenericV4L2Device::GetSupportedDecodeProfiles(
-      const size_t num_formats,
-      const uint32_t pixelformats[]) {
+SupportedProfiles GenericV4L2Device::GetSupportedDecodeProfiles() {
   SupportedProfiles supported_profiles;
 
   DeviceType type = V4L2_DECODER;
@@ -210,8 +208,7 @@ SupportedProfiles GenericV4L2Device::GetSupportedDecodeProfiles(
       continue;
     }
 
-    const auto& profiles =
-        EnumerateSupportedDecodeProfiles(num_formats, pixelformats);
+    const auto& profiles = EnumerateSupportedDecodeProfiles();
     supported_profiles.insert(supported_profiles.end(), profiles.begin(),
                               profiles.end());
     CloseDevice();

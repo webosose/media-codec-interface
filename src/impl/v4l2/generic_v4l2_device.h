@@ -40,9 +40,7 @@ class GenericV4L2Device : public V4L2Device {
   bool CanCreateEGLImageFrom(const Fourcc fourcc) const override;
   unsigned int GetTextureTarget() const override;
 
-  SupportedProfiles GetSupportedDecodeProfiles(
-      const size_t num_formats,
-      const uint32_t pixelformats[]) override;
+  SupportedProfiles GetSupportedDecodeProfiles() override;
   SupportedProfiles GetSupportedEncodeProfiles() override;
   void EnumerateDevicesForType(DeviceType type) override;
   std::vector<uint32_t> PreferredInputFormat(DeviceType type) const override;

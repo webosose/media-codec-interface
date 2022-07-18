@@ -282,7 +282,7 @@ int ResourceRequestor::TranslateVideoCodec(const VideoCodec vcodec) const {
       ev = MRC::kVideoEtc;    break;
     case VIDEO_CODEC_H264:
       ev = MRC::kVideoH264;   break;
-    case VIDEO_CODEC_H265:
+    case VIDEO_CODEC_HEVC:
       ev = MRC::kVideoH265;   break;
     case VIDEO_CODEC_MPEG2:
       ev = MRC::kVideoMPEG;   break;
@@ -292,8 +292,6 @@ int ResourceRequestor::TranslateVideoCodec(const VideoCodec vcodec) const {
       ev = MRC::kVideoVP8;    break;
     case VIDEO_CODEC_VP9:
       ev = MRC::kVideoVP9;    break;
-    case VIDEO_CODEC_MJPEG:
-      ev = MRC::kVideoMJPEG;  break;
     default:
       ev = MRC::kVideoH264;   break;
   }

@@ -42,9 +42,7 @@ class V4L2Device : public RefCounted<V4L2Device> {
       int index, size_t num_planes, enum v4l2_buf_type buffer_type) = 0;
   virtual bool CanCreateEGLImageFrom(const Fourcc fourcc) const = 0;
   virtual unsigned int GetTextureTarget() const = 0;
-  virtual SupportedProfiles GetSupportedDecodeProfiles(
-      const size_t num_formats,
-      const uint32_t pixelformats[]) = 0;
+  virtual SupportedProfiles GetSupportedDecodeProfiles() = 0;
   virtual SupportedProfiles GetSupportedEncodeProfiles() = 0;
   virtual void EnumerateDevicesForType(DeviceType type) = 0;
   virtual std::vector<uint32_t> PreferredInputFormat(DeviceType type) const = 0;
@@ -72,9 +70,7 @@ class V4L2Device : public RefCounted<V4L2Device> {
   V4L2Device(DeviceType device_type);
   virtual ~V4L2Device();
 
-  SupportedProfiles EnumerateSupportedDecodeProfiles(
-      const size_t num_formats,
-      const uint32_t pixelformats[]);
+  SupportedProfiles EnumerateSupportedDecodeProfiles();
   SupportedProfiles EnumerateSupportedEncodeProfiles();
 
  private:

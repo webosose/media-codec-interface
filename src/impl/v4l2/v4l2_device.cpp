@@ -35,6 +35,10 @@ V4L2ProfileToVideoCodecProfile(VideoCodec codec, uint32_t profile) {
           return H264PROFILE_EXTENDED;
         case V4L2_MPEG_VIDEO_H264_PROFILE_HIGH:
           return H264PROFILE_HIGH;
+        case V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_BASELINE:
+          return H264PROFILE_SCALABLEBASELINE;
+        case V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH:
+          return H264PROFILE_SCALABLEHIGH;
         case V4L2_MPEG_VIDEO_H264_PROFILE_STEREO_HIGH:
           return H264PROFILE_STEREOHIGH;
         case V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH:
@@ -392,8 +396,8 @@ std::vector<uint32_t> V4L2Device::EnumerateSupportedPixelformats(
   fmtdesc.type = buf_type;
 
   for (; Ioctl(VIDIOC_ENUM_FMT, &fmtdesc) == 0; ++fmtdesc.index) {
-    MCIL_DEBUG_PRINT(": Found %s (0x%x)",
-                     fmtdesc.description, fmtdesc.pixelformat);
+    MCIL_DEBUG_PRINT(": buf_type[%d] => Found %s (0x%x)",
+                     buf_type, fmtdesc.description, fmtdesc.pixelformat);
     pixelformats.push_back(fmtdesc.pixelformat);
   }
 
@@ -423,20 +427,19 @@ std::vector<VideoCodecProfile> V4L2Device::V4L2PixFmtToVideoCodecProfiles(
     memset(&query_ctrl, 0, sizeof(query_ctrl));
     query_ctrl.id = query_id;
     if (Ioctl(VIDIOC_QUERYCTRL, &query_ctrl) != 0) {
+      MCIL_DEBUG_PRINT(": Failed ioctl VIDIOC_QUERYCTRL. codec[%d]", codec);
       return false;
     }
+
     v4l2_querymenu query_menu;
     memset(&query_menu, 0, sizeof(query_menu));
     query_menu.id = query_ctrl.id;
-    for (query_menu.index = query_ctrl.minimum;
-         static_cast<int>(query_menu.index) <= query_ctrl.maximum;
-         query_menu.index++) {
-      if (Ioctl(VIDIOC_QUERYMENU, &query_menu) == 0) {
-        const VideoCodecProfile profile =
-            V4L2ProfileToVideoCodecProfile(codec, query_menu.index);
-        if (profile != VIDEO_CODEC_PROFILE_UNKNOWN)
-          profiles->push_back(profile);
-      }
+    for (int index = query_ctrl.minimum; index <= query_ctrl.maximum; index++) {
+      query_menu.index = static_cast<unsigned int>(index);
+      const VideoCodecProfile profile =
+          V4L2ProfileToVideoCodecProfile(codec, static_cast<uint32_t>(index));
+      if (profile != VIDEO_CODEC_PROFILE_UNKNOWN)
+        profiles->push_back(profile);
     }
     return true;
   };
@@ -449,6 +452,7 @@ std::vector<VideoCodecProfile> V4L2Device::V4L2PixFmtToVideoCodecProfiles(
         profiles = {
             H264PROFILE_BASELINE,
             H264PROFILE_MAIN,
+            H264PROFILE_EXTENDED,
             H264PROFILE_HIGH,
         };
       }
@@ -578,17 +582,12 @@ scoped_refptr<V4L2Queue> V4L2Device::GetQueue(enum v4l2_buf_type buffer_type) {
 }
 
 SupportedProfiles
-V4L2Device::EnumerateSupportedDecodeProfiles(const size_t num_formats,
-                                             const uint32_t pixelformats[]) {
+V4L2Device::EnumerateSupportedDecodeProfiles() {
   SupportedProfiles profiles;
   const auto& supported_pixelformats =
       EnumerateSupportedPixelformats(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
 
   for (uint32_t pixelformat : supported_pixelformats) {
-    if (std::find(pixelformats, pixelformats + num_formats, pixelformat) ==
-        pixelformats + num_formats)
-      continue;
-
     SupportedProfile profile;
     GetSupportedResolution(pixelformat, &profile.min_resolution,
                            &profile.max_resolution);
@@ -615,8 +614,7 @@ SupportedProfiles V4L2Device::EnumerateSupportedEncodeProfiles() {
 
   for (const auto& pixelformat : supported_pixelformats) {
     SupportedProfile profile;
-    Size min_resolution;
-    GetSupportedResolution(pixelformat, &min_resolution,
+    GetSupportedResolution(pixelformat, &profile.min_resolution,
                            &profile.max_resolution);
     const auto video_codec_profiles =
         V4L2PixFmtToVideoCodecProfiles(pixelformat);
