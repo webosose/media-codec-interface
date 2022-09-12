@@ -218,7 +218,7 @@ std::string FourccToString(uint32_t fourcc);
 VideoCodec VideoCodecProfileToVideoCodec(VideoCodecProfile profile);
 
 typedef std::vector<SupportedProfile> SupportedProfiles;
-typedef std::chrono::_V2::system_clock::time_point ChronoTime;
+typedef std::chrono::system_clock::time_point ChronoTime;
 
 }  //  namespace mcil
 
