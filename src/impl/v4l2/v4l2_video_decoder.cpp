@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "v4l2_video_decoder.h"
+#include "video_decoder_api.h"
 
 #include <iostream>
 #include <map>
@@ -13,6 +14,9 @@
 #include "base/video_decoder_client.h"
 #include "v4l2/v4l2_device.h"
 #include "v4l2/v4l2_queue.h"
+#include "resource/video_resource.h"
+
+#define MCIL_MAX_FRAME_RATE 60 //Set to maximum framerate supported in webcodec
 
 namespace mcil {
 
@@ -42,6 +46,7 @@ V4L2VideoDecoder::V4L2VideoDecoder()
 }
 
 V4L2VideoDecoder::~V4L2VideoDecoder() {
+  ReleaseVdecResource();
 }
 
 bool V4L2VideoDecoder::Initialize(const DecoderConfig* config,
@@ -56,10 +61,9 @@ bool V4L2VideoDecoder::Initialize(const DecoderConfig* config,
     MCIL_ERROR_PRINT(" Delegate not provided");
     return false;
   }
-
-  if (vdec_port_index < 0) {
-    MCIL_ERROR_PRINT(": Resource not aquired: %d", vdec_port_index);
-    return false;
+  vdec_port_index_ = vdec_port_index;
+  if (vdec_port_index_ < 0) {
+    MCIL_ERROR_PRINT(":Delayed Resource aquire: %d", vdec_port_index);
   }
 
   if (!CheckConfig(config))
@@ -90,6 +94,7 @@ bool V4L2VideoDecoder::Initialize(const DecoderConfig* config,
 }
 
 void V4L2VideoDecoder::Destroy() {
+  ReleaseVdecResource();
   StopDevicePoll();
 
   StopOutputStream();
@@ -137,12 +142,48 @@ bool V4L2VideoDecoder::CanNotifyResetDone() {
   return StartDevicePoll();
 }
 
+void V4L2VideoDecoder::ReleaseVdecResource() {
+  if (vdec_port_index_ != -1) {
+	MCIL_DEBUG_PRINT("V4L2VideoDecoder::ReleaseVdecResource resource str: %s", resources_.c_str());
+	MCIL_DEBUG_PRINT("V4L2VideoDecoder::ReleaseVdecResource resource: %s", resources_);
+	MCIL_DEBUG_PRINT("V4L2VideoDecoder::ReleaseVdecResource vdec_port_index_: %d", vdec_port_index_);
+    VideoResource::GetInstance().Release(
+        V4L2_DECODER, resources_, vdec_port_index_);
+    vdec_port_index_ = -1;
+  }
+}
+
+bool V4L2VideoDecoder::AcquireVdecResource() {
+  VideoCodec codec_type =
+      VideoCodecProfileToVideoCodec(decoder_config_.profile);
+  if (!VideoResource::GetInstance().Acquire(V4L2_DECODER,
+                                            codec_type,
+                                            decoder_config_.frameWidth,
+                                            decoder_config_.frameHeight,
+                                            MCIL_MAX_FRAME_RATE,
+                                            resources_,
+                                            &vdec_port_index_)) {
+    MCIL_ERROR_PRINT(" Failed to acquire resources");
+    return false;
+  }
+  VideoDecoderAPI::vdec_port_index_ = vdec_port_index_;
+  MCIL_DEBUG_PRINT("Acquire resources on first use index is: %d and VideoDecoderAPI::vdec_port_index_: %d", vdec_port_index_, VideoDecoderAPI::vdec_port_index_);
+  return true;
+}
+
 bool V4L2VideoDecoder::DecodeBuffer(const void* buffer,
                                     size_t buffer_size,
                                     const int32_t buffer_id,
                                     int64_t buffer_pts) {
   MCIL_DEBUG_PRINT(": buffer[%p], size[%lu], id[%d], pts[%ld]",
                    buffer, buffer_size, buffer_id, buffer_pts);
+
+  if (vdec_port_index_ == -1) {
+    if (!AcquireVdecResource()) {
+      NOTIFY_ERROR(PLATFORM_FAILURE);
+      return false;
+    }
+  }
 
     // Flush if we're too big
   if (current_input_buffer_) {
@@ -995,7 +1036,18 @@ void V4L2VideoDecoder::FinishResolutionChange() {
     return;
   }
 
+  MCIL_DEBUG_PRINT("And profile = %d, format.fmt.pix_mp.width = %d and format.fmt.pix_mp.height = %d", decoder_config_.profile, format.fmt.pix_mp.width, format.fmt.pix_mp.height);
+  if(format.fmt.pix_mp.width != 32)
+  {
+	  MCIL_DEBUG_PRINT("V4L2VideoDecoder::FinishResolutionChange: __DynamicResource__ Before invokation of reallcate decoders - ");
+	callback(format.fmt.pix_mp.width, format.fmt.pix_mp.height, decoder_config_);
+  }
+
   StartDevicePoll();
 }
 
+void V4L2VideoDecoder::RegisterCallback(V4L2VideoDecoder::Callback cllbck)
+{
+  callback = cllbck;
+}
 }  // namespace mcil

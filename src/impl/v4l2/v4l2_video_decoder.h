@@ -9,6 +9,7 @@
 #ifndef SRC_IMPL_V4L2_V4L2_VIDEO_DECODER_H_
 #define SRC_IMPL_V4L2_V4L2_VIDEO_DECODER_H_
 
+#include <functional>
 #include "base/thread.h"
 #include "base/video_decoder.h"
 
@@ -27,6 +28,11 @@ class V4L2VideoDecoder : public VideoDecoder {
 
   V4L2VideoDecoder();
   ~V4L2VideoDecoder() override;
+
+  typedef std::function<void(uint32_t width, uint32_t height, DecoderConfig decoder_config)> Callback;
+  Callback callback;
+
+  void RegisterCallback(Callback callback);
 
   bool Initialize(const DecoderConfig* config,
                   VideoDecoderClient* client,
@@ -109,6 +115,8 @@ class V4L2VideoDecoder : public VideoDecoder {
 
   virtual void StartResolutionChange();
   virtual void FinishResolutionChange();
+  virtual bool AcquireVdecResource();
+  virtual void ReleaseVdecResource();
 
   scoped_refptr<V4L2Device> v4l2_device_;
 
@@ -123,6 +131,9 @@ class V4L2VideoDecoder : public VideoDecoder {
 
   bool decoder_cmd_supported_ = false;
   bool flush_awaiting_last_output_buffer_ = false;
+
+  std::string resources_ = "";
+  int32_t vdec_port_index_ = -1;
 
   uint32_t input_format_fourcc_ = 0;
 

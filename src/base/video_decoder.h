@@ -17,6 +17,7 @@
 #ifndef SRC_BASE_VIDEO_DECODER_H_
 #define SRC_BASE_VIDEO_DECODER_H_
 
+#include <functional>
 #include "decoder_types.h"
 #include "video_buffers.h"
 
@@ -28,6 +29,10 @@ class VideoDecoder : public RefCounted<VideoDecoder> {
  public:
   static SupportedProfiles GetSupportedProfiles();
   static scoped_refptr<VideoDecoder> Create();
+
+  typedef std::function<void(uint32_t width, uint32_t height, DecoderConfig decoder_config)> Callback;
+
+  virtual void RegisterCallback(Callback callback) = 0;
 
   virtual bool Initialize(const DecoderConfig* config,
                           VideoDecoderClient* client,
