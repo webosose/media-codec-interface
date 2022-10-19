@@ -138,80 +138,6 @@ bool ResourceRequestor::AcquireResources(PortResource_t& resourceMMap,
   return true;
 }
 
-
-
-bool ResourceRequestor::ReacquireResources(PortResource_t& resourceMMap,
-                                         const source_info_t &sourceInfo,
-                                         std::string& resources) {
-
-  mrc::ResourceListOptions finalOptions;
-
-  if (!SetSourceInfo(sourceInfo)) {
-    MCIL_ERROR_PRINT("Failed to set source info!");
-    return false;
-  }
-
-  mrc::ResourceListOptions vdec_resource = CalcVdecResources();
-  if (!vdec_resource.empty()) {
-    mrc::concatResourceListOptions(&finalOptions, &vdec_resource);
-    MCIL_DEBUG_PRINT("vdec_resource size:%lu, %s, %d",
-        vdec_resource.size(), vdec_resource[0].front().type.c_str(),
-        vdec_resource[0].front().quantity);
-
-	string not_supported_type = "NOTSUPPORTED";
-
-	if(not_supported_type.compare(vdec_resource[0].front().type.c_str()) == 0)
-	{
-		MCIL_ERROR_PRINT("vdec_resource type is invalid!!!");
-		return false;
-	}
-  }
-
-  JSchemaFragment input_schema("{}");
-  JGenerator serializer(nullptr);
-  string payload;
-  string response;
-
-  JValue objArray = pbnjson::Array();
-  for (auto option : finalOptions) {
-    for (auto const & it : option) {
-      JValue obj = pbnjson::Object();
-      obj.put("resource", it.type);
-      obj.put("qty", it.quantity);
-      MCIL_DEBUG_PRINT("calculator return : %s, %d",
-                       it.type.c_str(), it.quantity);
-      objArray << obj;
-    }
-  }
-
-  MCIL_DEBUG_PRINT("before serialize payload: %s and response: %s", payload.c_str(), response);
-  if (!serializer.toString(objArray, input_schema, payload)) {
-    MCIL_ERROR_PRINT("[%s], fail to serializer to string", __func__);
-    return false;
-  }
-  MCIL_DEBUG_PRINT("payload: %s and response: %s",
-                       payload.c_str(), response);
-
-  if (!umsRMC_->reacquire(payload, response)) {
-    MCIL_ERROR_PRINT("fail to acquire!!! response : %s", response.c_str());
-    return false;
-  }
-  else
-  {
-	MCIL_DEBUG_PRINT("acquire success");
-  }
-
-  /*try {
-    ParsePortInformation(response, resourceMMap);
-    ParseResources(response, resources);
-  } catch (const std::runtime_error & err) {
-    MCIL_ERROR_PRINT(" err=%s, response:%s", err.what(), response.c_str());
-    return false;
-  }*/
-
-  return true;
-}
-
 mrc::ResourceListOptions ResourceRequestor::CalcVdecResources() {
   mrc::ResourceListOptions vdec_resource;
   MCIL_DEBUG_PRINT("Codec type:%d",videoResData_.vdecode);
@@ -275,9 +201,8 @@ bool ResourceRequestor::PolicyActionHandler(const char *action,
                                             const char *requestorType,
                                             const char *requestorName,
                                             const char *connectionId) {
-  allowPolicy_ = false;
-  MCIL_DEBUG_PRINT("allowPolicy_:%d action:%s, resources:%s, type:%s, name:%s, id:%s",
-      allowPolicy_, action, resources, requestorType, requestorName, connectionId);
+  MCIL_DEBUG_PRINT("action:%s, resources:%s, type:%s, name:%s, id:%s",
+      action, resources, requestorType, requestorName, connectionId);
 
   if (allowPolicy_) {
     if (nullptr != cb_) {

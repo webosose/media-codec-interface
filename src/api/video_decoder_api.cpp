@@ -29,7 +29,6 @@
 #define MCIL_MAX_FRAME_RATE 60 //Set to maximum framerate supported in webcodec
 
 namespace mcil {
-int32_t VideoDecoderAPI::vdec_port_index_= -1;
 
 // static
 SupportedProfiles VideoDecoderAPI::GetSupportedProfiles() {
@@ -41,35 +40,33 @@ VideoDecoderAPI::VideoDecoderAPI(VideoDecoderClient* client)
 }
 
 VideoDecoderAPI::~VideoDecoderAPI() {
-}
-
-void VideoDecoderAPI::ReallocateDecoders(uint32_t width, uint32_t height, DecoderConfig decoder_config) {
-VideoCodec codec_type =
-      VideoCodecProfileToVideoCodec(decoder_config.profile);
-  if (!VideoResource::GetInstance().Reacquire(V4L2_DECODER,
-                                            codec_type,
-                                            width,
-                                            height,
-                                            MCIL_MAX_FRAME_RATE,
-                                            resources_,
-                                            &vdec_port_index_)) {
-    MCIL_ERROR_PRINT("Failed to Reacquire resources\n");
+  if (vdec_port_index_ != -1) {
+    VideoResource::GetInstance().Release(
+        V4L2_DECODER, resources_, vdec_port_index_);
   }
 }
 
 bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
                                  DecoderClientConfig* client_config) {
   MCIL_DEBUG_PRINT(" decoder_config = %p", decoder_config);
-
+  VideoCodec codec_type =
+      VideoCodecProfileToVideoCodec(decoder_config->profile);
+  if (!VideoResource::GetInstance().Acquire(V4L2_DECODER,
+                                            codec_type,
+                                            decoder_config->frameWidth,
+                                            decoder_config->frameHeight,
+                                            MCIL_MAX_FRAME_RATE,
+                                            resources_,
+                                            &vdec_port_index_)) {
+    MCIL_ERROR_PRINT(" Failed to acquire resources");
+    return false;
+  }
 
   video_decoder_ = VideoDecoder::Create();
   if (!video_decoder_) {
     MCIL_ERROR_PRINT(" Failed: decoder (%p) ", video_decoder_.get());
     return false;
   }
-
-  auto callback = std::bind(&VideoDecoderAPI::ReallocateDecoders, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-  video_decoder_->RegisterCallback(callback);
 
   if (state_ == kInitialized) {
     video_decoder_->SetDecoderState(state_);
@@ -81,6 +78,10 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
 }
 
 void VideoDecoderAPI::Destroy() {
+  if (vdec_port_index_ != -1)
+    VideoResource::GetInstance().Release(
+        V4L2_DECODER, resources_, vdec_port_index_);
+  vdec_port_index_ = -1;
   if (!video_decoder_) {
     MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
     return;
@@ -120,7 +121,6 @@ bool VideoDecoderAPI::DecodeBuffer(const void* buffer,
     MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
     return false;
   }
-
   return video_decoder_->DecodeBuffer(buffer, size, id, buffer_pts);
 }
 

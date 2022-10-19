@@ -91,10 +91,6 @@ class ResourceRequestor {
           const source_info_t &sourceInfo,
           std::string& resources);
 
-  bool ReacquireResources(PortResource_t& resourceMMap,
-          const source_info_t &sourceInfo,
-          std::string& resources);
-
   bool ReleaseResource(std::string& resources);
 
   bool NotifyForeground() const;

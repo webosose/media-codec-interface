@@ -30,13 +30,10 @@ class VideoDecoderAPI {
   VideoDecoderAPI(VideoDecoderClient* client);
   ~VideoDecoderAPI();
 
-  static int32_t vdec_port_index_ ;
-
   static SupportedProfiles GetSupportedProfiles();
 
   bool Initialize(const DecoderConfig* decoder_config,
                   DecoderClientConfig* client_config);
-  void ReallocateDecoders(uint32_t width, uint32_t hright, DecoderConfig decoder_config_);
   void Destroy();
   bool ResetInputBuffer();
   bool ResetDecodingBuffers(bool* reset_pending);
@@ -67,6 +64,7 @@ class VideoDecoderAPI {
 
   scoped_refptr<VideoDecoder> video_decoder_;
 
+  int32_t vdec_port_index_ = -1;
   std::string resources_ = "";
 
   CodecState state_ = kUninitialized;
