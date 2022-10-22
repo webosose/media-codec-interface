@@ -22,7 +22,6 @@
 #include <set>
 #include <utility>
 #include <cmath>
-#include <pbnjson.hpp>
 #include <ResourceManagerClient.h>
 
 #include "base/log.h"
@@ -61,13 +60,10 @@ ResourceRequestor::ResourceRequestor(const std::string& connectionId)
   }
 
   umsRMC_->registerPolicyActionHandler(
-      std::bind(&ResourceRequestor::PolicyActionHandler,
-        this,
-        std::placeholders::_1,
-        std::placeholders::_2,
-        std::placeholders::_3,
-        std::placeholders::_4,
-        std::placeholders::_5));
+      std::bind(&ResourceRequestor::PolicyActionHandler, this,
+                std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3, std::placeholders::_4,
+                std::placeholders::_5));
   MCIL_DEBUG_PRINT("ResourceRequestor creation done");
 }
 
@@ -76,53 +72,57 @@ ResourceRequestor::~ResourceRequestor() { }
 bool ResourceRequestor::AcquireResources(PortResource_t& resourceMMap,
                                          const source_info_t &sourceInfo,
                                          std::string& resources) {
-
-  mrc::ResourceListOptions finalOptions;
-
-  if (!SetSourceInfo(sourceInfo)) {
-    MCIL_ERROR_PRINT("Failed to set source info!");
+  std::string payload = GetSourceString(sourceInfo);
+  if (payload.empty()) {
+    MCIL_ERROR_PRINT("[%s], fail to serializer to string");
     return false;
   }
 
-  mrc::ResourceListOptions vdec_resource = CalcVdecResources();
-  if (!vdec_resource.empty()) {
-    mrc::concatResourceListOptions(&finalOptions, &vdec_resource);
-    MCIL_DEBUG_PRINT("vdec_resource size:%lu, %s, %d",
-        vdec_resource.size(), vdec_resource[0].front().type.c_str(),
-        vdec_resource[0].front().quantity);
+  MCIL_DEBUG_PRINT("payload string = %s", payload.c_str());
+
+  string response;
+  if (!umsRMC_->acquire(payload, response)) {
+    MCIL_ERROR_PRINT("fail to acquire!!! response : %s", response.c_str());
+    return false;
   }
 
-  mrc::ResourceListOptions venc_resource = CalcVencResources();
-  if (!venc_resource.empty()) {
-    mrc::concatResourceListOptions(&finalOptions, &venc_resource);
-    MCIL_DEBUG_PRINT("venc_resource size:%lu, %s, %d",
-        venc_resource.size(), venc_resource[0].front().type.c_str(),
-        venc_resource[0].front().quantity);
+  try {
+    ParsePortInformation(response, resourceMMap);
+    ParseResources(response, resources);
+  } catch (const std::runtime_error & err) {
+    MCIL_ERROR_PRINT(" err=%s, response:%s", err.what(), response.c_str());
+    return false;
   }
+
+  return true;
+}
+
+bool ResourceRequestor::ReacquireResources(PortResource_t& resourceMMap,
+                                           const source_info_t &sourceInfo,
+                                           std::string& resources) {
+  std::string request = GetSourceString(sourceInfo);
+  if (request.empty()) {
+    MCIL_ERROR_PRINT("[%s], fail to serializer to string");
+    return false;
+  }
+
+  JValue reacquire_obj = pbnjson::Object();
+  reacquire_obj.put("new", request);
+  reacquire_obj.put("old", resources);
 
   JSchemaFragment input_schema("{}");
   JGenerator serializer(nullptr);
-  string payload;
-  string response;
 
-  JValue objArray = pbnjson::Array();
-  for (auto option : finalOptions) {
-    for (auto const & it : option) {
-      JValue obj = pbnjson::Object();
-      obj.put("resource", it.type);
-      obj.put("qty", it.quantity);
-      MCIL_DEBUG_PRINT("calculator return : %s, %d",
-                       it.type.c_str(), it.quantity);
-      objArray << obj;
-    }
-  }
-
-  if (!serializer.toString(objArray, input_schema, payload)) {
+  std::string payload;
+  if (!serializer.toString(reacquire_obj, input_schema, payload)) {
     MCIL_ERROR_PRINT("[%s], fail to serializer to string", __func__);
     return false;
   }
 
-  if (!umsRMC_->acquire(payload, response)) {
+  MCIL_DEBUG_PRINT("payload string = %s", payload.c_str());
+
+  std::string response;
+  if (!umsRMC_->reacquire(payload, response)) {
     MCIL_ERROR_PRINT("fail to acquire!!! response : %s", response.c_str());
     return false;
   }
@@ -217,6 +217,54 @@ bool ResourceRequestor::PolicyActionHandler(const char *action,
   return allowPolicy_;
 }
 
+std::string ResourceRequestor::GetSourceString(
+    const source_info_t &sourceInfo) {
+  std::string payload;
+  mrc::ResourceListOptions finalOptions;
+  if (!SetSourceInfo(sourceInfo)) {
+    MCIL_ERROR_PRINT("Failed to set source info!");
+    return payload;
+  }
+
+  mrc::ResourceListOptions vdec_resource = CalcVdecResources();
+  if (!vdec_resource.empty()) {
+    mrc::concatResourceListOptions(&finalOptions, &vdec_resource);
+    MCIL_DEBUG_PRINT("vdec_resource size:%lu, %s, %d",
+        vdec_resource.size(), vdec_resource[0].front().type.c_str(),
+        vdec_resource[0].front().quantity);
+  }
+
+  mrc::ResourceListOptions venc_resource = CalcVencResources();
+  if (!venc_resource.empty()) {
+    mrc::concatResourceListOptions(&finalOptions, &venc_resource);
+    MCIL_DEBUG_PRINT("venc_resource size:%lu, %s, %d",
+        venc_resource.size(), venc_resource[0].front().type.c_str(),
+        venc_resource[0].front().quantity);
+  }
+
+  JSchemaFragment input_schema("{}");
+  JGenerator serializer(nullptr);
+
+  JValue objArray = pbnjson::Array();
+  for (auto option : finalOptions) {
+    for (auto const & it : option) {
+      JValue obj = pbnjson::Object();
+      obj.put("resource", it.type);
+      obj.put("qty", it.quantity);
+      MCIL_DEBUG_PRINT("calculator return : %s, %d",
+                       it.type.c_str(), it.quantity);
+      objArray << obj;
+    }
+  }
+
+  if (!serializer.toString(objArray, input_schema, payload)) {
+    MCIL_ERROR_PRINT("[%s], fail to serializer to string", __func__);
+    return payload;
+  }
+
+  return payload;
+}
+
 bool ResourceRequestor::ParsePortInformation(const std::string& payload,
                                              PortResource_t& resourceMMap) {
   pbnjson::JDomParser parser;
@@ -247,6 +295,8 @@ bool ResourceRequestor::ParsePortInformation(const std::string& payload,
 
 bool ResourceRequestor::ParseResources(const std::string& payload,
                                        std::string& resources) {
+  resources = std::string();
+
   pbnjson::JDomParser parser;
   pbnjson::JSchemaFragment input_schema("{}");
   pbnjson::JGenerator serializer(nullptr);

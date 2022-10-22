@@ -51,13 +51,30 @@ class VideoResource {
                uint32_t frame_height,
                uint32_t frame_rate,
                std::string& resources,
-               int32_t *vdec_index);
+               int32_t *resource_index);
+  bool Reacquire(DeviceType device_type,
+                 VideoCodec video_codec,
+                 uint32_t frame_width,
+                 uint32_t frame_height,
+                 uint32_t frame_rate,
+                 std::string& resources,
+                 int32_t *resource_index);
   bool Release(DeviceType device_type,
                std::string& resources,
-               int32_t vdec_index);
+               int32_t resource_index);
 
  private:
   VideoResource();
+
+  bool GetSourceInfo(DeviceType device_type,
+                     VideoCodec video_codec,
+                     uint32_t frame_width,
+                     uint32_t frame_height,
+                     uint32_t frame_rate,
+                     source_info_t* source_info);
+
+  bool AddToIndexList(PortResource_t resourceMMap, int32_t *resource_index);
+  void RemoveFromIndexList(DeviceType device_type, int32_t resource_index);
 
   std::unique_ptr<ResourceRequestor> requestor_;
   std::set<int32_t> vdec_index_list_;

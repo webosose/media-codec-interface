@@ -21,6 +21,8 @@
 #include <functional>
 #include <memory>
 #include <map>
+
+#include <pbnjson.hpp>
 #include <resource_calculator.h>
 
 #include "base/decoder_types.h"
@@ -88,8 +90,12 @@ class ResourceRequestor {
   void RegisterUMSPolicyActionCallback(Functor callback) { cb_ = callback; }
 
   bool AcquireResources(PortResource_t& resourceMMap,
-          const source_info_t &sourceInfo,
-          std::string& resources);
+                        const source_info_t &sourceInfo,
+                        std::string& resources);
+
+  bool ReacquireResources(PortResource_t& resourceMMap,
+                          const source_info_t &sourceInfo,
+                          std::string& resources);
 
   bool ReleaseResource(std::string& resources);
 
@@ -100,12 +106,14 @@ class ResourceRequestor {
  private:
   bool SetSourceInfo(const source_info_t &sourceInfo);
   bool PolicyActionHandler(const char *action,
-      const char *resources,
-      const char *requestorType,
-      const char *requestorName,
-      const char *connectionId);
+                           const char *resources,
+                           const char *requestorType,
+                           const char *requestorName,
+                           const char *connectionId);
 
-  bool ParsePortInformation(const std::string& payload, PortResource_t& resourceMMap);
+  std::string GetSourceString(const source_info_t &sourceInfo);
+  bool ParsePortInformation(const std::string& payload,
+                            PortResource_t& resourceMMap);
   bool ParseResources(const std::string& payload, std::string& resources);
 
   // translate enum type from omx player to resource calculator

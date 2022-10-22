@@ -49,18 +49,6 @@ VideoDecoderAPI::~VideoDecoderAPI() {
 bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
                                  DecoderClientConfig* client_config) {
   MCIL_DEBUG_PRINT(" decoder_config = %p", decoder_config);
-  VideoCodec codec_type =
-      VideoCodecProfileToVideoCodec(decoder_config->profile);
-  if (!VideoResource::GetInstance().Acquire(V4L2_DECODER,
-                                            codec_type,
-                                            decoder_config->frameWidth,
-                                            decoder_config->frameHeight,
-                                            MCIL_MAX_FRAME_RATE,
-                                            resources_,
-                                            &vdec_port_index_)) {
-    MCIL_ERROR_PRINT(" Failed to acquire resources");
-    return false;
-  }
 
   video_decoder_ = VideoDecoder::Create();
   if (!video_decoder_) {
@@ -73,8 +61,11 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
     state_ = kUninitialized;
   }
 
-  return video_decoder_ ->Initialize(
-      decoder_config, client_, client_config, vdec_port_index_);
+  codec_type_ = VideoCodecProfileToVideoCodec(decoder_config->profile);
+  frame_width_ = decoder_config->frameWidth;
+  frame_height_ = decoder_config->frameHeight;
+
+  return video_decoder_ ->Initialize(decoder_config, client_, client_config, 0);
 }
 
 void VideoDecoderAPI::Destroy() {
@@ -121,7 +112,33 @@ bool VideoDecoderAPI::DecodeBuffer(const void* buffer,
     MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
     return false;
   }
-  return video_decoder_->DecodeBuffer(buffer, size, id, buffer_pts);
+
+  if (!resource_requested_) {
+    resource_requested_ = true;
+    if (codec_type_ == VIDEO_CODEC_NONE) {
+      MCIL_ERROR_PRINT(" codec_type_(%d) not set", codec_type_);
+      return false;
+    }
+
+    if (!VideoResource::GetInstance().Acquire(V4L2_DECODER,
+                                              codec_type_,
+                                              frame_width_,
+                                              frame_height_,
+                                              MCIL_MAX_FRAME_RATE,
+                                              resources_,
+                                              &vdec_port_index_)) {
+      MCIL_ERROR_PRINT(" Failed to acquire resources");
+      return false;
+    }
+
+    video_decoder_->SetResolutionChangeCb(
+        std::bind(&VideoDecoderAPI::OnResolutionChanged, this,
+                  std::placeholders::_1, std::placeholders::_2));
+  }
+
+  if (vdec_port_index_ != -1)
+    return video_decoder_->DecodeBuffer(buffer, size, id, buffer_pts);
+  return false;
 }
 
 bool VideoDecoderAPI::FlushInputBuffers() {
@@ -233,6 +250,31 @@ void VideoDecoderAPI::OnEGLImagesCreationCompleted() {
   }
 
   return video_decoder_->OnEGLImagesCreationCompleted();
+}
+
+void VideoDecoderAPI::OnResolutionChanged(uint32_t width, uint32_t height) {
+  if (codec_type_ == VIDEO_CODEC_NONE) {
+    MCIL_ERROR_PRINT(" codec_type_(%d) not set", codec_type_);
+    return;
+  }
+
+  if (frame_width_ == width && frame_height_ == height) {
+    MCIL_DEBUG_PRINT(" Resoltion did not change [%d x %d]", width, height);
+    return;
+  }
+
+  frame_width_ = width;
+  frame_height_ = height;
+  MCIL_DEBUG_PRINT(" new resolution [%d x %d]",
+                   frame_width_.load(), frame_height_.load());
+
+  VideoResource::GetInstance().Reacquire(V4L2_DECODER,
+                                         codec_type_,
+                                         frame_width_,
+                                         frame_height_,
+                                         MCIL_MAX_FRAME_RATE,
+                                         resources_,
+                                         &vdec_port_index_);
 }
 
 }  // namespace mcil

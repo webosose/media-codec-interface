@@ -451,6 +451,10 @@ bool V4L2VideoDecoder::CanCreateEGLImageFrom(VideoPixelFormat pixel_format) {
 void V4L2VideoDecoder::OnEGLImagesCreationCompleted() {
 }
 
+void V4L2VideoDecoder::SetResolutionChangeCb(ResolutionChangeCb cb) {
+  resolution_change_cb_ = cb;
+}
+
 void V4L2VideoDecoder::DevicePollTask(bool poll_device) {
   bool event_pending = false;
   if (!v4l2_device_->Poll(poll_device, &event_pending)) {
@@ -989,11 +993,15 @@ void V4L2VideoDecoder::FinishResolutionChange() {
     return;
   }
 
+  bool ignore_resolution_change = coded_size_.IsEmpty();
   if (!CreateBuffersForFormat(format, visible_size)) {
     MCIL_ERROR_PRINT(": Couldn't reallocate buffers after resolution change");
     NOTIFY_ERROR(PLATFORM_FAILURE);
     return;
   }
+
+  if (resolution_change_cb_ && !ignore_resolution_change)
+    resolution_change_cb_(coded_size_.width, coded_size_.height);
 
   StartDevicePoll();
 }

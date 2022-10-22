@@ -17,12 +17,16 @@
 #ifndef SRC_BASE_VIDEO_DECODER_H_
 #define SRC_BASE_VIDEO_DECODER_H_
 
+#include <functional>
+
 #include "decoder_types.h"
 #include "video_buffers.h"
 
 namespace mcil {
 
 class VideoDecoderClient;
+
+using ResolutionChangeCb = std::function<void(uint32_t, uint32_t)>;
 
 class VideoDecoder : public RefCounted<VideoDecoder> {
  public:
@@ -58,6 +62,8 @@ class VideoDecoder : public RefCounted<VideoDecoder> {
 
   virtual void RunDecoderPostTask(PostTaskType task, bool value) = 0;
   virtual void OnEGLImagesCreationCompleted() = 0;
+
+  virtual void SetResolutionChangeCb(ResolutionChangeCb cb) {}
 
  protected:
   friend class RefCounted<VideoDecoder>;

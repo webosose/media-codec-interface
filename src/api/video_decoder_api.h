@@ -17,6 +17,8 @@
 #ifndef SRC_VIDEO_DECODER_API_H_
 #define SRC_VIDEO_DECODER_API_H_
 
+#include <atomic>
+
 #include "decoder_types.h"
 #include "video_buffers.h"
 
@@ -60,11 +62,20 @@ class VideoDecoderAPI {
   void OnEGLImagesCreationCompleted();
 
  private:
+  void OnResolutionChanged(uint32_t width, uint32_t height);
+
   VideoDecoderClient* client_;
 
   scoped_refptr<VideoDecoder> video_decoder_;
 
+  VideoCodec codec_type_ = VIDEO_CODEC_NONE;
+
+  std::atomic<uint32_t> frame_width_{0};
+  std::atomic<uint32_t> frame_height_{0};
+
   int32_t vdec_port_index_ = -1;
+  bool resource_requested_ = false;
+
   std::string resources_ = "";
 
   CodecState state_ = kUninitialized;
