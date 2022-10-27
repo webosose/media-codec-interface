@@ -74,7 +74,7 @@ bool ResourceRequestor::AcquireResources(PortResource_t& resourceMMap,
                                          std::string& resources) {
   std::string payload = GetSourceString(sourceInfo);
   if (payload.empty()) {
-    MCIL_ERROR_PRINT("[%s], fail to serializer to string");
+    MCIL_ERROR_PRINT("Fail to getSourceString");
     return false;
   }
 
@@ -102,7 +102,7 @@ bool ResourceRequestor::ReacquireResources(PortResource_t& resourceMMap,
                                            std::string& resources) {
   std::string request = GetSourceString(sourceInfo);
   if (request.empty()) {
-    MCIL_ERROR_PRINT("[%s], fail to serializer to string");
+    MCIL_ERROR_PRINT("Fail to getSourceString");
     return false;
   }
 
