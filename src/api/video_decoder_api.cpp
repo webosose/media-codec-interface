@@ -50,18 +50,35 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
                                  DecoderClientConfig* client_config) {
   MCIL_DEBUG_PRINT(" decoder_config = %p", decoder_config);
 
+  VideoCodec codec_type =
+      VideoCodecProfileToVideoCodec(decoder_config->profile);
+  if (!VideoResource::GetInstance().Acquire(V4L2_DECODER,
+                                            codec_type,
+                                            decoder_config->frameWidth,
+                                            decoder_config->frameHeight,
+                                            MCIL_MAX_FRAME_RATE,
+                                            resources_,
+                                            &vdec_port_index_)) {
+    MCIL_ERROR_PRINT(" Failed to acquire resources");
+    return false;
+  }
+
   video_decoder_ = VideoDecoder::Create();
   if (!video_decoder_) {
     MCIL_ERROR_PRINT(" Failed: decoder (%p) ", video_decoder_.get());
     return false;
   }
 
+  video_decoder_->SetResolutionChangeCb(
+      std::bind(&VideoDecoderAPI::OnResolutionChanged, this,
+                std::placeholders::_1, std::placeholders::_2));
+
   if (state_ == kInitialized) {
     video_decoder_->SetDecoderState(state_);
     state_ = kUninitialized;
   }
 
-  codec_type_ = VideoCodecProfileToVideoCodec(decoder_config->profile);
+  codec_type_ = codec_type;
   frame_width_ = decoder_config->frameWidth;
   frame_height_ = decoder_config->frameHeight;
 
@@ -111,29 +128,6 @@ bool VideoDecoderAPI::DecodeBuffer(const void* buffer,
   if (!video_decoder_) {
     MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
     return false;
-  }
-
-  if (!resource_requested_) {
-    resource_requested_ = true;
-    if (codec_type_ == VIDEO_CODEC_NONE) {
-      MCIL_ERROR_PRINT(" codec_type_(%d) not set", codec_type_);
-      return false;
-    }
-
-    if (!VideoResource::GetInstance().Acquire(V4L2_DECODER,
-                                              codec_type_,
-                                              frame_width_,
-                                              frame_height_,
-                                              MCIL_MAX_FRAME_RATE,
-                                              resources_,
-                                              &vdec_port_index_)) {
-      MCIL_ERROR_PRINT(" Failed to acquire resources");
-      return false;
-    }
-
-    video_decoder_->SetResolutionChangeCb(
-        std::bind(&VideoDecoderAPI::OnResolutionChanged, this,
-                  std::placeholders::_1, std::placeholders::_2));
   }
 
   if (vdec_port_index_ != -1)
@@ -275,6 +269,7 @@ void VideoDecoderAPI::OnResolutionChanged(uint32_t width, uint32_t height) {
                                          MCIL_MAX_FRAME_RATE,
                                          resources_,
                                          &vdec_port_index_);
+  MCIL_DEBUG_PRINT(" resources_=%s", resources_.c_str());
 }
 
 }  // namespace mcil
