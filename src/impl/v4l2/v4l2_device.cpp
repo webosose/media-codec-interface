@@ -247,7 +247,7 @@ size_t V4L2Device::GetNumPlanesOfV4L2PixFmt(uint32_t pix_fmt) {
 scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
     const struct v4l2_format& format) {
   if (!V4L2_TYPE_IS_MULTIPLANAR(format.type)) {
-    MCIL_DEBUG_PRINT(": buf_type[%d] is not multiplanar", format.type);
+    MCIL_ERROR_PRINT(": buf_type[%d] is not multiplanar", format.type);
     return nullptr;
   }
 
@@ -255,7 +255,7 @@ scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
   const uint32_t& pix_fmt = pix_mp.pixelformat;
   const auto video_fourcc = Fourcc::FromV4L2PixFmt(pix_fmt);
   if (!video_fourcc) {
-    MCIL_DEBUG_PRINT(": Failed to convert Fourcc value: %s",
+    MCIL_ERROR_PRINT(": Failed to convert Fourcc value: %s",
                      FourccToString(pix_fmt).c_str());
     return nullptr;
   }
@@ -267,12 +267,12 @@ scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
   video_frame->format = video_fourcc->ToVideoPixelFormat();
   const size_t num_color_planes = VideoFrame::NumPlanes(video_frame->format);
   if (num_color_planes == 0) {
-    MCIL_DEBUG_PRINT(": Unsupported video format for NumPlanes(): %d",
+    MCIL_ERROR_PRINT(": Unsupported video format for NumPlanes(): %d",
                     video_frame->format);
     return nullptr;
   }
   if (num_buffers > num_color_planes) {
-    MCIL_DEBUG_PRINT(": pix_mp.num_planes[%d], should not be \
+    MCIL_ERROR_PRINT(": pix_mp.num_planes[%d], should not be \
                      larger than NumPlanes for %d",
                      pix_mp.num_planes, video_frame->format);
     return nullptr;
@@ -297,8 +297,8 @@ scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
       case V4L2_PIX_FMT_YUV420:
       case V4L2_PIX_FMT_YVU420: {
         if (y_stride % 2 != 0 || pix_mp.height % 2 != 0) {
-          MCIL_DEBUG_PRINT(": Plane-Y stride and height should be even; \
-              stride: [%d], height:[%d]", y_stride, pix_mp.height);
+          MCIL_ERROR_PRINT(": Plane-Y stride and height should be even; \
+                           stride: [%d], height:[%d]", y_stride, pix_mp.height);
           return nullptr;
         }
         const int32_t half_stride = y_stride / 2;
@@ -311,7 +311,7 @@ scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
         break;
       }
       default:
-        MCIL_DEBUG_PRINT(": Cannot derive stride for each plane for pixel \
+        MCIL_ERROR_PRINT(": Cannot derive stride for each plane for pixel \
                          format: %s", FourccToString(pix_fmt).c_str());
         return nullptr;
     }

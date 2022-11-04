@@ -40,10 +40,10 @@ class EncoderConfig {
 
   uint32_t frameRate;
   uint32_t bitRate;
-  uint32_t width;
-  uint32_t height;
+  int width;
+  int height;
   VideoPixelFormat pixelFormat;
-  uint32_t outputBufferSize;
+  size_t outputBufferSize;
   uint8_t h264OutputLevel;
   uint32_t gopLength;
   VideoCodecProfile profile;
@@ -55,6 +55,7 @@ class EncoderClientConfig {
   EncoderClientConfig() = default;
   ~EncoderClientConfig() = default;
 
+  Size input_frame_size;
   bool should_control_buffer_feed = false;
   size_t output_buffer_byte_size = 0;
   bool should_inject_sps_and_pps = false;

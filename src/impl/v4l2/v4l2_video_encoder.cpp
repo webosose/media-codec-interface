@@ -64,17 +64,7 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
     return false;
   }
 
-  encoder_config_.bitRate = config->bitRate;
-  encoder_config_.width = config->width;
-  encoder_config_.height = config->height;
-  encoder_config_.frameRate = config->frameRate;
-  encoder_config_.pixelFormat = config->pixelFormat;
-  encoder_config_.outputBufferSize = config->outputBufferSize;
-  encoder_config_.profile = config->profile;
-  encoder_config_.h264OutputLevel = config->h264OutputLevel;
-  encoder_config_.gopLength = config->gopLength;
-
-  Size input_visible_size(encoder_config_.width, encoder_config_.height);
+  Size input_visible_size(config->width, config->height);
   input_visible_rect_ = Rect(input_visible_size);
 
   output_format_fourcc_ =
@@ -86,6 +76,17 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
     MCIL_ERROR_PRINT(" Failed to open device for profile=%s, format=%s",
                      GetProfileName(config->profile).c_str(),
                      FourccToString(output_format_fourcc_).c_str());
+    return false;
+  }
+
+  Size max_res, min_res;
+  v4l2_device_->GetSupportedResolution(output_format_fourcc_, &min_res,
+                                       &max_res);
+  if (config->width < min_res.width || config->height < min_res.height ||
+      config->width > max_res.width || config->height > max_res.height) {
+    MCIL_ERROR_PRINT(" Unsupported resolution: [%dx%d], min[%dx%d], max[%dx%d]",
+        config->width, config->height, min_res.width, min_res.height,
+        max_res.width, max_res.height);
     return false;
   }
 
@@ -115,6 +116,16 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
     return false;
   }
 
+  encoder_config_.bitRate = config->bitRate;
+  encoder_config_.width = config->width;
+  encoder_config_.height = config->height;
+  encoder_config_.frameRate = config->frameRate;
+  encoder_config_.pixelFormat = config->pixelFormat;
+  encoder_config_.outputBufferSize = config->outputBufferSize;
+  encoder_config_.profile = config->profile;
+  encoder_config_.h264OutputLevel = config->h264OutputLevel;
+  encoder_config_.gopLength = config->gopLength;
+
   if (!SetFormats(config->pixelFormat, config->profile)) {
     MCIL_ERROR_PRINT(" Failed setting up formats.");
     return false;
@@ -135,6 +146,7 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
     client_config->should_control_buffer_feed = false;
     client_config->output_buffer_byte_size = encoder_config_.outputBufferSize;
     client_config->should_inject_sps_and_pps = inject_sps_and_pps_;
+    client_config->input_frame_size = input_frame_size_;
   }
 
   return true;
@@ -392,8 +404,11 @@ bool V4L2VideoEncoder::SetFormats(VideoPixelFormat input_format,
 
   Size input_size = Size(encoder_config_.width, encoder_config_.height);
   auto v4l2_format = SetInputFormat(input_format, input_size);
-  if (!v4l2_format)
+  if (!v4l2_format) {
+    MCIL_ERROR_PRINT(": Failed to set Input format [%d], input[%dx%d]",
+                     input_format, input_size.width, input_size.height);
     return false;
+  }
 
   input_frame_size_ = V4L2Device::AllocatedSizeFromV4L2Format(*v4l2_format);
 
@@ -406,6 +421,10 @@ bool V4L2VideoEncoder::SetOutputFormat(VideoCodecProfile output_profile) {
                                input_visible_rect_.size(),
                                encoder_config_.outputBufferSize);
   if (!format) {
+    MCIL_ERROR_PRINT(": Failed to set Output format [%s], input[%dx%d], \
+        output[%lu]", FourccToString(output_format_fourcc_).c_str(),
+        input_visible_rect_.size().width, input_visible_rect_.size().height,
+        encoder_config_.outputBufferSize);
     return false;
   }
 
@@ -423,10 +442,11 @@ Optional<struct v4l2_format> V4L2VideoEncoder::SetInputFormat(
   std::vector<uint32_t> pix_fmt_candidates;
   auto input_fourcc = Fourcc::FromVideoPixelFormat(pixel_format, false);
   if (!input_fourcc) {
-    MCIL_DEBUG_PRINT(", Invalid input format: %s",
+    MCIL_ERROR_PRINT(", Invalid input format: %s",
                      VideoPixelFormatToString(pixel_format).c_str());
     return nullopt;
   }
+
   pix_fmt_candidates.push_back(input_fourcc->ToV4L2PixFmt());
   for (auto preferred_format :
        v4l2_device_->PreferredInputFormat(V4L2_ENCODER)) {
@@ -441,24 +461,25 @@ Optional<struct v4l2_format> V4L2VideoEncoder::SetInputFormat(
     if (!format)
       continue;
 
-    MCIL_DEBUG_PRINT("Set S_FMT with %s", FourccToString(pix_fmt).c_str());
-
+    MCIL_DEBUG_PRINT("Success S_FMT with %s", FourccToString(pix_fmt).c_str());
     device_input_frame_ = V4L2Device::VideoFrameFromV4L2Format(*format);
     if (!device_input_frame_) {
-      MCIL_DEBUG_PRINT(" Invalid device_input_frame_");
+      MCIL_ERROR_PRINT(" Invalid device_input_frame_");
       return nullopt;
     }
 
     if (!Rect(device_input_frame_->coded_size).Contains(Rect(frame_size))) {
-      MCIL_DEBUG_PRINT(" Input size[%dx%d], exceeds encoder size[%dx%d]",
+      MCIL_ERROR_PRINT(" Input size[%dx%d], exceeds encoder size[%dx%d]",
                        frame_size.width, frame_size.height,
                        device_input_frame_->coded_size.width,
                        device_input_frame_->coded_size.height);
       return nullopt;
     }
 
-    if (ShouldApplyCrop() && !ApplyCrop())
+    if (ShouldApplyCrop() && !ApplyCrop()) {
+      MCIL_ERROR_PRINT(" Failed to Apply Corp");
       return nullopt;
+    }
 
     return format;
   }
@@ -550,6 +571,26 @@ bool V4L2VideoEncoder::InitControlsH264(const EncoderConfig* config) {
   v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                         V4L2_CID_MPEG_VIDEO_HEADER_MODE,
                         V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME);
+
+  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG, V4L2_CID_MPEG_VIDEO_H264_I_PERIOD,
+                        0);
+
+  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+                        V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE,
+                        V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED);
+
+  if (config->profile == H264PROFILE_MAIN ||
+      config->profile == H264PROFILE_HIGH) {
+    v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+                          V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE,
+                          V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CABAC);
+  }
+
+  if (config->profile == H264PROFILE_HIGH) {
+    v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+                          V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM, true);
+  }
+
   v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                         V4L2_CID_MPEG_VIDEO_H264_MAX_QP, 42);
   v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
@@ -616,7 +657,7 @@ bool V4L2VideoEncoder::EnqueueInputBuffer(V4L2WritableBufferRef buffer) {
   InputFrameInfo frame_info = encoder_input_queue_.front();
   if (frame_info.force_keyframe) {
     if (!v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
-                               V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME, 1)) {
+                               V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME, 0)) {
       MCIL_ERROR_PRINT(" Failed requesting keyframe");
       NOTIFY_ERROR(kPlatformFailureError);
       return false;
