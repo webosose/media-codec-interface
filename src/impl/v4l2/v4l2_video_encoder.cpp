@@ -54,8 +54,8 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
                                   VideoEncoderClient* client,
                                   EncoderClientConfig* client_config,
                                   int venc_port_index) {
-  MCIL_DEBUG_PRINT(": profile[%d], resource index[%d]",
-                   config->profile, venc_port_index);
+  MCIL_DEBUG_PRINT(": profile[%d], resource index[%d] size[%dx%d]",
+      config->profile, venc_port_index, config->width, config->height);
 
   client_ = client;
   if (!client_) {
@@ -411,6 +411,8 @@ bool V4L2VideoEncoder::SetFormats(VideoPixelFormat input_format,
   }
 
   input_frame_size_ = V4L2Device::AllocatedSizeFromV4L2Format(*v4l2_format);
+  MCIL_DEBUG_PRINT(" input_frame_size_[%dx%d]", input_frame_size_.width,
+                   input_frame_size_.height);
 
   return true;
 }

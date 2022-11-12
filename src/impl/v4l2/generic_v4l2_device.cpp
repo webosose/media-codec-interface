@@ -116,7 +116,7 @@ bool GenericV4L2Device::Poll(bool poll_device, bool* event_pending) {
     return false;
   }
 
-  *event_pending = (pollfd != -1 && pollfds[pollfd].revents & POLLPRI);
+  *event_pending = (pollfd >= 0 && pollfds[pollfd].revents & POLLPRI);
   return true;
 }
 

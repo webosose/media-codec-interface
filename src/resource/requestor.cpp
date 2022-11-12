@@ -42,14 +42,17 @@ ResourceRequestor::ResourceRequestor(const std::string& connectionId)
     if (connectionId.empty()) {
       umsRMC_ = make_shared<uMediaServer::ResourceManagerClient> ();
       umsRMC_->registerPipeline("media"); // only rmc case
-      connectionId_ = umsRMC_->getConnectionID(); // after registerPipeline
-    }
-    else {
+      connectionId_ = (umsRMC_->getConnectionID() ?
+          std::string(umsRMC_->getConnectionID()) : std::string()); // after registerPipeline
+      if (connectionId_.empty()) {
+        MCIL_ERROR_PRINT("Failed to get connection ID");
+        exit(0);
+      }
+    } else {
       umsRMC_ = make_shared<uMediaServer::ResourceManagerClient> (connectionId);
       connectionId_ = connectionId;
     }
-  }
-  catch (const std::exception &e) {
+  } catch (const std::exception &e) {
     MCIL_ERROR_PRINT("Failed to create ResourceRequestor [%s]", e.what());
     exit(0);
   }
@@ -122,10 +125,13 @@ bool ResourceRequestor::ReacquireResources(PortResource_t& resourceMMap,
   MCIL_DEBUG_PRINT("payload string = %s", payload.c_str());
 
   std::string response;
+  // TODO: Enable for platform extensions selectively when available
+#if !defined(PLATFORM_EXTENSION)
   if (!umsRMC_->reacquire(payload, response)) {
     MCIL_ERROR_PRINT("fail to acquire!!! response : %s", response.c_str());
     return false;
   }
+#endif
 
   try {
     ParsePortInformation(response, resourceMMap);
@@ -158,6 +164,8 @@ mrc::ResourceListOptions ResourceRequestor::CalcVencResources() {
   mrc::ResourceListOptions venc_resource;
 
   MCIL_DEBUG_PRINT("Codec type:%d",videoResData_.vencode);
+  // TODO: Enable for platform extensions selectively when available
+#if !defined(PLATFORM_EXTENSION)
   if (videoResData_.vencode != VIDEO_CODEC_NONE) {
     venc_resource = rc_->calcVencResourceOptions(
         (MRC::VideoCodecs)TranslateVideoCodec(videoResData_.vencode),
@@ -165,7 +173,7 @@ mrc::ResourceListOptions ResourceRequestor::CalcVencResources() {
         videoResData_.height,
         videoResData_.frameRate);
   }
-
+#endif
   return venc_resource;
 }
 

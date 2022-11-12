@@ -130,9 +130,7 @@ bool VideoDecoderAPI::DecodeBuffer(const void* buffer,
     return false;
   }
 
-  if (vdec_port_index_ != -1)
-    return video_decoder_->DecodeBuffer(buffer, size, id, buffer_pts);
-  return false;
+  return video_decoder_->DecodeBuffer(buffer, size, id, buffer_pts);
 }
 
 bool VideoDecoderAPI::FlushInputBuffers() {

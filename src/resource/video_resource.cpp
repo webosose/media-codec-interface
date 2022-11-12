@@ -52,6 +52,14 @@ bool VideoResource::Acquire(DeviceType device_type,
   MCIL_DEBUG_PRINT("[video info] width: %d, height: %d, frame_rate: %d",
                    frame_width, frame_height, frame_rate);
 
+#if defined(PLATFORM_EXTENSION)
+  // TODO: Enable for platform extensions when available
+  if (device_type == V4L2_ENCODER) {
+    *resource_index = 1;
+    return true;
+  }
+#endif
+
   if (!requestor_) {
     MCIL_ERROR_PRINT(" failed creating requestor_");
     return false;

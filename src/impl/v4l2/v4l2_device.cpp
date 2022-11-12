@@ -147,7 +147,7 @@ Size V4L2Device::AllocatedSizeFromV4L2Format(const struct v4l2_format& format) {
 
   if (sizeimage == 0 || bytesperline == 0 || plane_horiz_bits_per_pixel == 0 ||
       total_bpp == 0 || (bytesperline * 8) % plane_horiz_bits_per_pixel != 0) {
-    MCIL_ERROR_PRINT(" Invalid format provided"); 
+    MCIL_ERROR_PRINT(" Invalid format provided");
     return coded_size;
   }
 
@@ -434,12 +434,15 @@ std::vector<VideoCodecProfile> V4L2Device::V4L2PixFmtToVideoCodecProfiles(
     v4l2_querymenu query_menu;
     memset(&query_menu, 0, sizeof(query_menu));
     query_menu.id = query_ctrl.id;
-    for (int index = query_ctrl.minimum; index <= query_ctrl.maximum; index++) {
-      query_menu.index = static_cast<unsigned int>(index);
-      const VideoCodecProfile profile =
-          V4L2ProfileToVideoCodecProfile(codec, static_cast<uint32_t>(index));
-      if (profile != VIDEO_CODEC_PROFILE_UNKNOWN)
-        profiles->push_back(profile);
+    for (query_menu.index = query_ctrl.minimum;
+         static_cast<int>(query_menu.index) <= query_ctrl.maximum;
+         query_menu.index++) {
+      if (Ioctl(VIDIOC_QUERYMENU, &query_menu) == 0) {
+        const VideoCodecProfile profile =
+            V4L2ProfileToVideoCodecProfile(codec, query_menu.index);
+        if (profile != VIDEO_CODEC_PROFILE_UNKNOWN)
+          profiles->push_back(profile);
+      }
     }
     return true;
   };

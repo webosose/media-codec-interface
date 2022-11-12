@@ -47,7 +47,6 @@ include(impl/v4l2/CMakeLists.txt)
 get_filename_component(DIR_PATH "${_dir}" REALPATH)
 if(EXISTS "${DIR_PATH}/impl/ext" AND EXISTS "${DIR_PATH}/impl/ext/CMakeLists.txt")
   include(impl/ext/CMakeLists.txt)
-  add_definitions(-DPLATFORM_EXTENSION)
 endif()
 
 add_library(${MEDIA_IMPL_LIB} SHARED ${MEDIA_IMPL_SRC})
