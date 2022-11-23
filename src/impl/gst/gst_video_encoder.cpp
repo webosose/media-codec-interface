@@ -84,6 +84,8 @@ bool GstVideoEncoder::Initialize(const EncoderConfig* config_data,
   bitrate_ = 0;
 
   if (client_config) {
+    client_config->input_frame_size = Size(config_data->width,
+                                           config_data->height);
     client_config->should_control_buffer_feed = true;
     client_config->should_inject_sps_and_pps = false;
   }
