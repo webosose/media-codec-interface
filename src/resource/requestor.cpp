@@ -164,8 +164,6 @@ mrc::ResourceListOptions ResourceRequestor::CalcVencResources() {
   mrc::ResourceListOptions venc_resource;
 
   MCIL_DEBUG_PRINT("Codec type:%d",videoResData_.vencode);
-  // TODO: Enable for platform extensions selectively when available
-#if !defined(PLATFORM_EXTENSION)
   if (videoResData_.vencode != VIDEO_CODEC_NONE) {
     venc_resource = rc_->calcVencResourceOptions(
         (MRC::VideoCodecs)TranslateVideoCodec(videoResData_.vencode),
@@ -173,7 +171,7 @@ mrc::ResourceListOptions ResourceRequestor::CalcVencResources() {
         videoResData_.height,
         videoResData_.frameRate);
   }
-#endif
+
   return venc_resource;
 }
 
