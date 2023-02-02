@@ -20,6 +20,7 @@
 #include <condition_variable>
 #include <list>
 #include <functional>
+#include <string>
 #include <thread>
 
 namespace mcil {
