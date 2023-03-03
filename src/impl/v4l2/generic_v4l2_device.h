@@ -46,7 +46,7 @@ class GenericV4L2Device : public V4L2Device {
   std::vector<uint32_t> PreferredInputFormat(DeviceType type) const override;
 
  protected:
-  ~GenericV4L2Device() override;
+  ~GenericV4L2Device() noexcept(false);
   bool Initialize() override;
 
   bool OpenDevice(const std::string& path, DeviceType type);

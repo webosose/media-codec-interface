@@ -37,7 +37,7 @@ VideoEncoderAPI::VideoEncoderAPI(VideoEncoderClient* client)
   : client_(client) {
 }
 
-VideoEncoderAPI::~VideoEncoderAPI() {
+VideoEncoderAPI::~VideoEncoderAPI() noexcept(false) {
   if (venc_port_index_ != -1) {
     VideoResource::GetInstance().Release(
         V4L2_ENCODER, resources_, venc_port_index_);

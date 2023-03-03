@@ -28,7 +28,7 @@ class Thread {
  public:
   Thread();
   Thread(const std::string& name);
-  ~Thread();
+  ~Thread() noexcept(false);
 
   bool IsRunning() { return is_running_; }
   void Start();

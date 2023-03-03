@@ -53,7 +53,7 @@ GenericV4L2Device::GenericV4L2Device(DeviceType device_type)
   : V4L2Device(device_type) {
 }
 
-GenericV4L2Device::~GenericV4L2Device() {
+GenericV4L2Device::~GenericV4L2Device() noexcept(false) {
   CloseDevice();
 }
 

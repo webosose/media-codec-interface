@@ -30,7 +30,7 @@ class VideoDecoderClient;
 class VideoDecoderAPI {
  public:
   VideoDecoderAPI(VideoDecoderClient* client);
-  ~VideoDecoderAPI();
+  ~VideoDecoderAPI() noexcept(false);
 
   static SupportedProfiles GetSupportedProfiles();
 

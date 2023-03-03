@@ -50,7 +50,7 @@ V4L2Buffer::V4L2Buffer(scoped_refptr<V4L2Device> device,
       v4l2_buffer_.index, v4l2_buffer_.length);
 }
 
-V4L2Buffer::~V4L2Buffer() {
+V4L2Buffer::~V4L2Buffer() noexcept(false) {
   MCIL_DEBUG_PRINT(": %s index= %d",
       (buffer_type_ == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ? "input" : "output"),
       v4l2_buffer_.index);
@@ -187,7 +187,7 @@ V4L2BufferRefBase::V4L2BufferRefBase(const struct v4l2_buffer& v4l2_buffer,
   v4l2_buffer_.m.planes = v4l2_planes_;
 }
 
-V4L2BufferRefBase::~V4L2BufferRefBase() {
+V4L2BufferRefBase::~V4L2BufferRefBase() noexcept(false) {
   if (!queued_)
     return_to_->ReturnBuffer(BufferIndex());
 }

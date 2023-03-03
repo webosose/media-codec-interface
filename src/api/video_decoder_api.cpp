@@ -39,7 +39,7 @@ VideoDecoderAPI::VideoDecoderAPI(VideoDecoderClient* client)
   : client_(client) {
 }
 
-VideoDecoderAPI::~VideoDecoderAPI() {
+VideoDecoderAPI::~VideoDecoderAPI() noexcept(false) {
   if (vdec_port_index_ != -1) {
     VideoResource::GetInstance().Release(
         V4L2_DECODER, resources_, vdec_port_index_);

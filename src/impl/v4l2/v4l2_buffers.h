@@ -24,7 +24,7 @@ class V4L2Buffer {
                                             enum v4l2_memory memory,
                                             const struct v4l2_format& format,
                                             size_t buffer_id);
-  virtual ~V4L2Buffer();
+  virtual ~V4L2Buffer() noexcept(false);
 
   virtual size_t BufferIndex();
   virtual scoped_refptr<VideoFrame> GetVideoFrame();
@@ -80,7 +80,7 @@ class V4L2BufferRefBase {
  public:
   V4L2BufferRefBase(const struct v4l2_buffer& v4l2_buffer,
                     V4L2Queue* queue);
-  ~V4L2BufferRefBase();
+  ~V4L2BufferRefBase() noexcept(false);
 
   void* GetPlaneBuffer(const size_t plane);
   bool QueueBuffer(scoped_refptr<VideoFrame> video_frame);

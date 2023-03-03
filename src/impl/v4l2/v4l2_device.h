@@ -68,7 +68,7 @@ class V4L2Device : public RefCounted<V4L2Device> {
   using Devices = std::vector<std::pair<std::string, std::vector<uint32_t>>>;
 
   V4L2Device(DeviceType device_type);
-  virtual ~V4L2Device();
+  virtual ~V4L2Device() noexcept(false);
 
   SupportedProfiles EnumerateSupportedDecodeProfiles();
   SupportedProfiles EnumerateSupportedEncodeProfiles();

@@ -29,7 +29,7 @@ class VideoEncoderAPI {
   static SupportedProfiles GetSupportedProfiles();
 
   VideoEncoderAPI(VideoEncoderClient* client);
-  ~VideoEncoderAPI();
+  ~VideoEncoderAPI() noexcept(false);
 
   bool Initialize(const EncoderConfig* configData,
                   EncoderClientConfig* client_config);

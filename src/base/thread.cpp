@@ -25,7 +25,7 @@ Thread::Thread(const std::string& name)
  : thread_name_(name) {
 }
 
-Thread::~Thread() {
+Thread::~Thread() noexcept(false) {
   if (is_running_)
     Stop();
 }

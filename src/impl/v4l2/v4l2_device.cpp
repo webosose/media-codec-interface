@@ -334,7 +334,7 @@ V4L2Device::V4L2Device(DeviceType device_type)
  : device_type_(device_type) {
 }
 
-V4L2Device::~V4L2Device() {
+V4L2Device::~V4L2Device() noexcept(false) {
 }
 
 void V4L2Device::GetSupportedResolution(uint32_t pixelformat,
