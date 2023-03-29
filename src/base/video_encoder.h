@@ -58,7 +58,7 @@ class VideoEncoder : public RefCounted<VideoEncoder> {
   friend class RefCounted<VideoEncoder>;
 
   VideoEncoder() = default;
-  virtual ~VideoEncoder() noexcept(false) = default;
+  virtual ~VideoEncoder() noexcept(false) {};
 };
 
 }  // namespace mcil
