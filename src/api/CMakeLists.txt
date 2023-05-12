@@ -16,10 +16,19 @@
 
 find_package(Threads REQUIRED)
 
-pkg_check_modules(RESOURCE-CALCULATOR REQUIRED media-resource-calculator)
+option(WEBOS_CLANG_BUILD "Build with clang" OFF)
+if(${WEBOS_CLANG_BUILD})
+  pkg_check_modules(RESOURCE-CALCULATOR REQUIRED media-resource-calculator-clang)
+else()
+  pkg_check_modules(RESOURCE-CALCULATOR REQUIRED media-resource-calculator)
+endif()
 include_directories(${RESOURCE-CALCULATOR_INCLUDE_DIRS})
 
-set(MEDIA_CODEC_INTERFACE_LIB media-codec-interface)
+if(${WEBOS_CLANG_BUILD})
+  set(MEDIA_CODEC_INTERFACE_LIB media-codec-interface-clang)
+else()
+  set(MEDIA_CODEC_INTERFACE_LIB media-codec-interface)
+endif()
 
 set(MEDIA_CODEC_INTERFACE_HEADERS
     ${MEDIA_CODEC_BASE_HEADERS}
@@ -40,7 +49,11 @@ set(MEDIA_CODEC_INTERFACE_LIBRARIES
 )
 
 add_library(${MEDIA_CODEC_INTERFACE_LIB} SHARED ${MEDIA_CODEC_INTERFACE_SRC})
-target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} ${MEDIA_CODEC_INTERFACE_LIBRARIES} media-codec-impl)
+if(${WEBOS_CLANG_BUILD})
+  target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} ${MEDIA_CODEC_INTERFACE_LIBRARIES} media-codec-impl-clang)
+else()
+  target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} ${MEDIA_CODEC_INTERFACE_LIBRARIES} media-codec-impl)
+endif()
 
 install(TARGETS ${MEDIA_CODEC_INTERFACE_LIB} DESTINATION lib)
 install(FILES ${MEDIA_CODEC_INTERFACE_HEADERS} DESTINATION include/mcil)

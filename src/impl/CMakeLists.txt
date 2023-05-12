@@ -18,7 +18,12 @@ pkg_check_modules(GLIB2 REQUIRED glib-2.0)
 include_directories(${GLIB2_INCLUDE_DIRS})
 link_directories(${GLIB2_LIBRARY_DIRS})
 
-pkg_check_modules(PBNJSON pbnjson_cpp REQUIRED)
+option(WEBOS_CLANG_BUILD "Build with clang" OFF)
+if(${WEBOS_CLANG_BUILD})
+  pkg_check_modules(PBNJSON pbnjson_cpp_clang REQUIRED)
+else()
+  pkg_check_modules(PBNJSON pbnjson_cpp REQUIRED)
+endif()
 include_directories(${PBNJSON_INCLUDE_DIRS})
 link_directories(${PBNJSON_LIBRARY_DIRS})
 
@@ -26,7 +31,11 @@ find_package(Boost REQUIRED COMPONENTS regex)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
-set(MEDIA_IMPL_LIB media-codec-impl)
+if(${WEBOS_CLANG_BUILD})
+  set(MEDIA_IMPL_LIB media-codec-impl-clang)
+else()
+  set(MEDIA_IMPL_LIB media-codec-impl)
+endif()
 
 set(MEDIA_IMPL_SRC
   base/log.cpp

@@ -30,7 +30,12 @@ pkg_check_modules(GSTPBUTIL gstreamer-pbutils-1.0 REQUIRED)
 include_directories(${GSTPBUTIL_INCLUDE_DIRS})
 link_directories(${GSTPBUTIL_LIBRARY_DIRS})
 
-pkg_check_modules(PBNJSON pbnjson_cpp REQUIRED)
+option(WEBOS_CLANG_BUILD "Build with clang" OFF)
+if(${WEBOS_CLANG_BUILD})
+  pkg_check_modules(PBNJSON pbnjson_cpp_clang REQUIRED)
+else()
+  pkg_check_modules(PBNJSON pbnjson_cpp REQUIRED)
+endif()
 include_directories(${PBNJSON_INCLUDE_DIRS})
 link_directories(${PBNJSON_LIBRARY_DIRS})
 
