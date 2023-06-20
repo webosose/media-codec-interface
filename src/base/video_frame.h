@@ -63,7 +63,7 @@ class VideoFrame : public RefCounted<VideoFrame> {
   struct timeval timestamp;
   bool is_multi_planar;
 
-  uint8_t* data[kMaxPlanes] = {};
+  const uint8_t* data[kMaxPlanes] = {};
 
  private:
   friend class RefCounted<VideoFrame>;
