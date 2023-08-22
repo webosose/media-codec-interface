@@ -335,6 +335,9 @@ std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
   }
 
   auto it = queued_buffers_.find(v4l2_buffer.index);
+  if (it == queued_buffers_.end())
+    return std::make_pair(false, nullptr);
+
   scoped_refptr<VideoFrame> queued_frame = std::move(it->second);
   queued_buffers_.erase(it);
 
