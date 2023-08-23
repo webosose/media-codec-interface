@@ -71,7 +71,7 @@ V4L2Queue::V4L2Queue(scoped_refptr<V4L2Device> device,
     device_(device) {
 }
 
-V4L2Queue::~V4L2Queue() {
+V4L2Queue::~V4L2Queue() noexcept(false){
 }
 
 Optional<Rect> V4L2Queue::GetVisibleRect() {

@@ -56,7 +56,7 @@ class V4L2Queue : public RefCounted<V4L2Queue> {
   V4L2Queue(scoped_refptr<V4L2Device> device,
             enum v4l2_buf_type buffer_type,
             V4L2BufferDestroyCb destroy_cb);
-  virtual ~V4L2Queue();
+  virtual ~V4L2Queue() noexcept(false);
 
   enum v4l2_buf_type buffer_type_;
   scoped_refptr<V4L2Device> device_;
