@@ -59,6 +59,7 @@ if(EXISTS "${DIR_PATH}/impl/ext" AND EXISTS "${DIR_PATH}/impl/ext/CMakeLists.txt
 endif()
 
 add_library(${MEDIA_IMPL_LIB} SHARED ${MEDIA_IMPL_SRC})
+set_target_properties (${MEDIA_IMPL_LIB} PROPERTIES VERSION 1.0 SOVERSION 1)
 target_link_libraries(${MEDIA_IMPL_LIB} ${MEDIA_IMPL_LIBRARIES})
 
 install(TARGETS ${MEDIA_IMPL_LIB} DESTINATION lib)
