@@ -252,7 +252,7 @@ std::string ResourceRequestor::GetSourceString(
   JGenerator serializer(nullptr);
 
   JValue objArray = pbnjson::Array();
-  for (auto option : finalOptions) {
+  for (auto& option : finalOptions) {
     for (auto const & it : option) {
       JValue obj = pbnjson::Object();
       obj.put("resource", it.type);
