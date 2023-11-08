@@ -387,6 +387,49 @@ void V4L2Device::GetSupportedResolution(uint32_t pixelformat,
   }
 }
 
+uint8_t V4L2Device::GetSupportedRateControlMode() {
+  v4l2_queryctrl query_ctrl;
+  memset(&query_ctrl, 0, sizeof(query_ctrl));
+  query_ctrl.id = V4L2_CID_MPEG_VIDEO_BITRATE_MODE;
+  if (Ioctl(VIDIOC_QUERYCTRL, &query_ctrl)) {
+    MCIL_DEBUG_PRINT("QUERYCTRL for bitrate mode failed");
+    return kConstantMode;
+  }
+
+  uint8_t rc_mode = kNoMode;
+  v4l2_querymenu query_menu;
+  memset(&query_menu, 0, sizeof(query_menu));
+  query_menu.id = query_ctrl.id;
+  for (query_menu.index = query_ctrl.minimum;
+       static_cast<int>(query_menu.index) <= query_ctrl.maximum;
+       query_menu.index++) {
+    if (Ioctl(VIDIOC_QUERYMENU, &query_menu) == 0) {
+      switch (query_menu.index) {
+        case V4L2_MPEG_VIDEO_BITRATE_MODE_CBR:
+          rc_mode |= kConstantMode;
+          break;
+        case V4L2_MPEG_VIDEO_BITRATE_MODE_VBR:
+          rc_mode |= kVariableMode;
+          break;
+        default:
+          MCIL_DEBUG_PRINT("Skip bitrate mode: %d", query_menu.index);
+          break;
+      }
+
+      if ((rc_mode & kConstantMode) && (rc_mode & kVariableMode)) {
+        MCIL_DEBUG_PRINT("Found both mode CBR & VBR");
+        break;
+      }
+    }
+  }
+
+  if (rc_mode == kNoMode)
+    return kConstantMode;
+
+  MCIL_DEBUG_PRINT("rc_mode: %d", rc_mode);
+  return rc_mode;
+}
+
 std::vector<uint32_t> V4L2Device::EnumerateSupportedPixelformats(
     v4l2_buf_type buf_type) {
   std::vector<uint32_t> pixelformats;
@@ -617,6 +660,13 @@ SupportedProfiles V4L2Device::EnumerateSupportedEncodeProfiles() {
 
   for (const auto& pixelformat : supported_pixelformats) {
     SupportedProfile profile;
+    profile.rc_modes = (RateControlMode)GetSupportedRateControlMode();
+    if (profile.rc_modes == kNoMode) {
+      MCIL_INFO_PRINT("Skipped because no bitrate mode is supported for %s",
+                      FourccToString(pixelformat).c_str());
+      continue;
+    }
+
     GetSupportedResolution(pixelformat, &profile.min_resolution,
                            &profile.max_resolution);
     const auto video_codec_profiles =

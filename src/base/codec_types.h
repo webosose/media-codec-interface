@@ -154,6 +154,12 @@ enum CodecState {
   kCodecStateMax = kDestroying,
 };
 
+enum RateControlMode : uint8_t {
+  kNoMode = 0,
+  kConstantMode = 0b0001,
+  kVariableMode = 0b0010,
+};
+
 class Size {
  public:
   Size() = default;
@@ -210,6 +216,7 @@ class SupportedProfile {
   Size max_resolution;
   Size min_resolution;
   bool encrypted_only = false;
+  RateControlMode rc_modes = kNoMode;
 };
 
 std::string GetProfileName(VideoCodecProfile profile);

@@ -50,6 +50,7 @@ class V4L2Device : public RefCounted<V4L2Device> {
   virtual void GetSupportedResolution(uint32_t pixelformat,
                                       Size* min_resolution,
                                       Size* max_resolution);
+  virtual uint8_t GetSupportedRateControlMode();
   virtual std::vector<uint32_t> EnumerateSupportedPixelformats(
       v4l2_buf_type buf_type);
   virtual std::vector<VideoCodecProfile> V4L2PixFmtToVideoCodecProfiles(
