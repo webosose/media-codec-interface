@@ -300,7 +300,7 @@ void GenericV4L2Device::EnumerateDevicesForType(DeviceType type) {
     CloseDevice();
   }
 
-  devices_by_type_[type] = devices;
+  devices_by_type_[type] = std::move(devices);
 }
 
 std::vector<uint32_t>

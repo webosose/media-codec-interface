@@ -83,7 +83,7 @@ bool VideoResource::Acquire(DeviceType device_type,
     return false;
   }
 
-  if (!AddToIndexList(resourceMMap, resource_index)) {
+  if (!AddToIndexList(std::move(resourceMMap), resource_index)) {
     MCIL_ERROR_PRINT("Failed to Add To Index List");
     return false;
   }
@@ -131,7 +131,7 @@ bool VideoResource::Reacquire(DeviceType device_type,
     return false;
   }
 
-  if (!AddToIndexList(resourceMMap, resource_index)) {
+  if (!AddToIndexList(std::move(resourceMMap), resource_index)) {
     MCIL_ERROR_PRINT("Failed to Add To Index List");
     return false;
   }
@@ -196,7 +196,7 @@ bool VideoResource::AddToIndexList(PortResource_t resourceMMap,
   int32_t dec_index = -1;
   int32_t enc_index = -1;
 
-  for (auto& it : resourceMMap) {
+  for (const auto &it : resourceMMap) {
      MCIL_DEBUG_PRINT("Resource::[%s]=>index:%d", it.first.c_str(), it.second);
      if (it.first == "VDEC") {
        dec_index = it.second;

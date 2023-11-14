@@ -452,7 +452,7 @@ void V4L2VideoDecoder::OnEGLImagesCreationCompleted() {
 }
 
 void V4L2VideoDecoder::SetResolutionChangeCb(ResolutionChangeCb cb) {
-  resolution_change_cb_ = cb;
+  resolution_change_cb_ = std::move(cb);
 }
 
 void V4L2VideoDecoder::DevicePollTask(bool poll_device) {

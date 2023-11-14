@@ -68,7 +68,7 @@ V4L2Queue::V4L2Queue(scoped_refptr<V4L2Device> device,
                      enum v4l2_buf_type buffer_type,
                      V4L2BufferDestroyCb destroy_cb)
   : buffer_type_(buffer_type),
-    device_(device) {
+    device_(std::move(device)) {
 }
 
 V4L2Queue::~V4L2Queue() noexcept(false){

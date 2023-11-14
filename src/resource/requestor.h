@@ -87,7 +87,7 @@ class ResourceRequestor {
   virtual ~ResourceRequestor();
 
   const std::string GetConnectionId() const { return connectionId_; }
-  void RegisterUMSPolicyActionCallback(Functor callback) { cb_ = callback; }
+  void RegisterUMSPolicyActionCallback(Functor callback) { cb_ = std::move(callback); }
 
   bool AcquireResources(PortResource_t& resourceMMap,
                         const source_info_t &sourceInfo,

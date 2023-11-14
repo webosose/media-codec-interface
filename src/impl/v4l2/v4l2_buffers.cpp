@@ -32,7 +32,7 @@ V4L2Buffer::V4L2Buffer(scoped_refptr<V4L2Device> device,
                        enum v4l2_memory memory,
                        const struct v4l2_format& format,
                        size_t buffer_id)
-    : device_(device), format_(format), buffer_type_(buffer_type) {
+    : device_(std::move(device)), format_(format), buffer_type_(buffer_type) {
   memset(&v4l2_buffer_, 0, sizeof(v4l2_buffer_));
   memset(v4l2_planes_, 0, sizeof(v4l2_planes_));
   v4l2_buffer_.m.planes = v4l2_planes_;

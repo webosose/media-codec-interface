@@ -36,7 +36,7 @@ SupportedProfiles V4L2VideoEncoder::GetSupportedProfiles() {
 V4L2VideoEncoder::InputFrameInfo::InputFrameInfo(
     scoped_refptr<VideoFrame> frame,
     bool force_keyframe)
-    : frame(frame), force_keyframe(force_keyframe) {}
+    : frame(std::move(frame)), force_keyframe(force_keyframe) {}
 
 V4L2VideoEncoder::V4L2VideoEncoder()
  : VideoEncoder(),

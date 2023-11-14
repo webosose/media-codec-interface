@@ -98,7 +98,7 @@ bool VideoEncoderAPI::EncodeFrame(scoped_refptr<VideoFrame> frame,
     return false;
   }
 
-  return video_encoder_->EncodeFrame(frame, force_keyframe);
+  return video_encoder_->EncodeFrame(std::move(frame), force_keyframe);
 }
 
 bool VideoEncoderAPI::FlushFrames() {
