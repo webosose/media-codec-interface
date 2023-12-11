@@ -22,7 +22,7 @@ std::unique_ptr<V4L2Buffer> V4L2Buffer::Create(scoped_refptr<V4L2Device> device,
                                                const struct v4l2_format& format,
                                                size_t buffer_id) {
   std::unique_ptr<V4L2Buffer> buffer(
-      new V4L2Buffer(device, buffer_type, memory, format, buffer_id));
+      new V4L2Buffer(std::move(device), buffer_type, memory, format, buffer_id));
   return buffer;
 }
 #endif

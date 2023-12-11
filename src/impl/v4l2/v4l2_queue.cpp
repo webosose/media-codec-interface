@@ -39,7 +39,7 @@ struct v4l2_format BuildV4L2Format(const enum v4l2_buf_type buffer_type,
 scoped_refptr<V4L2Queue> V4L2Queue::Create(scoped_refptr<V4L2Device> dev,
                                            enum v4l2_buf_type type,
                                            V4L2BufferDestroyCb destroy_cb) {
-    return new V4L2Queue(std::move(dev), type, destroy_cb);
+    return new V4L2Queue(std::move(dev), type, std::move(destroy_cb));
 }
 #endif
 

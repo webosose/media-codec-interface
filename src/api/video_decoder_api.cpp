@@ -69,9 +69,9 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
     return false;
   }
 
-  video_decoder_->SetResolutionChangeCb(
-      std::bind(&VideoDecoderAPI::OnResolutionChanged, this,
-                std::placeholders::_1, std::placeholders::_2));
+  ResolutionChangeCb cb = [this] (uint32_t width, uint32_t height) {
+               this->OnResolutionChanged(width, height); };
+  video_decoder_->SetResolutionChangeCb(std::move(cb));
 
   if (state_ == kInitialized) {
     video_decoder_->SetDecoderState(state_);

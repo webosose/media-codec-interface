@@ -620,9 +620,10 @@ scoped_refptr<V4L2Queue> V4L2Device::GetQueue(enum v4l2_buf_type buffer_type) {
   if (it != queues_.end())
     return it->second;
 
-  scoped_refptr<V4L2Queue> queue = V4L2Queue::Create(
-      this, buffer_type, std::bind(&V4L2Device::OnQueueDestroyed,
-                                   this, std::placeholders::_1));
+  V4L2BufferDestroyCb cb = [this] (enum v4l2_buf_type type) {
+               this->OnQueueDestroyed(type); };
+  scoped_refptr<V4L2Queue> queue = V4L2Queue::Create(this, buffer_type, std::move(cb));
+
   queues_[buffer_type] = queue.get();
   return queue;
 }
