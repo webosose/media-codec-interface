@@ -100,6 +100,7 @@ bool ResourceRequestor::AcquireResources(PortResource_t& resourceMMap,
   return true;
 }
 
+#if defined (ENABLE_REACQUIRE)
 bool ResourceRequestor::ReacquireResources(PortResource_t& resourceMMap,
                                            const source_info_t &sourceInfo,
                                            std::string& resources) {
@@ -143,6 +144,7 @@ bool ResourceRequestor::ReacquireResources(PortResource_t& resourceMMap,
 
   return true;
 }
+#endif
 
 mrc::ResourceListOptions ResourceRequestor::CalcVdecResources() {
   mrc::ResourceListOptions vdec_resource;

@@ -62,7 +62,9 @@ class VideoDecoderAPI {
   void OnEGLImagesCreationCompleted();
 
  private:
+  #if defined (ENABLE_REACQUIRE)
   void OnResolutionChanged(uint32_t width, uint32_t height);
+  #endif
 
   VideoDecoderClient* client_;
 

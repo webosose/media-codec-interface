@@ -63,7 +63,9 @@ class VideoDecoder : public RefCounted<VideoDecoder> {
   virtual void RunDecoderPostTask(PostTaskType task, bool value) = 0;
   virtual void OnEGLImagesCreationCompleted() = 0;
 
+  #if defined (ENABLE_REACQUIRE)
   virtual void SetResolutionChangeCb(ResolutionChangeCb cb) {}
+  #endif
 
  protected:
   friend class RefCounted<VideoDecoder>;

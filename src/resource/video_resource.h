@@ -52,6 +52,7 @@ class VideoResource {
                uint32_t frame_rate,
                std::string& resources,
                int32_t *resource_index);
+#if defined (ENABLE_REACQUIRE)
   bool Reacquire(DeviceType device_type,
                  VideoCodec video_codec,
                  uint32_t frame_width,
@@ -59,6 +60,7 @@ class VideoResource {
                  uint32_t frame_rate,
                  std::string& resources,
                  int32_t *resource_index);
+#endif
   bool Release(DeviceType device_type,
                std::string& resources,
                int32_t resource_index);

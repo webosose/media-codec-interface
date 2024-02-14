@@ -68,10 +68,11 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
     MCIL_ERROR_PRINT(" Failed: decoder (%p) ", video_decoder_.get());
     return false;
   }
-
+  #if defined (ENABLE_REACQUIRE)
   ResolutionChangeCb cb = [this] (uint32_t width, uint32_t height) {
                this->OnResolutionChanged(width, height); };
   video_decoder_->SetResolutionChangeCb(std::move(cb));
+  #endif
 
   if (state_ == kInitialized) {
     video_decoder_->SetDecoderState(state_);
@@ -244,6 +245,7 @@ void VideoDecoderAPI::OnEGLImagesCreationCompleted() {
   return video_decoder_->OnEGLImagesCreationCompleted();
 }
 
+#if defined (ENABLE_REACQUIRE)
 void VideoDecoderAPI::OnResolutionChanged(uint32_t width, uint32_t height) {
   if (codec_type_ == VIDEO_CODEC_NONE) {
     MCIL_ERROR_PRINT(" codec_type_(%d) not set", codec_type_);
@@ -269,5 +271,6 @@ void VideoDecoderAPI::OnResolutionChanged(uint32_t width, uint32_t height) {
                                          &vdec_port_index_);
   MCIL_DEBUG_PRINT(" resources_=%s", resources_.c_str());
 }
+#endif
 
 }  // namespace mcil

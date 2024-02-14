@@ -69,6 +69,10 @@ set(MEDIA_CODEC_RESOURCE_SRC
 include(api/CMakeLists.txt)
 include(impl/CMakeLists.txt)
 
+if (SUPPORT_REACQUIRE)
+   add_definitions(-DENABLE_REACQUIRE)
+endif()
+
 get_filename_component(DIR_PATH "${_dir}" REALPATH)
 if(EXISTS "${DIR_PATH}/impl/ext" AND EXISTS "${DIR_PATH}/impl/ext/CMakeLists.txt")
   add_definitions(-DPLATFORM_EXTENSION)

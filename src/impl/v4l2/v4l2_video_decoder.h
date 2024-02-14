@@ -58,7 +58,9 @@ class V4L2VideoDecoder : public VideoDecoder {
   bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format) override;
   void OnEGLImagesCreationCompleted() override;
   void RunDecoderPostTask(PostTaskType task, bool value) override {}
+  #if defined (ENABLE_REACQUIRE)
   void SetResolutionChangeCb(ResolutionChangeCb cb) override;
+  #endif
 
   void DevicePollTask(bool poll_device);
 
@@ -144,7 +146,9 @@ class V4L2VideoDecoder : public VideoDecoder {
   uint32_t frames_per_sec_ = 0;
   uint32_t current_secs_ = 0;
 
+  #if defined (ENABLE_REACQUIRE)
   ResolutionChangeCb resolution_change_cb_ = nullptr;
+  #endif
 
   std::atomic<uint32_t> enqueued_output_buffers_{0};
 

@@ -451,9 +451,11 @@ bool V4L2VideoDecoder::CanCreateEGLImageFrom(VideoPixelFormat pixel_format) {
 void V4L2VideoDecoder::OnEGLImagesCreationCompleted() {
 }
 
+#if defined (ENABLE_REACQUIRE)
 void V4L2VideoDecoder::SetResolutionChangeCb(ResolutionChangeCb cb) {
   resolution_change_cb_ = std::move(cb);
 }
+#endif
 
 void V4L2VideoDecoder::DevicePollTask(bool poll_device) {
   bool event_pending = false;
@@ -1000,8 +1002,10 @@ void V4L2VideoDecoder::FinishResolutionChange() {
     return;
   }
 
+  #if defined (ENABLE_REACQUIRE)
   if (resolution_change_cb_ && !ignore_resolution_change)
     resolution_change_cb_(coded_size_.width, coded_size_.height);
+  #endif
 
   StartDevicePoll();
 }

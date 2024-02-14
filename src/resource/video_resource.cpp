@@ -96,6 +96,7 @@ bool VideoResource::Acquire(DeviceType device_type,
   return true;
 }
 
+#if defined (ENABLE_REACQUIRE)
 bool VideoResource::Reacquire(DeviceType device_type,
                               VideoCodec video_codec,
                               uint32_t frame_width,
@@ -143,7 +144,7 @@ bool VideoResource::Reacquire(DeviceType device_type,
 
   return true;
 }
-
+#endif
 bool VideoResource::Release(DeviceType device_type,
                             std::string& resources,
                             int32_t resource_index) {

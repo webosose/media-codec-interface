@@ -93,9 +93,11 @@ class ResourceRequestor {
                         const source_info_t &sourceInfo,
                         std::string& resources);
 
+  #if defined (ENABLE_REACQUIRE)
   bool ReacquireResources(PortResource_t& resourceMMap,
                           const source_info_t &sourceInfo,
                           std::string& resources);
+  #endif
 
   bool ReleaseResource(std::string& resources);
 
