@@ -430,8 +430,14 @@ bool V4L2VideoDecoder::AllocateOutputBuffers(
 
   size_t i = 0;
   while (auto buffer = output_queue_->GetFreeBufferPtr()) {
-    output_buffers[i] = (WritableBufferRef*)buffer;
-    i++;
+    if(i < buffer_count) {
+      output_buffers[i] = (WritableBufferRef*)buffer;
+      i++;
+    } else {
+      MCIL_ERROR_PRINT("Index i outside the bounds of output_buffers");
+      NOTIFY_ERROR(PLATFORM_FAILURE);
+      return false;
+    }
   }
 
   MCIL_DEBUG_PRINT(": allocated [%lu]", output_buffers.size());

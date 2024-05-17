@@ -41,10 +41,10 @@ V4L2VideoEncoder::InputFrameInfo::InputFrameInfo(
 V4L2VideoEncoder::V4L2VideoEncoder()
  : VideoEncoder(),
    v4l2_device_(V4L2Device::Create(V4L2_ENCODER)),
-   device_poll_thread_("V4L2EncoderDevicePollThread"),
-   encoder_state_(kUninitialized),
    input_memory_type_(V4L2_MEMORY_MMAP),
-   output_memory_type_(V4L2_MEMORY_MMAP) {
+   output_memory_type_(V4L2_MEMORY_MMAP),
+   device_poll_thread_("V4L2EncoderDevicePollThread"),
+   encoder_state_(kUninitialized) {
 }
 
 V4L2VideoEncoder::~V4L2VideoEncoder() {
@@ -403,14 +403,14 @@ bool V4L2VideoEncoder::SetFormats(VideoPixelFormat input_format,
     return false;
 
   Size input_size = Size(encoder_config_.width, encoder_config_.height);
-  auto v4l2_format = SetInputFormat(input_format, input_size);
-  if (!v4l2_format) {
+  auto format = SetInputFormat(input_format, input_size);
+  if (!format) {
     MCIL_ERROR_PRINT(": Failed to set Input format [%d], input[%dx%d]",
                      input_format, input_size.width, input_size.height);
     return false;
   }
 
-  input_frame_size_ = V4L2Device::AllocatedSizeFromV4L2Format(*v4l2_format);
+  input_frame_size_ = V4L2Device::AllocatedSizeFromV4L2Format(*format);
   MCIL_DEBUG_PRINT(" input_frame_size_[%dx%d]", input_frame_size_.width,
                    input_frame_size_.height);
 

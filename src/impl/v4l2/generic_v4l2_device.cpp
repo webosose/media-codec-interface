@@ -96,7 +96,7 @@ int GenericV4L2Device::Ioctl(int request, void* arg) {
 bool GenericV4L2Device::Poll(bool poll_device, bool* event_pending) {
   struct pollfd pollfds[2];
   nfds_t nfds;
-  int pollfd = -1;
+  int poll_fd = -1;
 
   pollfds[0].fd = device_poll_interrupt_fd_;
   pollfds[0].events = POLLIN | POLLERR;
@@ -107,7 +107,7 @@ bool GenericV4L2Device::Poll(bool poll_device, bool* event_pending) {
     pollfds[nfds].fd = device_fd_;
     pollfds[nfds].events = POLLIN | POLLOUT | POLLERR | POLLPRI;
     pollfds[nfds].revents = 0;
-    pollfd = nfds;
+    poll_fd = nfds;
     nfds++;
   }
 
@@ -116,7 +116,7 @@ bool GenericV4L2Device::Poll(bool poll_device, bool* event_pending) {
     return false;
   }
 
-  *event_pending = (pollfd >= 0 && pollfds[pollfd].revents & POLLPRI);
+  *event_pending = (poll_fd >= 0 && pollfds[poll_fd].revents & POLLPRI);
   return true;
 }
 

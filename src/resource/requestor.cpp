@@ -387,6 +387,12 @@ bool ResourceRequestor::SetSourceInfo(const source_info_t &sourceInfo) {
   }
 
   video_info_t video_stream_info = sourceInfo.video_streams.front();
+  if ((video_stream_info.encode < VIDEO_CODEC_NONE) || (video_stream_info.encode > VIDEO_CODEC_MAX) ||
+      (video_stream_info.decode < VIDEO_CODEC_NONE) || (video_stream_info.decode > VIDEO_CODEC_MAX)) {
+    MCIL_ERROR_PRINT("Invalid Video/Audio Codec!");
+    return false;
+  }
+
   videoResData_.width = video_stream_info.width;
   videoResData_.height = video_stream_info.height;
   videoResData_.vencode = (VideoCodec)video_stream_info.encode;

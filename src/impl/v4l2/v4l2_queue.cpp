@@ -280,7 +280,7 @@ Optional<V4L2WritableBufferRef> V4L2Queue::GetFreeBuffer() {
     return nullopt;
 
   return V4L2BufferRefFactory::CreateWritableRef(
-      buffers_[buffer_id.value()]->v4l2_buffer(), this);
+      buffers_[buffer_id.value()]->get_v4l2_buffer(), this);
 }
 
 V4L2WritableBufferRef* V4L2Queue::GetFreeBufferPtr() {
@@ -295,7 +295,7 @@ V4L2WritableBufferRef* V4L2Queue::GetFreeBufferPtr() {
     return nullptr;
 
   return V4L2BufferRefFactory::CreateWritableRefPtr(
-      buffers_[buffer_id.value()]->v4l2_buffer(), this);
+      buffers_[buffer_id.value()]->get_v4l2_buffer(), this);
 }
 
 std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
@@ -309,16 +309,16 @@ std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
     return std::make_pair(true, nullptr);
   }
 
-  struct v4l2_buffer v4l2_buffer;
-  memset(&v4l2_buffer, 0, sizeof(v4l2_buffer));
+  struct v4l2_buffer v4l2_buf;
+  memset(&v4l2_buf, 0, sizeof(v4l2_buf));
 
   struct v4l2_plane planes[VIDEO_MAX_PLANES];
   memset(planes, 0, sizeof(planes));
-  v4l2_buffer.type = buffer_type_;
-  v4l2_buffer.memory = memory_;
-  v4l2_buffer.m.planes = planes;
-  v4l2_buffer.length = planes_count_;
-  int ret = device_->Ioctl(VIDIOC_DQBUF, &v4l2_buffer);
+  v4l2_buf.type = buffer_type_;
+  v4l2_buf.memory = memory_;
+  v4l2_buf.m.planes = planes;
+  v4l2_buf.length = planes_count_;
+  int ret = device_->Ioctl(VIDIOC_DQBUF, &v4l2_buf);
   if (ret) {
     switch (errno) {
       case EAGAIN:
@@ -334,7 +334,7 @@ std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
     }
   }
 
-  auto it = queued_buffers_.find(v4l2_buffer.index);
+  auto it = queued_buffers_.find(v4l2_buf.index);
   if (it == queued_buffers_.end())
     return std::make_pair(false, nullptr);
 
@@ -342,7 +342,7 @@ std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
   queued_buffers_.erase(it);
 
   return std::make_pair(true, V4L2BufferRefFactory::CreateReadableRef(
-                                  v4l2_buffer, this,
+                                  v4l2_buf, this,
                                   std::move(queued_frame)));
 }
 

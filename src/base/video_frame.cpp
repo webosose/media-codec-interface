@@ -139,11 +139,17 @@ int VideoFrame::BytesPerElement(VideoPixelFormat format, size_t plane) {
     case PIXEL_FORMAT_NV12:
     case PIXEL_FORMAT_NV21: {
       static const int bytes_per_element[] = {1, 2};
-      return bytes_per_element[plane];
+      if (plane < 2)
+        return bytes_per_element[plane];
+
+      return 0;
     }
     case PIXEL_FORMAT_P016LE: {
       static const int bytes_per_element[] = {1, 2};
-      return bytes_per_element[plane] * 2;
+      if (plane < 2)
+        return bytes_per_element[plane] * 2;
+
+      return 0;
     }
     case PIXEL_FORMAT_YV12:
     case PIXEL_FORMAT_I420:

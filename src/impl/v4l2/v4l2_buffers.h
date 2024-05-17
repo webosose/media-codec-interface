@@ -29,7 +29,7 @@ class V4L2Buffer {
   virtual size_t BufferIndex();
   virtual scoped_refptr<VideoFrame> GetVideoFrame();
   virtual void* GetPlaneBuffer(const size_t plane);
-  virtual const struct v4l2_buffer& v4l2_buffer() const { return v4l2_buffer_; }
+  virtual const struct v4l2_buffer& get_v4l2_buffer() const { return v4l2_buffer_; }
   virtual bool Query();
 
   virtual int64_t GetBufferPTS();

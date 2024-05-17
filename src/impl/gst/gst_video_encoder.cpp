@@ -352,12 +352,12 @@ GstFlowReturn GstVideoEncoder::OnEncodedBuffer(
   /* get the sample from appsink */
   sample = gst_app_sink_pull_sample (GST_APP_SINK (elt));
   if (NULL != sample) {
-    GstMapInfo map = {};
+    GstMapInfo map_info = {};
     GstBuffer *buffer;
     buffer = gst_sample_get_buffer(sample);
-    gst_buffer_map(buffer, &map, GST_MAP_READ);
+    gst_buffer_map(buffer, &map_info, GST_MAP_READ);
 
-    if ((NULL == map.data) && (map.size == 0)) {
+    if ((NULL == map_info.data) && (map_info.size == 0)) {
       MCIL_DEBUG_PRINT(": Empty buffer received");
       return GST_FLOW_OK;
     }
@@ -383,11 +383,11 @@ GstFlowReturn GstVideoEncoder::OnEncodedBuffer(
 
     uint64_t timestamp = GST_BUFFER_TIMESTAMP(buffer);
     encoder->client_->BitstreamBufferReady(
-        static_cast<const uint8_t*>(map.data),
-        map.size, timestamp, is_keyframe);
+        static_cast<const uint8_t*>(map_info.data),
+        map_info.size, timestamp, is_keyframe);
 
     gst_sample_unref(sample);
-    gst_buffer_unmap(buffer, &map);
+    gst_buffer_unmap(buffer, &map_info);
   }
   return GST_FLOW_OK;
 }

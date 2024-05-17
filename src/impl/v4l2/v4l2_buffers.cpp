@@ -32,7 +32,7 @@ V4L2Buffer::V4L2Buffer(scoped_refptr<V4L2Device> device,
                        enum v4l2_memory memory,
                        const struct v4l2_format& format,
                        size_t buffer_id)
-    : device_(std::move(device)), format_(format), buffer_type_(buffer_type) {
+    : device_(std::move(device)), buffer_type_(buffer_type), format_(format) {
   memset(&v4l2_buffer_, 0, sizeof(v4l2_buffer_));
   memset(v4l2_planes_, 0, sizeof(v4l2_planes_));
   v4l2_buffer_.m.planes = v4l2_planes_;
@@ -121,9 +121,15 @@ scoped_refptr<VideoFrame> V4L2Buffer::CreateVideoFrame() {
   scoped_refptr<VideoFrame> video_frame =
       V4L2Device::VideoFrameFromV4L2Format(format_);
 
+  uint32_t buf_type = v4l2_buffer_.type;
+  if((buf_type < V4L2_BUF_TYPE_VIDEO_CAPTURE) || (buf_type > V4L2_BUF_TYPE_META_CAPTURE)) {
+    MCIL_ERROR_PRINT(": Invalid v4l2_buffer type");
+    return nullptr;
+  }
+
   video_frame->dmabuf_fds = device_->GetDmabufsForV4L2Buffer(
       v4l2_buffer_.index, v4l2_buffer_.length,
-      static_cast<enum v4l2_buf_type>(v4l2_buffer_.type));
+      static_cast<enum v4l2_buf_type>(buf_type));
   if (video_frame->dmabuf_fds.empty()) {
     MCIL_ERROR_PRINT(": Failed to get DMABUFs of V4L2 buffer");
     return nullptr;
@@ -309,12 +315,17 @@ void* V4L2WritableBufferRef::GetPlaneBuffer(const size_t plane) {
 }
 
 size_t V4L2WritableBufferRef::GetBufferSize(const size_t plane) const {
-  return buffer_data_->v4l2_buffer_.m.planes[plane].length;
+  if (plane < VIDEO_MAX_PLANES)
+    return buffer_data_->v4l2_buffer_.m.planes[plane].length;
+
+  MCIL_DEBUG_PRINT("plane exceed VIDEO_MAX_PLANES returning 0");
+  return 0;
 }
 
 void V4L2WritableBufferRef::SetBufferSize(const size_t plane,
                                           const size_t length) {
-  buffer_data_->v4l2_buffer_.m.planes[plane].length = length;
+  if (plane < VIDEO_MAX_PLANES)
+    buffer_data_->v4l2_buffer_.m.planes[plane].length = length;
 }
 
 size_t V4L2WritableBufferRef::GetBytesUsed(const size_t plane) const {
@@ -400,7 +411,13 @@ size_t V4L2WritableBufferRef::PlanesCount() const {
 }
 
 enum v4l2_memory V4L2WritableBufferRef::Memory() const {
-  return static_cast<enum v4l2_memory>(buffer_data_->v4l2_buffer_.memory);
+  uint32_t memory_type = buffer_data_->v4l2_buffer_.memory;
+  if (memory_type >= V4L2_MEMORY_MMAP && memory_type <= V4L2_MEMORY_DMABUF) {
+    return static_cast<enum v4l2_memory>(memory_type);
+  }
+
+  MCIL_DEBUG_PRINT("Invalid memory type returning default V4L2_MEMORY_MMAP");
+  return V4L2_MEMORY_MMAP;
 }
 
 void V4L2WritableBufferRef::SetFlags(uint32_t flags) {
