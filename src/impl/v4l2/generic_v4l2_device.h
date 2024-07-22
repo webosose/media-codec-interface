@@ -20,34 +20,31 @@ class GenericV4L2Device : public V4L2Device {
   GenericV4L2Device& operator=(const GenericV4L2Device&) = delete;
 
   // V4L2Device implementation.
-  bool Open(DeviceType type, uint32_t v4l2_pixfmt) override;
-  int32_t Ioctl(int32_t request, void* arg) override;
-  bool Poll(bool poll_device, bool* event_pending) override;
-  bool SetDevicePollInterrupt() override;
-  bool ClearDevicePollInterrupt() override;
-  void* Mmap(void* addr,
-             uint32_t len,
-             int32_t prot,
-             int32_t flags,
-             uint32_t offset) override;
-  void Munmap(void* addr, uint32_t len) override;
+  virtual bool Open(DeviceType type, uint32_t v4l2_pixfmt) override;
+  virtual int32_t Ioctl(int32_t request, void* arg) override;
+  virtual bool Poll(bool poll_device, bool* event_pending) override;
+  virtual bool SetDevicePollInterrupt() override;
+  virtual bool ClearDevicePollInterrupt() override;
+  virtual void* Mmap(void* addr, uint32_t len, int32_t prot, int32_t flags,
+                     uint32_t offset) override;
+  virtual void Munmap(void* addr, uint32_t len) override;
 
-  std::vector<int32_t> GetDmabufsForV4L2Buffer(
-      int32_t index,
-      size_t num_planes,
-      enum v4l2_buf_type buffer_type) override;
+  virtual std::vector<int32_t> GetDmabufsForV4L2Buffer(
+      int32_t index, size_t num_planes, enum v4l2_buf_type buffer_type)
+      override;
 
-  bool CanCreateEGLImageFrom(const Fourcc fourcc) const override;
-  uint32_t GetTextureTarget() const override;
+  virtual bool CanCreateEGLImageFrom(const Fourcc fourcc) const override;
+  virtual uint32_t GetTextureTarget() const override;
 
-  SupportedProfiles GetSupportedDecodeProfiles() override;
-  SupportedProfiles GetSupportedEncodeProfiles() override;
-  void EnumerateDevicesForType(DeviceType type) override;
-  std::vector<uint32_t> PreferredInputFormat(DeviceType type) const override;
+  virtual SupportedProfiles GetSupportedDecodeProfiles() override;
+  virtual SupportedProfiles GetSupportedEncodeProfiles() override;
+  virtual void EnumerateDevicesForType(DeviceType type) override;
+  virtual std::vector<uint32_t> PreferredInputFormat(DeviceType type)
+      const override;
 
  protected:
-  ~GenericV4L2Device() noexcept(false);
-  bool Initialize() override;
+  virtual ~GenericV4L2Device() noexcept(false);
+  virtual bool Initialize() override;
 
   bool OpenDevice(const std::string& path, DeviceType type);
   void CloseDevice();

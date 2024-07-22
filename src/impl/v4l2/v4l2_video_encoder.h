@@ -22,27 +22,27 @@ class V4L2VideoEncoder : public VideoEncoder {
   static SupportedProfiles GetSupportedProfiles();
 
   V4L2VideoEncoder();
-  ~V4L2VideoEncoder() override;
+  virtual ~V4L2VideoEncoder() override;
 
-  bool Initialize(const EncoderConfig* config,
-                  VideoEncoderClient* client,
-                  EncoderClientConfig* client_config,
-                  int32_t venc_port_index) override;
-  void Destroy() override;
-  bool IsFlushSupported() override;
-  bool EncodeFrame(scoped_refptr<VideoFrame> frame,
-                   bool force_keyframe) override;
-  bool FlushFrames() override;
-  bool UpdateEncodingParams(uint32_t bitrate, uint32_t framerate) override;
-  bool StartDevicePoll() override;
-  void RunEncodeBufferTask() override;
-  void SendStartCommand(bool start) override;
-  void SetEncoderState(CodecState state) override;
-  size_t GetFreeBuffersCount(QueueType queue_type) override;
-  void EnqueueBuffers() override;
-  scoped_refptr<VideoFrame> GetDeviceInputFrame() override;
-  bool NegotiateInputFormat(VideoPixelFormat format,
-                            const Size& frame_size) override;
+  virtual bool Initialize(
+      const EncoderConfig* config, VideoEncoderClient* client,
+      EncoderClientConfig* client_config, int32_t venc_port_index) override;
+  virtual void Destroy() override;
+  virtual bool IsFlushSupported() override;
+  virtual bool EncodeFrame(scoped_refptr<VideoFrame> frame, bool force_keyframe)
+      override;
+  virtual bool FlushFrames() override;
+  virtual bool UpdateEncodingParams(uint32_t bitrate, uint32_t framerate)
+      override;
+  virtual bool StartDevicePoll() override;
+  virtual void RunEncodeBufferTask() override;
+  virtual void SendStartCommand(bool start) override;
+  virtual void SetEncoderState(CodecState state) override;
+  virtual size_t GetFreeBuffersCount(QueueType queue_type) override;
+  virtual void EnqueueBuffers() override;
+  virtual scoped_refptr<VideoFrame> GetDeviceInputFrame() override;
+  virtual bool NegotiateInputFormat(VideoPixelFormat format,
+                                    const Size& frame_size) override;
 
  protected:
   // These are rather subjectively tuned.

@@ -30,34 +30,46 @@ class GstVideoEncoder : public VideoEncoder {
   static SupportedProfiles GetSupportedProfiles();
 
   GstVideoEncoder();
-  ~GstVideoEncoder() override;
+  virtual ~GstVideoEncoder() override;
 
-  bool Initialize(const EncoderConfig* config,
-                  VideoEncoderClient* client,
-                  EncoderClientConfig* client_config,
-                  int32_t venc_port_index) override;
-  void Destroy() override;
-  bool EncodeBuffer(const uint8_t* yBuf, size_t ySize,
-                    const uint8_t* uBuf, size_t uSize,
-                    const uint8_t* vBuf, size_t vSize,
-                    uint64_t bufferTimestamp,
-                    const bool requestKeyFrame) override;
-  bool UpdateEncodingParams(uint32_t bitrate, uint32_t framerate) override;
+  virtual bool Initialize(
+      const EncoderConfig* config, VideoEncoderClient* client,
+      EncoderClientConfig* client_config, int32_t venc_port_index) override;
+  virtual void Destroy() override;
+  virtual bool EncodeBuffer(
+      const uint8_t* yBuf, size_t ySize, const uint8_t* uBuf, size_t uSize,
+      const uint8_t* vBuf, size_t vSize, uint64_t bufferTimestamp,
+      const bool requestKeyFrame) override;
+  virtual bool UpdateEncodingParams(uint32_t bitrate, uint32_t framerate)
+      override;
 
-  bool IsFlushSupported() override { return false; }
-  bool EncodeFrame(scoped_refptr<VideoFrame> frame,
-                           bool force_keyframe) override { return true; }
-  bool FlushFrames() override { return true; }
-  bool StartDevicePoll() override { return true; }
-  void RunEncodeBufferTask() override {}
-  void SendStartCommand(bool start) override {}
-  void SetEncoderState(CodecState state) override {}
-  size_t GetFreeBuffersCount(QueueType queue_type) override { return 0; }
-  void EnqueueBuffers() override {}
-  scoped_refptr<VideoFrame> GetDeviceInputFrame() override { return nullptr; }
-  bool NegotiateInputFormat(VideoPixelFormat format,
-                            const Size& frame_size) override { return true; }
-
+  virtual bool IsFlushSupported() override {
+    return false;
+  }
+  virtual bool EncodeFrame(scoped_refptr<VideoFrame> frame, bool force_keyframe)
+      override {
+    return true;
+  }
+  virtual bool FlushFrames() override {
+    return true;
+  }
+  virtual bool StartDevicePoll() override {
+    return true;
+  }
+  virtual void RunEncodeBufferTask() override {}
+  virtual void SendStartCommand(bool start) override {}
+  virtual void SetEncoderState(CodecState state) override {}
+  virtual size_t GetFreeBuffersCount(QueueType queue_type) override {
+    return 0;
+  }
+  virtual void EnqueueBuffers() override {}
+  virtual scoped_refptr<VideoFrame> GetDeviceInputFrame() override {
+    return nullptr;
+  }
+  virtual bool NegotiateInputFormat(VideoPixelFormat format,
+                                    const Size& frame_size) override {
+    return true;
+  }
 
   static gboolean HandleBusMessage(
       GstBus *bus_, GstMessage *message, gpointer user_data);

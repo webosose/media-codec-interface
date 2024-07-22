@@ -26,38 +26,39 @@ class V4L2VideoDecoder : public VideoDecoder {
   static SupportedProfiles GetSupportedProfiles();
 
   V4L2VideoDecoder();
-  ~V4L2VideoDecoder() override;
+  virtual ~V4L2VideoDecoder() override;
 
-  bool Initialize(const DecoderConfig* config,
+  virtual bool Initialize(const DecoderConfig* config,
                   VideoDecoderClient* client,
                   DecoderClientConfig* client_config,
                   int32_t vdec_port_index) override;
-  void Destroy() override;
-  bool ResetInputBuffer() override;
-  bool ResetDecodingBuffers(bool* reset_pending) override;
-  bool CanNotifyResetDone() override;
+  virtual void Destroy() override;
+  virtual bool ResetInputBuffer() override;
+  virtual bool ResetDecodingBuffers(bool* reset_pending) override;
+  virtual bool CanNotifyResetDone() override;
 
-  bool DecodeBuffer(const void* buffer,
-                    size_t buffer_size,
-                    const int32_t buffer_id,
-                    int64_t buffer_pts) override;
-  bool FlushInputBuffers() override;
-  bool DidFlushBuffersDone() override;
+  virtual bool DecodeBuffer(const void* buffer, size_t buffer_size,
+                            const int32_t buffer_id, int64_t buffer_pts)
+      override;
+  virtual bool FlushInputBuffers() override;
+  virtual bool DidFlushBuffersDone() override;
 
-  void EnqueueBuffers() override;
-  void DequeueBuffers() override;
-  void ReusePictureBuffer(int32_t pic_buffer_id) override;
+  virtual void EnqueueBuffers() override;
+  virtual void DequeueBuffers() override;
+  virtual void ReusePictureBuffer(int32_t pic_buffer_id) override;
 
-  void RunDecodeBufferTask(bool event_pending, bool has_output) override;
+  virtual void RunDecodeBufferTask(bool event_pending, bool has_output)
+      override;
 
-  void SetDecoderState(CodecState state) override;
-  bool GetCurrentInputBufferId(int32_t* buffer_id) override;
-  size_t GetFreeBuffersCount(QueueType queue_type) override;
-  bool AllocateOutputBuffers(
-      uint32_t buffer_count, std::vector<WritableBufferRef*>& output_buffers) override;
-  bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format) override;
-  void OnEGLImagesCreationCompleted() override;
-  void RunDecoderPostTask(PostTaskType task, bool value) override {}
+  virtual void SetDecoderState(CodecState state) override;
+  virtual bool GetCurrentInputBufferId(int32_t* buffer_id) override;
+  virtual size_t GetFreeBuffersCount(QueueType queue_type) override;
+  virtual bool AllocateOutputBuffers(
+      uint32_t buffer_count, std::vector<WritableBufferRef*> & output_buffers)
+      override;
+  virtual bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format) override;
+  virtual void OnEGLImagesCreationCompleted() override;
+  virtual void RunDecoderPostTask(PostTaskType task, bool value) override {}
   #if defined (ENABLE_REACQUIRE)
   void SetResolutionChangeCb(ResolutionChangeCb cb) override;
   #endif

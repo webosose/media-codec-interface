@@ -109,24 +109,24 @@ class V4L2BufferRefBase {
 /* V4L2ReadableBuffer */
 class V4L2ReadableBuffer : public ReadableBuffer {
  public:
-  const void* GetPlaneBuffer(const size_t plane) const override;
-  bool IsLast() const override;
-  size_t GetBytesUsed(size_t plane) const override;
-  struct timeval GetTimeStamp() const override;
-  size_t BufferIndex() const override;
+  virtual const void* GetPlaneBuffer(const size_t plane) const override;
+  virtual bool IsLast() const override;
+  virtual size_t GetBytesUsed(size_t plane) const override;
+  virtual struct timeval GetTimeStamp() const override;
+  virtual size_t BufferIndex() const override;
 
-  size_t GetDataOffset(size_t plane) const override;
-  bool IsKeyframe() const override;
+  virtual size_t GetDataOffset(size_t plane) const override;
+  virtual bool IsKeyframe() const override;
 
-  size_t PlanesCount() const override;
-  void SetFlags(uint32_t flags) override;
-  uint32_t GetFlags() const override;
+  virtual size_t PlanesCount() const override;
+  virtual void SetFlags(uint32_t flags) override;
+  virtual uint32_t GetFlags() const override;
 
  private:
   V4L2ReadableBuffer(const struct v4l2_buffer& buffer,
                      V4L2Queue* queue,
                      scoped_refptr<VideoFrame> video_frame);
-  ~V4L2ReadableBuffer() = default;
+  virtual ~V4L2ReadableBuffer() = default;
 
   friend class V4L2BufferRefFactory;
 
@@ -140,18 +140,19 @@ class V4L2WritableBufferRef : public WritableBufferRef {
   V4L2WritableBufferRef(V4L2WritableBufferRef&& other);
   V4L2WritableBufferRef() = delete;
   V4L2WritableBufferRef& operator=(V4L2WritableBufferRef&& other);
-  ~V4L2WritableBufferRef() override {}
+  virtual ~V4L2WritableBufferRef() override {}
 
   /* WritableBufferRef override */
-  void* GetPlaneBuffer(const size_t plane) override;
-  size_t GetBufferSize(const size_t plane) const override;
-  void SetBufferSize(const size_t plane, const size_t length) override;
-  size_t GetBytesUsed(const size_t plane) const override;
-  void SetBytesUsed(const size_t plane, const size_t bytes_used) override;
-  struct timeval GetTimeStamp() const override;
-  void SetTimeStamp(const struct timeval& timestamp) override;
-  size_t BufferIndex() const override;
-  scoped_refptr<VideoFrame> GetVideoFrame() override;
+  virtual void* GetPlaneBuffer(const size_t plane) override;
+  virtual size_t GetBufferSize(const size_t plane) const override;
+  virtual void SetBufferSize(const size_t plane, const size_t length) override;
+  virtual size_t GetBytesUsed(const size_t plane) const override;
+  virtual void SetBytesUsed(const size_t plane, const size_t bytes_used)
+      override;
+  virtual struct timeval GetTimeStamp() const override;
+  virtual void SetTimeStamp(const struct timeval& timestamp) override;
+  virtual size_t BufferIndex() const override;
+  virtual scoped_refptr<VideoFrame> GetVideoFrame() override;
 
   bool QueueMMap() &&;
   bool QueueUserPtr() &&;
