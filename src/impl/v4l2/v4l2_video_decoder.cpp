@@ -1013,7 +1013,6 @@ void V4L2VideoDecoder::FinishResolutionChange() {
     return;
   }
 
-  bool ignore_resolution_change = coded_size_.IsEmpty();
   if (!CreateBuffersForFormat(format, visible_size)) {
     MCIL_ERROR_PRINT(": Couldn't reallocate buffers after resolution change");
     NOTIFY_ERROR(PLATFORM_FAILURE);
@@ -1021,6 +1020,7 @@ void V4L2VideoDecoder::FinishResolutionChange() {
   }
 
   #if defined (ENABLE_REACQUIRE)
+  bool ignore_resolution_change = coded_size_.IsEmpty();
   if (resolution_change_cb_ && !ignore_resolution_change)
     resolution_change_cb_(coded_size_.width, coded_size_.height);
   #endif

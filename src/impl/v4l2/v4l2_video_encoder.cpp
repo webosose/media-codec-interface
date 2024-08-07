@@ -751,7 +751,6 @@ bool V4L2VideoEncoder::DequeueInputBuffer() {
 }
 
 bool V4L2VideoEncoder::EnqueueOutputBuffer(V4L2WritableBufferRef buffer) {
-  size_t buffer_index = buffer.BufferIndex();
   bool ret = false;
   switch (buffer.Memory()) {
     case V4L2_MEMORY_MMAP:
