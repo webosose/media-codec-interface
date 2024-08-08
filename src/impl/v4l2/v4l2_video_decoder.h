@@ -165,7 +165,7 @@ class V4L2VideoDecoder : public VideoDecoder {
 
 #define IOCTL_OR_ERROR_RETURN_VALUE(type, arg, value, error_str) \
   do { \
-    if (device_->Ioctl(type, arg) != 0) { \
+    if (device_->Ioctl((type), (arg)) != 0) { \
       MCIL_ERROR_PRINT(": ioctl() failed: %s", error_str); \
       NOTIFY_ERROR(PLATFORM_FAILURE); \
       return value; \
@@ -173,7 +173,7 @@ class V4L2VideoDecoder : public VideoDecoder {
   } while (0)
 
 #define IOCTL_OR_ERROR_RETURN_FALSE(type, arg) \
-  IOCTL_OR_ERROR_RETURN_VALUE(type, arg, false, #type)
+  IOCTL_OR_ERROR_RETURN_VALUE((type), (arg), false, #type)
 
 }  // namespace mcil
 

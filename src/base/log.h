@@ -46,17 +46,6 @@ std::string BaseFile(const char* file_path);
 #endif
 
 #define MCIL_LOG_OBJ_SET(OBJ__) PmLogContext GetPmLogContext_##OBJ__()
-#define MCIL_LOG_OBJ_CRITICAL(OBJ__, ...) \
-    PmLogCritical(GetPmLogContext_##OBJ__(), ##__VA_ARGS__)
-#define MCIL_LOG_OBJ_ERROR(OBJ__, ...) \
-    PmLogError(GetPmLogContext_##OBJ__(), ##__VA_ARGS__)
-#define MCIL_LOG_OBJ_WARNING(OBJ__, ...) \
-    PmLogWarning(GetPmLogContext_##OBJ__(), ##__VA_ARGS__)
-#define MCIL_LOG_OBJ_INFO(OBJ__, ...) \
-    PmLogInfo(GetPmLogContext_##OBJ__(), ##__VA_ARGS__)
-#define MCIL_LOG_OBJ_DEBUG(OBJ__, FORMAT__, ...) \
-    PmLogDebug(GetPmLogContext_##OBJ__(), \
-    "%s:[%d]:%s" FORMAT__, BaseFile(__FILE__).c_str(), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 
 /* Info Print */
 #define MCIL_INFO_PRINT MCIL_LOG_INFO

@@ -142,18 +142,18 @@ class V4L2VideoEncoder : public VideoEncoder {
 
 #define IOCTL_OR_ERROR_RETURN_VALUE(type, arg, value, error_str) \
   do { \
-    if (device_->Ioctl(type, arg) != 0) { \
+    if (device_->Ioctl((type), (arg)) != 0) { \
       MCIL_ERROR_PRINT(": ioctl() failed: %s", error_str); \
       NOTIFY_ERROR(kPlatformFailureError); \
-      return value; \
+      return (value); \
     } \
   } while (0)
 
 #define IOCTL_OR_ERROR_RETURN(type, arg) \
-  IOCTL_OR_ERROR_RETURN_VALUE(type, arg, ((void)0), #type)
+  IOCTL_OR_ERROR_RETURN_VALUE((type), (arg), ((void)0), #type)
 
 #define IOCTL_OR_ERROR_RETURN_FALSE(type, arg) \
-  IOCTL_OR_ERROR_RETURN_VALUE(type, arg, false, #type)
+  IOCTL_OR_ERROR_RETURN_VALUE((type), (arg), false, #type)
 
 }  // namespace mcil
 

@@ -65,7 +65,7 @@
 
 #define GUARDED_BY(x) THREAD_ANNOTATION_ATTRIBUTE__(guarded_by(x))
 
-#define ARRAY_SIZE(x) sizeof(x)/sizeof(x[0])
+#define ARRAY_SIZE(x) sizeof((x))/sizeof((x)[0])
 
 // GL_OES_EGL_image_external
 #define GL_TEXTURE_EXTERNAL_OES 0x8D65
