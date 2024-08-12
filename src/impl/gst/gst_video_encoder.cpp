@@ -69,7 +69,7 @@ GstVideoEncoder::~GstVideoEncoder() {
 bool GstVideoEncoder::Initialize(const EncoderConfig* config_data,
                                   VideoEncoderClient* client,
                                   EncoderClientConfig* client_config,
-                                  int venc_port_index) {
+                                  int32_t venc_port_index) {
   client_ = client;
   if (!client_) {
     MCIL_ERROR_PRINT(" Delegate not provided");

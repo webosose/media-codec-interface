@@ -108,7 +108,7 @@ Optional<Rect> V4L2Queue::GetVisibleRect() {
   return nullopt;
 }
 
-std::pair<Optional<struct v4l2_format>, int> V4L2Queue::GetFormat() {
+std::pair<Optional<struct v4l2_format>, int32_t > V4L2Queue::GetFormat() {
   struct v4l2_format format;
   memset(&format, 0, sizeof(format));
   format.type = buffer_type_;
@@ -118,7 +118,7 @@ std::pair<Optional<struct v4l2_format>, int> V4L2Queue::GetFormat() {
     return std::make_pair(nullopt, errno);
   }
 
-  return std::make_pair(format, 0);
+  return std::make_pair(format, static_cast<int32_t>(0));
 }
 
 Optional<struct v4l2_format> V4L2Queue::SetFormat(uint32_t fourcc,
@@ -140,8 +140,8 @@ bool V4L2Queue::StreamOn() {
   if (is_streaming_)
     return true;
 
-  int arg = static_cast<int>(buffer_type_);
-  int ret = device_->Ioctl(VIDIOC_STREAMON, &arg);
+  int32_t  arg = static_cast<int32_t >(buffer_type_);
+  int32_t  ret = device_->Ioctl(VIDIOC_STREAMON, &arg);
   if (ret) {
     MCIL_ERROR_PRINT(": VIDIOC_STREAMON Failed");
     return false;
@@ -152,8 +152,8 @@ bool V4L2Queue::StreamOn() {
 }
 
 bool V4L2Queue::StreamOff() {
-  int arg = static_cast<int>(buffer_type_);
-  int ret = device_->Ioctl(VIDIOC_STREAMOFF, &arg);
+  int32_t  arg = static_cast<int32_t >(buffer_type_);
+  int32_t  ret = device_->Ioctl(VIDIOC_STREAMOFF, &arg);
   if (ret) {
     MCIL_ERROR_PRINT(": VIDIOC_STREAMOFF Failed");
     return false;
@@ -202,7 +202,7 @@ size_t V4L2Queue::AllocateBuffers(size_t count, enum v4l2_memory memory) {
   reqbufs.type = buffer_type_;
   reqbufs.memory = memory;
 
-  int ret = device_->Ioctl(VIDIOC_REQBUFS, &reqbufs);
+  int32_t  ret = device_->Ioctl(VIDIOC_REQBUFS, &reqbufs);
   if (ret) {
     MCIL_ERROR_PRINT(": VIDIOC_REQBUFS Failed, %s", strerror(errno));
     return 0;
@@ -248,7 +248,7 @@ bool V4L2Queue::DeallocateBuffers() {
   reqbufs.type = buffer_type_;
   reqbufs.memory = memory_;
 
-  int ret = device_->Ioctl(VIDIOC_REQBUFS, &reqbufs);
+  int32_t  ret = device_->Ioctl(VIDIOC_REQBUFS, &reqbufs);
   if (ret) {
     MCIL_DEBUG_PRINT(": VIDIOC_REQBUFS errno(%d)", errno);
     return false;
@@ -318,7 +318,7 @@ std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
   v4l2_buf.memory = memory_;
   v4l2_buf.m.planes = planes;
   v4l2_buf.length = planes_count_;
-  int ret = device_->Ioctl(VIDIOC_DQBUF, &v4l2_buf);
+  int32_t ret = device_->Ioctl(VIDIOC_DQBUF, &v4l2_buf);
   if (ret) {
     switch (errno) {
       case EAGAIN:
@@ -348,7 +348,7 @@ std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
 
 bool V4L2Queue::QueueBuffer(struct v4l2_buffer* v4l2_buffer,
                             scoped_refptr<VideoFrame> video_frame) {
-  int ret = device_->Ioctl(VIDIOC_QBUF, v4l2_buffer);
+  int32_t  ret = device_->Ioctl(VIDIOC_QBUF, v4l2_buffer);
   if (ret) {
     if (buffer_type_ == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
         v4l2_buffer->m.planes->length < 2048)

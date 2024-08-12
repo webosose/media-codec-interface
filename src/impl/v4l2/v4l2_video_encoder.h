@@ -27,7 +27,7 @@ class V4L2VideoEncoder : public VideoEncoder {
   bool Initialize(const EncoderConfig* config,
                   VideoEncoderClient* client,
                   EncoderClientConfig* client_config,
-                  int venc_port_index) override;
+                  int32_t venc_port_index) override;
   void Destroy() override;
   bool IsFlushSupported() override;
   bool EncodeFrame(scoped_refptr<VideoFrame> frame,

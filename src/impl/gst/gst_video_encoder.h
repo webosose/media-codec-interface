@@ -36,7 +36,7 @@ class GstVideoEncoder : public VideoEncoder {
   bool Initialize(const EncoderConfig* config,
                   VideoEncoderClient* client,
                   EncoderClientConfig* client_config,
-                  int venc_port_index) override;
+                  int32_t venc_port_index) override;
   void Destroy() override;
   bool EncodeBuffer(const uint8_t* yBuf, size_t ySize,
                     const uint8_t* uBuf, size_t uSize,

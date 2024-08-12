@@ -31,7 +31,7 @@ class VideoEncoder : public RefCounted<VideoEncoder> {
   virtual bool Initialize(const EncoderConfig* configData,
                           VideoEncoderClient* client,
                           EncoderClientConfig* client_config,
-                          int venc_port_index) = 0;
+                          int32_t venc_port_index) = 0;
   virtual void Destroy() = 0;
   virtual bool IsFlushSupported() = 0;
   virtual bool EncodeFrame(scoped_refptr<VideoFrame> frame,

@@ -53,7 +53,7 @@ V4L2VideoEncoder::~V4L2VideoEncoder() {
 bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
                                   VideoEncoderClient* client,
                                   EncoderClientConfig* client_config,
-                                  int venc_port_index) {
+                                  int32_t venc_port_index) {
   MCIL_DEBUG_PRINT(": profile[%d], resource index[%d] size[%dx%d]",
       config->profile, venc_port_index, config->width, config->height);
 
@@ -278,7 +278,7 @@ void V4L2VideoEncoder::SendStartCommand(bool start) {
 void V4L2VideoEncoder::SetEncoderState(CodecState state) {
   if (encoder_state_ != state) {
     MCIL_DEBUG_PRINT(": encoder_state_ [%d -> %d]",
-        static_cast<int>(encoder_state_), static_cast<int>(state));
+        static_cast<int32_t>(encoder_state_), static_cast<int32_t>(state));
     encoder_state_ = state;
   }
 }

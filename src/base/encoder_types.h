@@ -40,8 +40,8 @@ class EncoderConfig {
 
   uint32_t frameRate;
   uint32_t bitRate;
-  int width;
-  int height;
+  int32_t width;
+  int32_t height;
   VideoPixelFormat pixelFormat;
   size_t outputBufferSize;
   uint8_t h264OutputLevel;

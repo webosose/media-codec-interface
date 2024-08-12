@@ -21,24 +21,24 @@ class GenericV4L2Device : public V4L2Device {
 
   // V4L2Device implementation.
   bool Open(DeviceType type, uint32_t v4l2_pixfmt) override;
-  int Ioctl(int request, void* arg) override;
+  int32_t Ioctl(int32_t request, void* arg) override;
   bool Poll(bool poll_device, bool* event_pending) override;
   bool SetDevicePollInterrupt() override;
   bool ClearDevicePollInterrupt() override;
   void* Mmap(void* addr,
-             unsigned int len,
-             int prot,
-             int flags,
-             unsigned int offset) override;
-  void Munmap(void* addr, unsigned int len) override;
+             uint32_t len,
+             int32_t prot,
+             int32_t flags,
+             uint32_t offset) override;
+  void Munmap(void* addr, uint32_t len) override;
 
   std::vector<int32_t> GetDmabufsForV4L2Buffer(
-      int index,
+      int32_t index,
       size_t num_planes,
       enum v4l2_buf_type buf_type) override;
 
   bool CanCreateEGLImageFrom(const Fourcc fourcc) const override;
-  unsigned int GetTextureTarget() const override;
+  uint32_t GetTextureTarget() const override;
 
   SupportedProfiles GetSupportedDecodeProfiles() override;
   SupportedProfiles GetSupportedEncodeProfiles() override;

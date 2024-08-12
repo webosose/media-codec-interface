@@ -138,7 +138,8 @@ scoped_refptr<VideoFrame> V4L2Buffer::CreateVideoFrame() {
   while (video_frame->dmabuf_fds.size() != video_frame->color_planes.size()) {
     int32_t duped_fd = -1;
     if (video_frame->dmabuf_fds.back() != 0) {
-      duped_fd = HANDLE_EINTR(dup(video_frame->dmabuf_fds.back()));
+      duped_fd = HANDLE_EINTR(
+          static_cast<int32_t>(dup(video_frame->dmabuf_fds.back())));
       if (duped_fd == -1) {
         MCIL_ERROR_PRINT(": Failed duplicating dmabuf fd");
         return nullptr;
@@ -400,7 +401,7 @@ bool V4L2WritableBufferRef::QueueUserPtr(const std::vector<void*>& ptrs) && {
 
   for (size_t i = 0; i < ptrs.size(); i++) {
     self.buffer_data_->v4l2_buffer_.m.planes[i].m.userptr =
-        reinterpret_cast<unsigned long>(ptrs[i]);
+        reinterpret_cast<uint64_t>(ptrs[i]);
   }
 
   return std::move(self).DoQueue(nullptr);

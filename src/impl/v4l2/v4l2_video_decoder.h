@@ -31,7 +31,7 @@ class V4L2VideoDecoder : public VideoDecoder {
   bool Initialize(const DecoderConfig* config,
                   VideoDecoderClient* client,
                   DecoderClientConfig* client_config,
-                  int vdec_port_index) override;
+                  int32_t vdec_port_index) override;
   void Destroy() override;
   bool ResetInputBuffer() override;
   bool ResetDecodingBuffers(bool* reset_pending) override;
@@ -83,7 +83,7 @@ class V4L2VideoDecoder : public VideoDecoder {
 
   virtual bool SubscribeEvents();
   virtual bool UnsubscribeEvents();
-  virtual int DequeueResolutionChangeEvent();
+  virtual int32_t DequeueResolutionChangeEvent();
 
   virtual bool AllocateInputBuffers();
   virtual bool CreateOutputBuffers();
@@ -136,7 +136,7 @@ class V4L2VideoDecoder : public VideoDecoder {
   Size coded_size_;
   Size visible_size_;
 
-  int output_dpb_size_ = 0;
+  int32_t output_dpb_size_ = 0;
 
   DecoderConfig decoder_config_ = {0};
 

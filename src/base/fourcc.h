@@ -11,7 +11,7 @@
 namespace mcil {
 
 // Composes a Fourcc value.
-constexpr uint32_t ComposeFourcc(char a, char b, char c, char d) {
+constexpr uint32_t ComposeFourcc(uint8_t a, uint8_t b, uint8_t c, uint8_t d) {
   return static_cast<uint32_t>(a) | (static_cast<uint32_t>(b) << 8) |
          (static_cast<uint32_t>(c) << 16) | (static_cast<uint32_t>(d) << 24);
 }

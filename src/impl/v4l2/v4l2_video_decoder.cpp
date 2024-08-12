@@ -47,7 +47,7 @@ V4L2VideoDecoder::~V4L2VideoDecoder() {
 bool V4L2VideoDecoder::Initialize(const DecoderConfig* config,
                                   VideoDecoderClient* client,
                                   DecoderClientConfig* client_config,
-                                  int vdec_port_index) {
+                                  int32_t vdec_port_index) {
   MCIL_DEBUG_PRINT(": resource index received: %d", vdec_port_index);
 
   client_ = client;
@@ -247,11 +247,11 @@ bool V4L2VideoDecoder::DidFlushBuffersDone() {
 
 void V4L2VideoDecoder::EnqueueBuffers() {
   if (client_->IsDestroyPending() || decoder_state_ == kChangingResolution) {
-    MCIL_DEBUG_PRINT(": state[%d]", static_cast<int>(decoder_state_));
+    MCIL_DEBUG_PRINT(": state[%d]", static_cast<int32_t>(decoder_state_));
     return;
   }
 
-  const int old_inputs_queued = input_queue_->QueuedBuffersCount();
+  const int32_t old_inputs_queued = input_queue_->QueuedBuffersCount();
   while (!input_ready_queue_.empty()) {
     bool flush_handled = false;
     int32_t input_id = input_ready_queue_.front().GetBufferId();
@@ -296,7 +296,7 @@ void V4L2VideoDecoder::EnqueueBuffers() {
   if (!input_queue_->IsStreaming())
     return;
 
-  const int old_outputs_queued = output_queue_->QueuedBuffersCount();
+  const int32_t old_outputs_queued = output_queue_->QueuedBuffersCount();
 
   client_->CheckGLFences();
   while (auto buffer_opt = output_queue_->GetFreeBuffer()) {
@@ -382,7 +382,7 @@ void V4L2VideoDecoder::RunDecodeBufferTask(bool event_pending, bool) {
 void V4L2VideoDecoder::SetDecoderState(CodecState state) {
   if (decoder_state_ != state) {
     MCIL_DEBUG_PRINT(": decoder_state_ [%d -> %d]",
-        static_cast<int>(decoder_state_), static_cast<int>(state));
+        static_cast<int32_t>(decoder_state_), static_cast<int32_t>(state));
     decoder_state_ = state;
   }
 }
@@ -641,7 +641,7 @@ bool V4L2VideoDecoder::UnsubscribeEvents() {
   return true;
 }
 
-int V4L2VideoDecoder::DequeueResolutionChangeEvent() {
+int32_t V4L2VideoDecoder::DequeueResolutionChangeEvent() {
   while (Optional<struct v4l2_event> event = v4l2_device_->DequeueEvent()) {
     if (event->type == V4L2_EVENT_SOURCE_CHANGE) {
       if (event->u.src_change.changes & V4L2_EVENT_SRC_CH_RESOLUTION) {

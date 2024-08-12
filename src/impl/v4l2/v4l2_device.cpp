@@ -138,10 +138,10 @@ Size V4L2Device::AllocatedSizeFromV4L2Format(const struct v4l2_format& format) {
                                 : PIXEL_FORMAT_UNKNOWN;
   }
 
-  int plane_horiz_bits_per_pixel =
+  int32_t plane_horiz_bits_per_pixel =
       VideoFrame::PlaneHorizontalBitsPerPixel(frame_format, 0);
 
-  int total_bpp = 0;
+  int32_t total_bpp = 0;
   for (size_t i = 0; i < VideoFrame::NumPlanes(frame_format); ++i)
     total_bpp += VideoFrame::PlaneBitsPerPixel(frame_format, i);
 
@@ -151,9 +151,9 @@ Size V4L2Device::AllocatedSizeFromV4L2Format(const struct v4l2_format& format) {
     return coded_size;
   }
 
-  int coded_width = bytesperline * 8 / plane_horiz_bits_per_pixel;
+  int32_t coded_width = bytesperline * 8 / plane_horiz_bits_per_pixel;
   std::div_t res = std::div(sizeimage * 8, coded_width * total_bpp);
-  int coded_height = res.quot + std::min(res.rem, 1);
+  int32_t coded_height = res.quot + std::min(res.rem, 1);
 
   coded_size.SetSize(coded_width, coded_height);
   MCIL_DEBUG_PRINT(" coded_size= %dx%d", coded_size.width, coded_size.height);
@@ -282,7 +282,8 @@ scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
   for (size_t i = 0; i < num_buffers; ++i) {
     const v4l2_plane_pix_format& plane_format = pix_mp.plane_fmt[i];
     video_frame->color_planes.emplace_back(
-        static_cast<int32_t>(plane_format.bytesperline), 0u,
+        static_cast<int32_t>(plane_format.bytesperline),
+        static_cast<uint32_t>(0u),
         plane_format.sizeimage);
   }
   if (num_color_planes > num_buffers) {
@@ -401,7 +402,7 @@ uint8_t V4L2Device::GetSupportedRateControlMode() {
   memset(&query_menu, 0, sizeof(query_menu));
   query_menu.id = query_ctrl.id;
   for (query_menu.index = query_ctrl.minimum;
-       static_cast<int>(query_menu.index) <= query_ctrl.maximum;
+       static_cast<int32_t >(query_menu.index) <= query_ctrl.maximum;
        query_menu.index++) {
     if (Ioctl(VIDIOC_QUERYMENU, &query_menu) == 0) {
       switch (query_menu.index) {
@@ -478,7 +479,7 @@ std::vector<VideoCodecProfile> V4L2Device::V4L2PixFmtToVideoCodecProfiles(
     memset(&query_menu, 0, sizeof(query_menu));
     query_menu.id = query_ctrl.id;
     for (query_menu.index = query_ctrl.minimum;
-         static_cast<int>(query_menu.index) <= query_ctrl.maximum;
+         static_cast<int32_t >(query_menu.index) <= query_ctrl.maximum;
          query_menu.index++) {
       if (Ioctl(VIDIOC_QUERYMENU, &query_menu) == 0) {
         const VideoCodecProfile profile =

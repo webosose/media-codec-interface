@@ -16,7 +16,6 @@ namespace mcil {
 class V4L2Buffer;
 class V4L2BuffersList;
 class V4L2Queue;
-class V4L2WritableBufferRef;
 
 class V4L2Device : public RefCounted<V4L2Device> {
  public:
@@ -31,17 +30,17 @@ class V4L2Device : public RefCounted<V4L2Device> {
       const struct v4l2_format& format);
 
   virtual bool Open(DeviceType type, uint32_t v4l2_pixfmt) = 0;
-  virtual int Ioctl(int request, void* arg) = 0;
+  virtual int32_t  Ioctl(int32_t  request, void* arg) = 0;
   virtual bool Poll(bool poll_device, bool* event_pending) = 0;
   virtual bool SetDevicePollInterrupt() = 0;
   virtual bool ClearDevicePollInterrupt() = 0;
-  virtual void* Mmap(void* addr, unsigned int len, int prot, int flags,
-                     unsigned int offset) = 0;
-  virtual void Munmap(void* addr, unsigned int len) = 0;
+  virtual void* Mmap(void* addr, uint32_t len, int32_t prot, int32_t flags,
+                     uint32_t offset) = 0;
+  virtual void Munmap(void* addr, uint32_t len) = 0;
   virtual std::vector<int32_t> GetDmabufsForV4L2Buffer(
-      int index, size_t num_planes, enum v4l2_buf_type buffer_type) = 0;
+  int32_t  index, size_t num_planes, enum v4l2_buf_type buffer_type) = 0;
   virtual bool CanCreateEGLImageFrom(const Fourcc fourcc) const = 0;
-  virtual unsigned int GetTextureTarget() const = 0;
+  virtual uint32_t GetTextureTarget() const = 0;
   virtual SupportedProfiles GetSupportedDecodeProfiles() = 0;
   virtual SupportedProfiles GetSupportedEncodeProfiles() = 0;
   virtual void EnumerateDevicesForType(DeviceType type) = 0;

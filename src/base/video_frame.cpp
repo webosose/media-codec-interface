@@ -109,7 +109,7 @@ size_t VideoFrame::NumPlanes(VideoPixelFormat pixel_format) {
 }
 
 // static
-int VideoFrame::BytesPerElement(VideoPixelFormat format, size_t plane) {
+int32_t VideoFrame::BytesPerElement(VideoPixelFormat format, size_t plane) {
   switch (format) {
     case PIXEL_FORMAT_RGBAF16:
       return 8;
@@ -138,14 +138,14 @@ int VideoFrame::BytesPerElement(VideoPixelFormat format, size_t plane) {
       return 2;
     case PIXEL_FORMAT_NV12:
     case PIXEL_FORMAT_NV21: {
-      static const int bytes_per_element[] = {1, 2};
+      static const int32_t bytes_per_element[] = {1, 2};
       if (plane < 2)
         return bytes_per_element[plane];
 
       return 0;
     }
     case PIXEL_FORMAT_P016LE: {
-      static const int bytes_per_element[] = {1, 2};
+      static const int32_t bytes_per_element[] = {1, 2};
       if (plane < 2)
         return bytes_per_element[plane] * 2;
 
@@ -207,15 +207,15 @@ Size VideoFrame::SampleSize(VideoPixelFormat format, size_t plane) {
 }
 
 // static
-int VideoFrame::PlaneHorizontalBitsPerPixel(VideoPixelFormat format,
+int32_t VideoFrame::PlaneHorizontalBitsPerPixel(VideoPixelFormat format,
                                             size_t plane) {
-  const int bits_per_element = 8 * BytesPerElement(format, plane);
-  const int horiz_pixels_per_element = SampleSize(format, plane).width;
+  const int32_t bits_per_element = 8 * BytesPerElement(format, plane);
+  const int32_t horiz_pixels_per_element = SampleSize(format, plane).width;
   return bits_per_element / horiz_pixels_per_element;
 }
 
 // static
-int VideoFrame::PlaneBitsPerPixel(VideoPixelFormat format, size_t plane) {
+int32_t VideoFrame::PlaneBitsPerPixel(VideoPixelFormat format, size_t plane) {
   return PlaneHorizontalBitsPerPixel(format, plane) /
          SampleSize(format, plane).height;
 }
@@ -242,8 +242,8 @@ Size VideoFrame::PlaneSize(VideoPixelFormat format,
 Size VideoFrame::PlaneSizeInSamples(VideoPixelFormat format,
                                     size_t plane,
                                     const Size& coded_size) {
-  int width = coded_size.width;
-  int height = coded_size.height;
+  int32_t width = coded_size.width;
+  int32_t height = coded_size.height;
 
   if (RequiresEvenSizeAllocation(format)) {
     // Align to power of 2.

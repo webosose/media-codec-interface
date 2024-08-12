@@ -38,11 +38,11 @@ class VideoFrame : public RefCounted<VideoFrame> {
   };
 
   static size_t NumPlanes(VideoPixelFormat video_format);
-  static int BytesPerElement(VideoPixelFormat format, size_t plane);
+  static int32_t BytesPerElement(VideoPixelFormat format, size_t plane);
   static Size SampleSize(VideoPixelFormat format, size_t plane);
-  static int PlaneHorizontalBitsPerPixel(VideoPixelFormat format,
+  static int32_t PlaneHorizontalBitsPerPixel(VideoPixelFormat format,
                                          size_t plane);
-  static int PlaneBitsPerPixel(VideoPixelFormat format, size_t plane);
+  static int32_t PlaneBitsPerPixel(VideoPixelFormat format, size_t plane);
   static size_t AllocationSize(VideoPixelFormat format,
                                const Size& coded_size);
   static Size PlaneSize(VideoPixelFormat format,

@@ -39,13 +39,13 @@ struct videoResData_t {
   VideoCodec vdecode;
   VideoCodec vencode;
 
-  int width;
-  int height;
-  int frameRate;
-  int escanType;
-  int e3DType;
-  int parWidth;  // pixel-aspect-ratio width
-  int parHeight; // pixel-aspect-ratio height
+  int32_t width;
+  int32_t height;
+  int32_t frameRate;
+  int32_t escanType;
+  int32_t e3DType;
+  int32_t parWidth;  // pixel-aspect-ratio width
+  int32_t parHeight; // pixel-aspect-ratio height
 };
 
 struct stream_info_t {
@@ -79,7 +79,7 @@ struct source_info_t {
 typedef std::function<void()> Functor;
 typedef std::function<bool(int32_t)> PlaneIDFunctor;
 typedef mrc::ResourceCalculator MRC;
-typedef std::multimap<std::string, int> PortResource_t;
+typedef std::multimap<std::string, int32_t> PortResource_t;
 
 class ResourceRequestor {
  public:
@@ -119,9 +119,9 @@ class ResourceRequestor {
   bool ParseResources(const std::string& payload, std::string& resources);
 
   // translate enum type from omx player to resource calculator
-  int TranslateVideoCodec(const VideoCodec vcodec) const;
-  int TranslateScanType(const int escanType) const;
-  int Translate3DType(const int e3DType) const;
+  int32_t TranslateVideoCodec(const VideoCodec vcodec) const;
+  int32_t TranslateScanType(const int32_t escanType) const;
+  int32_t Translate3DType(const int32_t e3DType) const;
 
   mrc::ResourceListOptions CalcVdecResources();
   mrc::ResourceListOptions CalcVencResources();

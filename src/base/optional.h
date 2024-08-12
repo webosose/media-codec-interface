@@ -12,7 +12,7 @@
 namespace mcil {
 
 struct nullopt_t {
-  constexpr explicit nullopt_t(int) {}
+  constexpr explicit nullopt_t(int32_t) {}
 #if !defined(__clang__)
   nullopt_t() {}
   operator int() const { return 0; }
@@ -340,7 +340,7 @@ using std::swap;
 
 struct IsSwappableImpl {
   template <typename T>
-  static auto Check(int)
+  static auto Check(int32_t)
       -> decltype(swap(std::declval<T>(), std::declval<T>()), std::true_type());
 
   template <typename T>

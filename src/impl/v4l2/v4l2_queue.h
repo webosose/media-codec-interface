@@ -26,7 +26,7 @@ class V4L2Queue : public RefCounted<V4L2Queue> {
                                          V4L2BufferDestroyCb destroy_cb);
 
   virtual Optional<Rect> GetVisibleRect();
-  virtual std::pair<Optional<struct v4l2_format>, int> GetFormat();
+  virtual std::pair<Optional<struct v4l2_format>, int32_t> GetFormat();
   virtual Optional<struct v4l2_format> SetFormat(uint32_t fourcc,
                                                  const Size& size,
                                                  size_t buffer_size);

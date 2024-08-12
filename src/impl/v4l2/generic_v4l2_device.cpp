@@ -84,19 +84,19 @@ bool GenericV4L2Device::Open(DeviceType type, uint32_t v4l2_pixfmt) {
   return true;
 }
 
-int GenericV4L2Device::Ioctl(int request, void* arg) {
+int32_t GenericV4L2Device::Ioctl(int32_t request, void* arg) {
   if (device_fd_ == -1) {
     MCIL_DEBUG_PRINT(": Invalid device_fd_[%d]", device_fd_);
     return 0;
   }
 
-  return HANDLE_EINTR(ioctl(device_fd_, request, arg));
+  return HANDLE_EINTR(static_cast<int32_t>(ioctl(device_fd_, request, arg)));
 }
 
 bool GenericV4L2Device::Poll(bool poll_device, bool* event_pending) {
   struct pollfd pollfds[2];
   nfds_t nfds;
-  int poll_fd = -1;
+  int32_t poll_fd = -1;
 
   pollfds[0].fd = device_poll_interrupt_fd_;
   pollfds[0].events = POLLIN | POLLERR;
@@ -111,7 +111,7 @@ bool GenericV4L2Device::Poll(bool poll_device, bool* event_pending) {
     nfds++;
   }
 
-  if (HANDLE_EINTR(poll(pollfds, nfds, -1)) == -1) {
+  if (HANDLE_EINTR(static_cast<int32_t>(poll(pollfds, nfds, -1))) == -1) {
     MCIL_ERROR_PRINT(": poll() failed");
     return false;
   }
@@ -144,17 +144,17 @@ bool GenericV4L2Device::ClearDevicePollInterrupt() {
   return true;
 }
 
-void* GenericV4L2Device::Mmap(void* addr, unsigned int len, int prot,
-                              int flags, unsigned int offset) {
+void* GenericV4L2Device::Mmap(void* addr, uint32_t len, int32_t prot,
+                              int32_t flags, uint32_t offset) {
   return mmap(addr, len, prot, flags, device_fd_, offset);
 }
 
-void GenericV4L2Device::Munmap(void* addr, unsigned int len) {
+void GenericV4L2Device::Munmap(void* addr, uint32_t len) {
   munmap(addr, len);
 }
 
 std::vector<int32_t> GenericV4L2Device::GetDmabufsForV4L2Buffer(
-    int index,
+    int32_t index,
     size_t num_planes,
     enum v4l2_buf_type buffer_type) {
   std::vector<int32_t> dmabuf_fds;
@@ -193,7 +193,7 @@ bool GenericV4L2Device::CanCreateEGLImageFrom(const Fourcc fourcc) const {
          kEGLImageDrmFmtsSupported + ARRAY_SIZE(kEGLImageDrmFmtsSupported);
 }
 
-unsigned int GenericV4L2Device::GetTextureTarget() const {
+uint32_t GenericV4L2Device::GetTextureTarget() const {
   return GL_TEXTURE_EXTERNAL_OES;
 }
 
@@ -318,8 +318,8 @@ bool GenericV4L2Device::OpenDevice(const std::string& path, DeviceType type) {
     return true;
   }
 
-  device_fd_ =
-      HANDLE_EINTR(open(path.c_str(), O_RDWR | O_NONBLOCK | O_CLOEXEC));
+  device_fd_ = HANDLE_EINTR(static_cast<int32_t>(
+      open(path.c_str(), O_RDWR | O_NONBLOCK | O_CLOEXEC)));
   if (device_fd_ <= 0) {
     MCIL_ERROR_PRINT(": type[%d], path: %s Failed", type, path.c_str());
     return false;
@@ -332,7 +332,7 @@ bool GenericV4L2Device::OpenDevice(const std::string& path, DeviceType type) {
 
 void GenericV4L2Device::CloseDevice() {
   if (device_fd_ != -1) {
-    int ret = IGNORE_EINTR(close(device_fd_));
+    int32_t ret = IGNORE_EINTR(static_cast<int32_t>(close(device_fd_)));
     MCIL_DEBUG_PRINT(": Success FD [%d]", device_fd_);
     device_fd_ = -1;
   }

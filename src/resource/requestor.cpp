@@ -286,9 +286,9 @@ bool ResourceRequestor::ParsePortInformation(const std::string& payload,
     throw std::runtime_error("payload must have \"resources key\"");
   }
 
-  int res_arraysize = parsed["resources"].arraySize();
+  int32_t res_arraysize = parsed["resources"].arraySize();
 
-  for (int i=0; i < res_arraysize; ++i) {
+  for (int32_t i=0; i < res_arraysize; ++i) {
     std::string resourceName = parsed["resources"][i]["resource"].asString();
     int32_t value = parsed["resources"][i]["index"].asNumber<int32_t>();
     resourceMMap.insert(std::make_pair(resourceName, value));
@@ -319,7 +319,7 @@ bool ResourceRequestor::ParseResources(const std::string& payload,
   }
 
   pbnjson::JValue objArray = pbnjson::Array();
-  for (int i=0; i < parsed["resources"].arraySize(); ++i) {
+  for (int32_t i=0; i < parsed["resources"].arraySize(); ++i) {
     pbnjson::JValue obj = pbnjson::Object();
     obj.put("resource", parsed["resources"][i]["resource"].asString());
     obj.put("index", parsed["resources"][i]["index"].asNumber<int32_t>());
@@ -333,7 +333,7 @@ bool ResourceRequestor::ParseResources(const std::string& payload,
   return true;
 }
 
-int ResourceRequestor::TranslateVideoCodec(const VideoCodec vcodec) const {
+int32_t ResourceRequestor::TranslateVideoCodec(const VideoCodec vcodec) const {
   MRC::VideoCodec ev = MRC::kVideoEtc;
   switch (vcodec) {
     case VIDEO_CODEC_NONE:
@@ -354,10 +354,10 @@ int ResourceRequestor::TranslateVideoCodec(const VideoCodec vcodec) const {
       ev = MRC::kVideoH264;   break;
   }
 
-  return static_cast<int>(ev);
+  return static_cast<int32_t>(ev);
 }
 
-int ResourceRequestor::TranslateScanType(const int escanType) const {
+int32_t ResourceRequestor::TranslateScanType(const int32_t escanType) const {
   MRC::ScanType scan = MRC::kScanProgressive;
 
   switch (escanType) {
@@ -365,10 +365,10 @@ int ResourceRequestor::TranslateScanType(const int escanType) const {
       break;
   }
 
-  return static_cast<int>(scan);
+  return static_cast<int32_t>(scan);
 }
 
-int ResourceRequestor::Translate3DType(const int e3DType) const {
+int32_t ResourceRequestor::Translate3DType(const int32_t e3DType) const {
   MRC::_3DType my3d = MRC::k3DNone;
 
   switch (e3DType) {
@@ -377,7 +377,7 @@ int ResourceRequestor::Translate3DType(const int e3DType) const {
       break;
   }
 
-  return static_cast<int>(my3d);
+  return static_cast<int32_t>(my3d);
 }
 
 bool ResourceRequestor::SetSourceInfo(const source_info_t &sourceInfo) {
@@ -398,8 +398,8 @@ bool ResourceRequestor::SetSourceInfo(const source_info_t &sourceInfo) {
   videoResData_.vencode = (VideoCodec)video_stream_info.encode;
   videoResData_.vdecode = (VideoCodec)video_stream_info.decode;
   videoResData_.frameRate =
-  std::round(static_cast<float>(video_stream_info.frame_rate.num) /
-                 static_cast<float>(video_stream_info.frame_rate.den));
+  std::round(static_cast< float_t >(video_stream_info.frame_rate.num) /
+                 static_cast< float_t >(video_stream_info.frame_rate.den));
   videoResData_.escanType = 0;
 
   return true;

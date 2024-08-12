@@ -172,7 +172,7 @@ std::string VideoPixelFormatToString(VideoPixelFormat format) {
 std::string FourccToString(uint32_t fourcc) {
   std::string result = "0000";
   for (size_t i = 0; i < 4; ++i, fourcc >>= 8) {
-    const char c = static_cast<char>(fourcc & 0xFF);
+    const uint8_t c = static_cast<uint8_t>(fourcc & 0xFF);
     if (c <= 0x1f || c >= 0x7f) {
       std::ostringstream string_stream;
       string_stream << std::hex << "0x" << fourcc;
