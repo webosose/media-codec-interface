@@ -74,7 +74,9 @@ bool GenericV4L2Device::Open(DeviceType type, uint32_t v4l2_pixfmt) {
     return false;
   }
 
-  device_poll_interrupt_fd_ = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+  device_poll_interrupt_fd_ =
+      eventfd(0, static_cast<uint32_t>(EFD_NONBLOCK) |
+                     static_cast<uint32_t>(EFD_CLOEXEC));
   if (device_poll_interrupt_fd_ <= 0) {
     MCIL_ERROR_PRINT(": Failed creating a poll interrupt fd");
     return false;

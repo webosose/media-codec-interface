@@ -404,7 +404,8 @@ size_t V4L2VideoDecoder::GetFreeBuffersCount(QueueType queue_type) {
 bool V4L2VideoDecoder::AllocateOutputBuffers(
     uint32_t buffer_count,
     std::vector<WritableBufferRef*>& output_buffers) {
-  uint32_t req_buffer_count = output_dpb_size_ + kDpbOutputBufferExtraCount;
+  uint32_t req_buffer_count =
+      output_dpb_size_ + static_cast<uint32_t>(kDpbOutputBufferExtraCount);
   MCIL_DEBUG_PRINT(": request output buffers \
       ( Got: %d, requested: %d)", buffer_count, req_buffer_count);
   if (buffer_count < req_buffer_count) {
@@ -674,7 +675,8 @@ bool V4L2VideoDecoder::CreateOutputBuffers() {
     return false;
   output_dpb_size_ = ctrl->value;
 
-  uint32_t buffer_count = output_dpb_size_ + kDpbOutputBufferExtraCount;
+  uint32_t buffer_count =
+      output_dpb_size_ + static_cast<uint32_t>(kDpbOutputBufferExtraCount);
   MCIL_DEBUG_PRINT(": buffer_count[%d], coded_size[%dx%d]",
                    buffer_count, coded_size_.width, coded_size_.height);
 

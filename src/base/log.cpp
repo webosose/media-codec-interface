@@ -17,9 +17,9 @@
 #include "log.h"
 
 PmLogContext GetPmLogContext() {
-  static PmLogContext mcil_log_context = 0;
+  static PmLogContext mcil_log_context = nullptr;
 
-  if (0 == mcil_log_context) {
+  if (nullptr == mcil_log_context) {
     PmLogGetContext("mcil", &mcil_log_context);
   }
 

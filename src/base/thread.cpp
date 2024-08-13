@@ -76,7 +76,7 @@ void Thread::RunInternal() {
     {
       std::unique_lock<std::mutex> lock(mutex_);
       condition_.wait(lock, [&] {
-        return !task_queue_.empty() + !is_thread_running_;
+        return !task_queue_.empty() || !is_thread_running_;
       });
 
       if (!is_thread_running_) {

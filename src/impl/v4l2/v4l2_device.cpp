@@ -407,17 +407,18 @@ uint8_t V4L2Device::GetSupportedRateControlMode() {
     if (Ioctl(VIDIOC_QUERYMENU, &query_menu) == 0) {
       switch (query_menu.index) {
         case V4L2_MPEG_VIDEO_BITRATE_MODE_CBR:
-          rc_mode |= kConstantMode;
+          rc_mode |= static_cast<uint8_t>(kConstantMode);
           break;
         case V4L2_MPEG_VIDEO_BITRATE_MODE_VBR:
-          rc_mode |= kVariableMode;
+          rc_mode |= static_cast<uint8_t>(kVariableMode);
           break;
         default:
           MCIL_DEBUG_PRINT("Skip bitrate mode: %d", query_menu.index);
           break;
       }
 
-      if ((rc_mode & kConstantMode) && (rc_mode & kVariableMode)) {
+      if ((rc_mode & static_cast<uint8_t>(kConstantMode)) &&
+          (rc_mode & static_cast<uint8_t>(kVariableMode))) {
         MCIL_DEBUG_PRINT("Found both mode CBR & VBR");
         break;
       }
