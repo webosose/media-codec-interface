@@ -35,7 +35,7 @@ SupportedProfiles V4L2VideoDecoder::GetSupportedProfiles() {
 
 V4L2VideoDecoder::V4L2VideoDecoder()
  : VideoDecoder(),
-   v4l2_device_(V4L2Device::Create(V4L2_DECODER)),
+   device_(V4L2Device::Create(V4L2_DECODER)),
    output_mode_(OUTPUT_ALLOCATE),
    device_poll_thread_("V4L2DecoderDevicePollThread"),
    decoder_state_(kUninitialized) {
@@ -103,7 +103,7 @@ void V4L2VideoDecoder::Destroy() {
   input_queue_ = nullptr;
   output_queue_ = nullptr;
 
-  v4l2_device_ = nullptr;
+  device_ = nullptr;
 
   start_time_ = ChronoTime();
 }
@@ -280,7 +280,7 @@ void V4L2VideoDecoder::EnqueueBuffers() {
   }
 
   if (old_inputs_queued == 0 && input_queue_->QueuedBuffersCount() != 0) {
-    if (!v4l2_device_->SetDevicePollInterrupt()) {
+    if (!device_->SetDevicePollInterrupt()) {
       MCIL_ERROR_PRINT(": SetDevicePollInterrupt failed");
       NOTIFY_ERROR(PLATFORM_FAILURE);
       return;
@@ -305,7 +305,7 @@ void V4L2VideoDecoder::EnqueueBuffers() {
   }
 
   if (old_outputs_queued == 0 && output_queue_->QueuedBuffersCount() != 0) {
-    if (!v4l2_device_->SetDevicePollInterrupt()) {
+    if (!device_->SetDevicePollInterrupt()) {
       MCIL_ERROR_PRINT(": SetDevicePollInterrupt failed");
       NOTIFY_ERROR(PLATFORM_FAILURE);
       return;
@@ -358,7 +358,7 @@ void V4L2VideoDecoder::RunDecodeBufferTask(bool event_pending, bool) {
   EnqueueBuffers();
 
   // Clear the interrupt fd.
-  if (!v4l2_device_->ClearDevicePollInterrupt()) {
+  if (!device_->ClearDevicePollInterrupt()) {
     MCIL_ERROR_PRINT(": Failed Clear the interrupt fd");
     NOTIFY_ERROR(PLATFORM_FAILURE);
     return;
@@ -445,11 +445,11 @@ bool V4L2VideoDecoder::AllocateOutputBuffers(
 }
 
 bool V4L2VideoDecoder::CanCreateEGLImageFrom(VideoPixelFormat pixel_format) {
-  if (v4l2_device_) {
+  if (device_) {
     auto fourcc = Fourcc::FromVideoPixelFormat(pixel_format);
     if (!fourcc)
       return false;
-    return v4l2_device_->CanCreateEGLImageFrom(*fourcc);
+    return device_->CanCreateEGLImageFrom(*fourcc);
   }
   return false;
 }
@@ -465,7 +465,7 @@ void V4L2VideoDecoder::SetResolutionChangeCb(ResolutionChangeCb cb) {
 
 void V4L2VideoDecoder::DevicePollTask(bool poll_device) {
   bool event_pending = false;
-  if (!v4l2_device_->Poll(poll_device, &event_pending)) {
+  if (!device_->Poll(poll_device, &event_pending)) {
     MCIL_ERROR_PRINT(": Failed during poll");
     NOTIFY_ERROR(PLATFORM_FAILURE);
     return;
@@ -480,7 +480,7 @@ bool V4L2VideoDecoder::IsDecoderCmdSupported() {
   struct v4l2_decoder_cmd cmd;
   memset(&cmd, 0, sizeof(cmd));
   cmd.cmd = V4L2_DEC_CMD_STOP;
-  if (v4l2_device_->Ioctl(VIDIOC_TRY_DECODER_CMD, &cmd) != 0) {
+  if (device_->Ioctl(VIDIOC_TRY_DECODER_CMD, &cmd) != 0) {
     MCIL_DEBUG_PRINT(": V4L2_DEC_CMD_STOP is not supported");
     return false;
   }
@@ -516,13 +516,13 @@ bool V4L2VideoDecoder::CheckConfig(const DecoderConfig* config) {
   decoder_config_.frameWidth = config->frameWidth;
   decoder_config_.frameHeight = config->frameHeight;
   decoder_config_.profile = config->profile;
-  decoder_config_.outputMode = config->outputMode;
+  decoder_config_.opMode = config->opMode;
 
   input_format_fourcc_ =
       V4L2Device::VideoCodecProfileToV4L2PixFmt(config->profile);
 
   if (!input_format_fourcc_ ||
-      !v4l2_device_->Open(V4L2_DECODER, input_format_fourcc_)) {
+      !device_->Open(V4L2_DECODER, input_format_fourcc_)) {
     MCIL_ERROR_PRINT(": Failed to open input device [%s]",
                      FourccToString(input_format_fourcc_).c_str());
     return false;
@@ -538,15 +538,15 @@ bool V4L2VideoDecoder::CheckConfig(const DecoderConfig* config) {
     return false;
   }
 
-  output_mode_ = config->outputMode;
+  output_mode_ = config->opMode;
 
-  input_queue_ = v4l2_device_->GetQueue(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
+  input_queue_ = device_->GetQueue(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
   if (!input_queue_) {
     MCIL_ERROR_PRINT(": Failed to create input_queue_!");
     return false;
   }
 
-  output_queue_ = v4l2_device_->GetQueue(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
+  output_queue_ = device_->GetQueue(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
   if (!output_queue_) {
     MCIL_ERROR_PRINT(": Failed to create output_queue_!");
     return false;
@@ -558,7 +558,7 @@ bool V4L2VideoDecoder::CheckConfig(const DecoderConfig* config) {
 bool V4L2VideoDecoder::SetupFormats() {
   size_t input_size;
   Size max_resolution, min_resolution;
-  v4l2_device_->GetSupportedResolution(
+  device_->GetSupportedResolution(
       input_format_fourcc_, &min_resolution, &max_resolution);
   if (max_resolution.width > 1920 && max_resolution.height > 1088)
     input_size = kInputBufferMaxSizeFor4k;
@@ -569,7 +569,7 @@ bool V4L2VideoDecoder::SetupFormats() {
   memset(&fmtdesc, 0, sizeof(fmtdesc));
   fmtdesc.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
   bool is_format_supported = false;
-  while (v4l2_device_->Ioctl(VIDIOC_ENUM_FMT, &fmtdesc) == 0) {
+  while (device_->Ioctl(VIDIOC_ENUM_FMT, &fmtdesc) == 0) {
     if (fmtdesc.pixelformat == input_format_fourcc_) {
       is_format_supported = true;
       break;
@@ -596,9 +596,9 @@ bool V4L2VideoDecoder::SetupFormats() {
   // output format or not may depend on the input format.
   memset(&fmtdesc, 0, sizeof(fmtdesc));
   fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-  while (v4l2_device_->Ioctl(VIDIOC_ENUM_FMT, &fmtdesc) == 0) {
+  while (device_->Ioctl(VIDIOC_ENUM_FMT, &fmtdesc) == 0) {
     auto fourcc = Fourcc::FromV4L2PixFmt(fmtdesc.pixelformat);
-    if (fourcc && v4l2_device_->CanCreateEGLImageFrom(*fourcc)) {
+    if (fourcc && device_->CanCreateEGLImageFrom(*fourcc)) {
       output_format_fourcc_ = *fourcc;
       break;
     }
@@ -642,7 +642,7 @@ bool V4L2VideoDecoder::UnsubscribeEvents() {
 }
 
 int32_t V4L2VideoDecoder::DequeueResolutionChangeEvent() {
-  while (Optional<struct v4l2_event> event = v4l2_device_->DequeueEvent()) {
+  while (Optional<struct v4l2_event> event = device_->DequeueEvent()) {
     if (event->type == V4L2_EVENT_SOURCE_CHANGE) {
       if (event->u.src_change.changes & V4L2_EVENT_SRC_CH_RESOLUTION) {
         MCIL_DEBUG_PRINT(": got resolution change event");
@@ -668,7 +668,7 @@ bool V4L2VideoDecoder::AllocateInputBuffers() {
 }
 
 bool V4L2VideoDecoder::CreateOutputBuffers() {
-  auto ctrl = v4l2_device_->GetCtrl(V4L2_CID_MIN_BUFFERS_FOR_CAPTURE);
+  auto ctrl = device_->GetCtrl(V4L2_CID_MIN_BUFFERS_FOR_CAPTURE);
   if (!ctrl)
     return false;
   output_dpb_size_ = ctrl->value;
@@ -680,7 +680,7 @@ bool V4L2VideoDecoder::CreateOutputBuffers() {
   VideoPixelFormat pixel_format = (output_mode_ == OUTPUT_IMPORT) ?
       egl_image_format_fourcc_->ToVideoPixelFormat() : PIXEL_FORMAT_UNKNOWN;
   return client_->CreateOutputBuffers(
-      pixel_format, buffer_count, v4l2_device_->GetTextureTarget());
+      pixel_format, buffer_count, device_->GetTextureTarget());
 }
 
 bool V4L2VideoDecoder::DestroyOutputBuffers() {
@@ -921,7 +921,7 @@ bool V4L2VideoDecoder::StopDevicePoll() {
   if (!device_poll_thread_.IsRunning())
     return true;
 
-  if (!v4l2_device_->SetDevicePollInterrupt()) {
+  if (!device_->SetDevicePollInterrupt()) {
     MCIL_DEBUG_PRINT(": SetDevicePollInterrupt(): failed");
     return false;
   }
@@ -929,7 +929,7 @@ bool V4L2VideoDecoder::StopDevicePoll() {
   device_poll_thread_.Stop();
   client_->OnStopDevicePoll();
 
-  if (!v4l2_device_->ClearDevicePollInterrupt()) {
+  if (!device_->ClearDevicePollInterrupt()) {
     MCIL_DEBUG_PRINT(": ClearDevicePollInterrupt(): failed");
     return false;
   }

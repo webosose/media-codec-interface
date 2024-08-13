@@ -58,13 +58,15 @@ class Fourcc {
     NONE = ComposeFourcc('N', 'O', 'N', 'E'),
   };
 
-  explicit Fourcc(Fourcc::Value fourcc);
-  Fourcc& operator=(const Fourcc& fourcc);
+  explicit Fourcc(Fourcc::Value fourcc_src);
+  Fourcc& operator=(const Fourcc& fourcc_src);
   ~Fourcc();
 
-  bool operator==(const Fourcc& rhs) const { return value_ == rhs.value_; }
+  bool operator==(const Fourcc& rhs) const {
+    return fourcc_value_ == rhs.fourcc_value_;
+  }
 
-  static Fourcc FromUint32(uint32_t fourcc);
+  static Fourcc FromUint32(uint32_t fourcc_src);
 
   static Optional<Fourcc> FromVideoPixelFormat(
       VideoPixelFormat pixel_format, bool single_planar = true);
@@ -73,7 +75,7 @@ class Fourcc {
 
   uint32_t ToV4L2PixFmt() const;
 
-  Value value() { return value_; }
+  Value getValue() { return fourcc_value_; }
 
   VideoPixelFormat ToVideoPixelFormat() const;
 
@@ -84,7 +86,7 @@ class Fourcc {
   std::string ToString() const;
 
  private:
-  Value value_;
+  Value fourcc_value_;
 };
 
 bool operator!=(const Fourcc& lhs, const Fourcc& rhs);

@@ -39,7 +39,7 @@ VideoEncoderAPI::VideoEncoderAPI(VideoEncoderClient* client)
 
 VideoEncoderAPI::~VideoEncoderAPI() noexcept(false) {
   if (venc_port_index_ != -1) {
-    VideoResource::GetInstance().Release(
+    VideoResource::GetInstance().ReleaseVideoResource(
         V4L2_ENCODER, resources_, venc_port_index_);
   }
 }
@@ -61,53 +61,53 @@ bool VideoEncoderAPI::Initialize(const EncoderConfig* encoder_config,
     return false;
   }
 
-  video_encoder_ = VideoEncoder::Create();
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Failed: encoder (%p) ", video_encoder_.get());
+  encoder_ = VideoEncoder::Create();
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Failed: encoder (%p) ", encoder_.get());
     return false;
   }
-  return video_encoder_->Initialize(
+  return encoder_->Initialize(
       encoder_config, client_, client_config, venc_port_index_);
 }
 
 void VideoEncoderAPI::Destroy() {
   if (venc_port_index_ != -1)
-    VideoResource::GetInstance().Release(
+    VideoResource::GetInstance().ReleaseVideoResource(
         V4L2_ENCODER, resources_, venc_port_index_);
   venc_port_index_ = -1;
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return;
   }
 
-  video_encoder_->Destroy();
+  encoder_->Destroy();
 }
 
 bool VideoEncoderAPI::IsFlushSupported() {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return false;
   }
-  return video_encoder_->IsFlushSupported();
+  return encoder_->IsFlushSupported();
 }
 
 bool VideoEncoderAPI::EncodeFrame(scoped_refptr<VideoFrame> frame,
                                   bool force_keyframe) {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return false;
   }
 
-  return video_encoder_->EncodeFrame(std::move(frame), force_keyframe);
+  return encoder_->EncodeFrame(std::move(frame), force_keyframe);
 }
 
 bool VideoEncoderAPI::FlushFrames() {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return false;
   }
 
-  return video_encoder_->FlushFrames();
+  return encoder_->FlushFrames();
 }
 
 bool VideoEncoderAPI::EncodeBuffer(const uint8_t* yBuf, size_t ySize,
@@ -115,94 +115,94 @@ bool VideoEncoderAPI::EncodeBuffer(const uint8_t* yBuf, size_t ySize,
                                    const uint8_t* vBuf, size_t vSize,
                                    uint64_t bufferTimestamp,
                                    bool requestKeyFrame) {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return false;
   }
 
-  return video_encoder_->EncodeBuffer(yBuf, ySize, uBuf, uSize, vBuf, vSize,
+  return encoder_->EncodeBuffer(yBuf, ySize, uBuf, uSize, vBuf, vSize,
                                       bufferTimestamp, requestKeyFrame);
 }
 
 bool VideoEncoderAPI::UpdateEncodingParams(
     uint32_t bitrate, uint32_t framerate) {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return false;
   }
 
-  return video_encoder_->UpdateEncodingParams(bitrate, framerate);
+  return encoder_->UpdateEncodingParams(bitrate, framerate);
 }
 
 bool VideoEncoderAPI::StartDevicePoll() {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return false;
   }
 
-  return video_encoder_->StartDevicePoll();
+  return encoder_->StartDevicePoll();
 }
 
 void VideoEncoderAPI::RunEncodeBufferTask() {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return;
   }
 
-  video_encoder_->RunEncodeBufferTask();
+  encoder_->RunEncodeBufferTask();
 }
 
 void VideoEncoderAPI::SendStartCommand(bool start) {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return;
   }
 
-  video_encoder_->SendStartCommand(start);
+  encoder_->SendStartCommand(start);
 }
 
 void VideoEncoderAPI::SetEncoderState(CodecState state) {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return;
   }
 
-  video_encoder_->SetEncoderState(state);
+  encoder_->SetEncoderState(state);
 }
 
 size_t VideoEncoderAPI::GetFreeBuffersCount(QueueType queue_type) {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return 0;
   }
 
-  return video_encoder_->GetFreeBuffersCount(queue_type);
+  return encoder_->GetFreeBuffersCount(queue_type);
 }
 
 void VideoEncoderAPI::EnqueueBuffers() {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return;
   }
 
-  video_encoder_->EnqueueBuffers();
+  encoder_->EnqueueBuffers();
 }
 
 scoped_refptr<VideoFrame> VideoEncoderAPI::GetDeviceInputFrame() {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return nullptr;
   }
-  return video_encoder_->GetDeviceInputFrame();
+  return encoder_->GetDeviceInputFrame();
 }
 
 bool VideoEncoderAPI::NegotiateInputFormat(VideoPixelFormat format,
                                            const Size& frame_size) {
-  if (!video_encoder_) {
-    MCIL_ERROR_PRINT(" Error: encoder (%p) ", video_encoder_.get());
+  if (!encoder_) {
+    MCIL_ERROR_PRINT(" Error: encoder (%p) ", encoder_.get());
     return false;
   }
-  return video_encoder_->NegotiateInputFormat(format, frame_size);
+  return encoder_->NegotiateInputFormat(format, frame_size);
 }
 
 }  // namespace mcil

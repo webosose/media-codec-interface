@@ -96,7 +96,7 @@ class scoped_refptr {
 
   ~scoped_refptr() {
     if (ptr_)
-      Release(ptr_);
+      ReleasePtr(ptr_);
   }
 
   T* get() const { return ptr_; }
@@ -156,27 +156,27 @@ class scoped_refptr {
   template <typename U>
   friend class scoped_refptr;
 
-  static void AddRef(T* ptr);
-  static void Release(T* ptr);
+  static void AddRef(T* ptr_ref);
+  static void ReleasePtr(T* ptr_ref);
 };
 
 template <typename T>
 T* scoped_refptr<T>::release() {
-  T* ptr = ptr_;
+  T* ptr_ref = ptr_;
   ptr_ = nullptr;
-  return ptr;
+  return ptr_ref;
 }
 
 // static
 template <typename T>
-void scoped_refptr<T>::AddRef(T* ptr) {
-  ptr->AddRef();
+void scoped_refptr<T>::AddRef(T* ptr_ref) {
+  ptr_ref->AddRef();
 }
 
 // static
 template <typename T>
-void scoped_refptr<T>::Release(T* ptr) {
-  ptr->Release();
+void scoped_refptr<T>::ReleasePtr(T* ptr_ref) {
+  ptr_ref->Release();
 }
 
 template <typename T, typename U>

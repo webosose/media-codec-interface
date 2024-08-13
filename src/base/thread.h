@@ -31,7 +31,7 @@ class Thread {
   Thread(const std::string& name);
   ~Thread() noexcept(false);
 
-  bool IsRunning() { return is_running_; }
+  bool IsRunning() { return is_thread_running_; }
   void Start();
   void Stop();
 
@@ -43,8 +43,8 @@ class Thread {
   std::condition_variable condition_;
   std::list<std::function<void()>> task_queue_;
   std::mutex mutex_;
-  std::thread thread_;
-  bool is_running_ = false;
+  std::thread thread_object_;
+  bool is_thread_running_ = false;
   std::string thread_name_;
 };
 

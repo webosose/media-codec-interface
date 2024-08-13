@@ -19,12 +19,12 @@ void Size::SetSize(uint32_t w, uint32_t h) {
 Rect::Rect(int32_t x, int32_t y, uint32_t w, uint32_t h)
  :  x(x), y(y), width(w), height(h) {}
 
-Rect::Rect(const Size& size)
- : width(size.width), height(size.height) {}
+Rect::Rect(const Size& size_config)
+ : width(size_config.width), height(size_config.height) {}
 
-bool Rect::Contains(const Rect& rect) const {
-  return (rect.x >= x && rect.width <= width && rect.y >= y &&
-          rect.height <= height);
+bool Rect::Contains(const Rect& bounded_rect) const {
+  return (bounded_rect.x >= x && bounded_rect.width <= width &&
+          bounded_rect.y >= y && bounded_rect.height <= height);
 }
 
 SupportedProfile::SupportedProfile(

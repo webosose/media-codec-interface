@@ -113,7 +113,7 @@ class V4L2VideoDecoder : public VideoDecoder {
   virtual void StartResolutionChange();
   virtual void FinishResolutionChange();
 
-  scoped_refptr<V4L2Device> v4l2_device_;
+  scoped_refptr<V4L2Device> device_;
 
   Optional<V4L2WritableBufferRef> current_input_buffer_;
 
@@ -164,7 +164,7 @@ class V4L2VideoDecoder : public VideoDecoder {
 
 #define IOCTL_OR_ERROR_RETURN_VALUE(type, arg, value, error_str) \
   do { \
-    if (v4l2_device_->Ioctl(type, arg) != 0) { \
+    if (device_->Ioctl(type, arg) != 0) { \
       MCIL_ERROR_PRINT(": ioctl() failed: %s", error_str); \
       NOTIFY_ERROR(PLATFORM_FAILURE); \
       return value; \

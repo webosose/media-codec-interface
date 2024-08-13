@@ -8,13 +8,13 @@
 
 namespace mcil {
 
-Fourcc::Fourcc(Fourcc::Value fourcc) : value_(fourcc) {}
+Fourcc::Fourcc(Fourcc::Value fourcc_src) : fourcc_value_(fourcc_src) {}
 Fourcc::~Fourcc() = default;
-Fourcc& Fourcc::operator=(const Fourcc& other) = default;
+Fourcc& Fourcc::operator=(const Fourcc& fourcc_src) = default;
 
 // static
-Fourcc Fourcc::FromUint32(uint32_t fourcc) {
-  switch (fourcc) {
+Fourcc Fourcc::FromUint32(uint32_t fourcc_src) {
+  switch (fourcc_src) {
     case AR24:
     case AB24:
     case XR24:
@@ -33,11 +33,11 @@ Fourcc Fourcc::FromUint32(uint32_t fourcc) {
     case MT21:
     case MM21:
     case P010:
-      return Fourcc(static_cast<Value>(fourcc));
+      return Fourcc(static_cast<Value>(fourcc_src));
     default:
       break;
   }
-  MCIL_DEBUG_PRINT(": Unmapped fourcc: %s", FourccToString(fourcc).c_str());
+  MCIL_DEBUG_PRINT(": Unmapped fourcc: %s", FourccToString(fourcc_src).c_str());
   return Fourcc(NONE);
 }
 
@@ -98,11 +98,11 @@ Optional<Fourcc> Fourcc::FromV4L2PixFmt(uint32_t v4l2_pix_fmt) {
 }
 
 uint32_t Fourcc::ToV4L2PixFmt() const {
-  return static_cast<uint32_t>(value_);
+  return static_cast<uint32_t>(fourcc_value_);
 }
 
 VideoPixelFormat Fourcc::ToVideoPixelFormat() const {
-  switch (value_) {
+  switch (fourcc_value_) {
     case AR24:
       return PIXEL_FORMAT_ARGB;
     case AB24:
@@ -140,7 +140,7 @@ VideoPixelFormat Fourcc::ToVideoPixelFormat() const {
 }
 
 Fourcc Fourcc::ToSinglePlanar() const {
-  switch (value_) {
+  switch (fourcc_value_) {
     case AR24:
     case AB24:
     case XR24:
@@ -152,7 +152,7 @@ Fourcc Fourcc::ToSinglePlanar() const {
     case NV12:
     case NV21:
     case P010:
-      return Fourcc(value_);
+      return Fourcc(fourcc_value_);
     case YM12:
       return Fourcc(YU12);
     case YM21:
@@ -172,7 +172,7 @@ bool operator!=(const Fourcc& lhs, const Fourcc& rhs) {
 }
 
 bool Fourcc::IsMultiPlanar() const {
-  switch (value_) {
+  switch (fourcc_value_) {
     case AR24:
     case AB24:
     case XR24:
@@ -200,7 +200,7 @@ bool Fourcc::IsMultiPlanar() const {
 }
 
 std::string Fourcc::ToString() const {
-  return FourccToString(static_cast<uint32_t>(value_));
+  return FourccToString(static_cast<uint32_t>(fourcc_value_));
 }
 
 }  // namespace mcil

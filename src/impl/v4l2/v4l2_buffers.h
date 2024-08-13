@@ -29,7 +29,7 @@ class V4L2Buffer {
   virtual size_t BufferIndex();
   virtual scoped_refptr<VideoFrame> GetVideoFrame();
   virtual void* GetPlaneBuffer(const size_t plane);
-  virtual const struct v4l2_buffer& get_v4l2_buffer() const { return v4l2_buffer_; }
+  virtual const struct v4l2_buffer& get_v4l2_buffer() const { return buffer_; }
   virtual bool Query();
 
   virtual int64_t GetBufferPTS();
@@ -49,7 +49,7 @@ class V4L2Buffer {
 
   int64_t timestamp_ = 0;
 
-  struct v4l2_buffer v4l2_buffer_;
+  struct v4l2_buffer buffer_;
   enum v4l2_buf_type buffer_type_;
 
   struct v4l2_plane v4l2_planes_[VIDEO_MAX_PLANES];
@@ -78,7 +78,7 @@ class V4L2BuffersList : public RefCounted<V4L2BuffersList> {
 /* V4L2BufferRefBase */
 class V4L2BufferRefBase {
  public:
-  V4L2BufferRefBase(const struct v4l2_buffer& v4l2_buffer,
+  V4L2BufferRefBase(const struct v4l2_buffer& buffer,
                     V4L2Queue* queue);
   ~V4L2BufferRefBase() noexcept(false);
 
@@ -89,7 +89,7 @@ class V4L2BufferRefBase {
   int64_t GetBufferPTS();
   void SetBufferPTS(int64_t buffer_pts);
 
-  struct v4l2_buffer v4l2_buffer_;
+  struct v4l2_buffer buffer_;
   struct v4l2_plane v4l2_planes_[VIDEO_MAX_PLANES];
 
   int32_t buffer_id_ = -1;
@@ -98,7 +98,7 @@ class V4L2BufferRefBase {
   friend class V4L2ReadableBuffer;
   friend class V4L2WritableBuffer;
 
-  size_t BufferIndex() const { return v4l2_buffer_.index; }
+  size_t BufferIndex() const { return buffer_.index; }
 
   V4L2Queue* queue_;
 
@@ -123,7 +123,7 @@ class V4L2ReadableBuffer : public ReadableBuffer {
   uint32_t GetFlags() const override;
 
  private:
-  V4L2ReadableBuffer(const struct v4l2_buffer& v4l2_buffer,
+  V4L2ReadableBuffer(const struct v4l2_buffer& buffer,
                      V4L2Queue* queue,
                      scoped_refptr<VideoFrame> video_frame);
   ~V4L2ReadableBuffer() = default;
@@ -167,7 +167,7 @@ class V4L2WritableBufferRef : public WritableBufferRef {
   void SetBufferPTS(int64_t buffer_pts);
 
  private:
-  V4L2WritableBufferRef(const struct v4l2_buffer& v4l2_buffer,
+  V4L2WritableBufferRef(const struct v4l2_buffer& buffer,
                         V4L2Queue* queue);
 
   bool DoQueue(scoped_refptr<VideoFrame> video_frame) &&;

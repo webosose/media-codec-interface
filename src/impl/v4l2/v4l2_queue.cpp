@@ -45,21 +45,21 @@ scoped_refptr<V4L2Queue> V4L2Queue::Create(scoped_refptr<V4L2Device> dev,
 
 /* V4L2BufferRefFactory */
 V4L2WritableBufferRef V4L2BufferRefFactory::CreateWritableRef(
-    const struct v4l2_buffer& v4l2_buffer, V4L2Queue* queue) {
-  return V4L2WritableBufferRef(v4l2_buffer, queue);
+    const struct v4l2_buffer& buffer, V4L2Queue* queue) {
+  return V4L2WritableBufferRef(buffer, queue);
 }
 
 V4L2WritableBufferRef* V4L2BufferRefFactory::CreateWritableRefPtr(
-    const struct v4l2_buffer& v4l2_buffer, V4L2Queue* queue) {
-  return new V4L2WritableBufferRef(v4l2_buffer, queue);
+    const struct v4l2_buffer& buffer, V4L2Queue* queue) {
+  return new V4L2WritableBufferRef(buffer, queue);
 }
 
 ReadableBufferRef V4L2BufferRefFactory::CreateReadableRef(
-    const struct v4l2_buffer& v4l2_buffer,
+    const struct v4l2_buffer& buffer,
     V4L2Queue* queue,
     scoped_refptr<VideoFrame> video_frame) {
   V4L2ReadableBuffer* readable_buffer =
-      new V4L2ReadableBuffer(v4l2_buffer, queue, std::move(video_frame));
+      new V4L2ReadableBuffer(buffer, queue, std::move(video_frame));
   return (ReadableBuffer*)readable_buffer;
 }
 
@@ -137,7 +137,7 @@ Optional<struct v4l2_format> V4L2Queue::SetFormat(uint32_t fourcc,
 }
 
 bool V4L2Queue::StreamOn() {
-  if (is_streaming_)
+  if (streaming_state_)
     return true;
 
   int32_t  arg = static_cast<int32_t >(buffer_type_);
@@ -147,7 +147,7 @@ bool V4L2Queue::StreamOn() {
     return false;
   }
 
-  is_streaming_ = true;
+  streaming_state_ = true;
   return true;
 }
 
@@ -163,12 +163,12 @@ bool V4L2Queue::StreamOff() {
     free_buffers_->ReturnBuffer(it.first);
 
   queued_buffers_.clear();
-  is_streaming_ = false;
+  streaming_state_ = false;
   return true;
 }
 
 bool V4L2Queue::IsStreaming() const {
-  return is_streaming_;
+  return streaming_state_;
 }
 
 size_t V4L2Queue::AllocateBuffers(size_t count, enum v4l2_memory memory) {
@@ -309,16 +309,16 @@ std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
     return std::make_pair(true, nullptr);
   }
 
-  struct v4l2_buffer v4l2_buf;
-  memset(&v4l2_buf, 0, sizeof(v4l2_buf));
+  struct v4l2_buffer read_v4l2_buf;
+  memset(&read_v4l2_buf, 0, sizeof(read_v4l2_buf));
 
   struct v4l2_plane planes[VIDEO_MAX_PLANES];
   memset(planes, 0, sizeof(planes));
-  v4l2_buf.type = buffer_type_;
-  v4l2_buf.memory = memory_;
-  v4l2_buf.m.planes = planes;
-  v4l2_buf.length = planes_count_;
-  int32_t ret = device_->Ioctl(VIDIOC_DQBUF, &v4l2_buf);
+  read_v4l2_buf.type = buffer_type_;
+  read_v4l2_buf.memory = memory_;
+  read_v4l2_buf.m.planes = planes;
+  read_v4l2_buf.length = planes_count_;
+  int32_t ret = device_->Ioctl(VIDIOC_DQBUF, &read_v4l2_buf);
   if (ret) {
     switch (errno) {
       case EAGAIN:
@@ -334,7 +334,7 @@ std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
     }
   }
 
-  auto it = queued_buffers_.find(v4l2_buf.index);
+  auto it = queued_buffers_.find(read_v4l2_buf.index);
   if (it == queued_buffers_.end())
     return std::make_pair(false, nullptr);
 
@@ -342,22 +342,22 @@ std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
   queued_buffers_.erase(it);
 
   return std::make_pair(true, V4L2BufferRefFactory::CreateReadableRef(
-                                  v4l2_buf, this,
+                                  read_v4l2_buf, this,
                                   std::move(queued_frame)));
 }
 
-bool V4L2Queue::QueueBuffer(struct v4l2_buffer* v4l2_buffer,
+bool V4L2Queue::QueueBuffer(struct v4l2_buffer* buffer,
                             scoped_refptr<VideoFrame> video_frame) {
-  int32_t  ret = device_->Ioctl(VIDIOC_QBUF, v4l2_buffer);
+  int32_t  ret = device_->Ioctl(VIDIOC_QBUF, buffer);
   if (ret) {
     if (buffer_type_ == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
-        v4l2_buffer->m.planes->length < 2048)
+        buffer->m.planes->length < 2048)
       return true;
     return false;
   }
 
   auto inserted =
-      queued_buffers_.emplace(v4l2_buffer->index, std::move(video_frame));
+      queued_buffers_.emplace(buffer->index, std::move(video_frame));
   return true;
 }
 

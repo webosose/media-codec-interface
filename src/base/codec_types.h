@@ -185,10 +185,10 @@ class Rect {
  public:
   Rect() = default;
   Rect(int32_t x, int32_t y, uint32_t w, uint32_t h);
-  Rect(const Size& size);
+  Rect(const Size& size_config);
 
-  const Size size() { return Size(width, height); }
-  bool Contains(const Rect& rect) const;
+  const Size getSize() { return Size(width, height); }
+  bool Contains(const Rect& bounded_rect) const;
   bool IsEmpty() const { return !width || !height; }
 
   int32_t x = 0;

@@ -41,7 +41,7 @@ VideoDecoderAPI::VideoDecoderAPI(VideoDecoderClient* client)
 
 VideoDecoderAPI::~VideoDecoderAPI() noexcept(false) {
   if (vdec_port_index_ != -1) {
-    VideoResource::GetInstance().Release(
+    VideoResource::GetInstance().ReleaseVideoResource(
         V4L2_DECODER, resources_, vdec_port_index_);
   }
 }
@@ -63,19 +63,19 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
     return false;
   }
 
-  video_decoder_ = VideoDecoder::Create();
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Failed: decoder (%p) ", video_decoder_.get());
+  decoder_ = VideoDecoder::Create();
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Failed: decoder (%p) ", decoder_.get());
     return false;
   }
   #if defined (ENABLE_REACQUIRE)
   ResolutionChangeCb cb = [this] (uint32_t width, uint32_t height) {
                this->OnResolutionChanged(width, height); };
-  video_decoder_->SetResolutionChangeCb(std::move(cb));
+  decoder_->SetResolutionChangeCb(std::move(cb));
   #endif
 
   if (state_ == kInitialized) {
-    video_decoder_->SetDecoderState(state_);
+    decoder_->SetDecoderState(state_);
     state_ = kUninitialized;
   }
 
@@ -83,166 +83,166 @@ bool VideoDecoderAPI::Initialize(const DecoderConfig* decoder_config,
   frame_width_ = decoder_config->frameWidth;
   frame_height_ = decoder_config->frameHeight;
 
-  return video_decoder_ ->Initialize(decoder_config, client_, client_config, 0);
+  return decoder_->Initialize(decoder_config, client_, client_config, 0);
 }
 
 void VideoDecoderAPI::Destroy() {
   if (vdec_port_index_ != -1)
-    VideoResource::GetInstance().Release(
+    VideoResource::GetInstance().ReleaseVideoResource(
         V4L2_DECODER, resources_, vdec_port_index_);
   vdec_port_index_ = -1;
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return;
   }
-  return video_decoder_->Destroy();
+  return decoder_->Destroy();
 }
 
 bool VideoDecoderAPI::ResetInputBuffer() {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return false;
   }
-  return video_decoder_->ResetInputBuffer();
+  return decoder_->ResetInputBuffer();
 }
 
 bool VideoDecoderAPI::ResetDecodingBuffers(bool* reset_pending) {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return false;
   }
-  return video_decoder_->ResetDecodingBuffers(reset_pending);
+  return decoder_->ResetDecodingBuffers(reset_pending);
 }
 
 bool VideoDecoderAPI::CanNotifyResetDone() {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return true;
   }
-  return video_decoder_->CanNotifyResetDone();
+  return decoder_->CanNotifyResetDone();
 }
 
 bool VideoDecoderAPI::DecodeBuffer(const void* buffer,
                                    size_t size,
                                    const int32_t id,
                                    int64_t buffer_pts) {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return false;
   }
 
-  return video_decoder_->DecodeBuffer(buffer, size, id, buffer_pts);
+  return decoder_->DecodeBuffer(buffer, size, id, buffer_pts);
 }
 
 bool VideoDecoderAPI::FlushInputBuffers() {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return false;
   }
-  return video_decoder_->FlushInputBuffers();
+  return decoder_->FlushInputBuffers();
 }
 
 bool VideoDecoderAPI::DidFlushBuffersDone() {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return false;
   }
-  return video_decoder_->DidFlushBuffersDone();
+  return decoder_->DidFlushBuffersDone();
 }
 
 void VideoDecoderAPI::EnqueueBuffers() {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return;
   }
-  return video_decoder_->EnqueueBuffers();
+  return decoder_->EnqueueBuffers();
 }
 
 void VideoDecoderAPI::DequeueBuffers() {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return;
   }
-  return video_decoder_->DequeueBuffers();
+  return decoder_->DequeueBuffers();
 }
 
 void VideoDecoderAPI::ReusePictureBuffer(int32_t pic_buffer_id) {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return;
   }
-  return video_decoder_->ReusePictureBuffer(pic_buffer_id);
+  return decoder_->ReusePictureBuffer(pic_buffer_id);
 }
 
 void VideoDecoderAPI::RunDecodeBufferTask(bool event_pending, bool has_output) {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return;
   }
 
-  return video_decoder_->RunDecodeBufferTask(event_pending, has_output);
+  return decoder_->RunDecodeBufferTask(event_pending, has_output);
 }
 
 void VideoDecoderAPI::RunDecoderPostTask(PostTaskType task, bool value) {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return;
   }
 
-  return video_decoder_->RunDecoderPostTask(task, value);
+  return decoder_->RunDecoderPostTask(task, value);
 }
 
 void VideoDecoderAPI::SetDecoderState(CodecState state) {
-  if (!video_decoder_) {
+  if (!decoder_) {
     state_ = state;
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return;
   }
-  return video_decoder_->SetDecoderState(state);
+  return decoder_->SetDecoderState(state);
 }
 
 bool VideoDecoderAPI::GetCurrentInputBufferId(int32_t* buffer_id) {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return false;
   }
-  return video_decoder_->GetCurrentInputBufferId(buffer_id);
+  return decoder_->GetCurrentInputBufferId(buffer_id);
 }
 
 size_t VideoDecoderAPI::GetFreeBuffersCount(QueueType queue_type) {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return false;
   }
-  return video_decoder_->GetFreeBuffersCount(queue_type);
+  return decoder_->GetFreeBuffersCount(queue_type);
 }
 
 
 bool VideoDecoderAPI::AllocateOutputBuffers(
     uint32_t count, std::vector<WritableBufferRef*>& buffers) {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return false;
   }
-  return video_decoder_->AllocateOutputBuffers(count, buffers);
+  return decoder_->AllocateOutputBuffers(count, buffers);
 }
 
 bool VideoDecoderAPI::CanCreateEGLImageFrom(VideoPixelFormat pixel_format) {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return false;
   }
 
-  return video_decoder_->CanCreateEGLImageFrom(pixel_format);
+  return decoder_->CanCreateEGLImageFrom(pixel_format);
 }
 
 void VideoDecoderAPI::OnEGLImagesCreationCompleted() {
-  if (!video_decoder_) {
-    MCIL_ERROR_PRINT(" Error: decoder (%p) ", video_decoder_.get());
+  if (!decoder_) {
+    MCIL_ERROR_PRINT(" Error: decoder (%p) ", decoder_.get());
     return;
   }
 
-  return video_decoder_->OnEGLImagesCreationCompleted();
+  return decoder_->OnEGLImagesCreationCompleted();
 }
 
 #if defined (ENABLE_REACQUIRE)

@@ -145,7 +145,7 @@ bool VideoResource::Reacquire(DeviceType device_type,
   return true;
 }
 #endif
-bool VideoResource::Release(DeviceType device_type,
+bool VideoResource::ReleaseVideoResource(DeviceType device_type,
                             std::string& resources,
                             int32_t resource_index) {
   MCIL_DEBUG_PRINT(" type: %d, index: %d", device_type, resource_index);

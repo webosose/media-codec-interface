@@ -68,7 +68,7 @@ class VideoDecoderAPI {
 
   VideoDecoderClient* client_;
 
-  scoped_refptr<VideoDecoder> video_decoder_;
+  scoped_refptr<VideoDecoder> decoder_;
 
   VideoCodec codec_type_ = VIDEO_CODEC_NONE;
   std::atomic<uint32_t> frame_width_{0};

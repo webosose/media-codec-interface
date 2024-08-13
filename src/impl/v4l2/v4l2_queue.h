@@ -45,7 +45,7 @@ class V4L2Queue : public RefCounted<V4L2Queue> {
   virtual Optional<V4L2WritableBufferRef> GetFreeBuffer();
   virtual V4L2WritableBufferRef* GetFreeBufferPtr();
   virtual std::pair<bool, ReadableBufferRef> DequeueBuffer();
-  virtual bool QueueBuffer(struct v4l2_buffer* v4l2_buffer,
+  virtual bool QueueBuffer(struct v4l2_buffer* buffer,
                            scoped_refptr<VideoFrame> video_frame);
 
  protected:
@@ -67,7 +67,7 @@ class V4L2Queue : public RefCounted<V4L2Queue> {
 
   size_t planes_count_ = 0;
   enum v4l2_memory memory_ = V4L2_MEMORY_MMAP;
-  bool is_streaming_ = false;
+  bool streaming_state_ = false;
 
   Optional<struct v4l2_format> current_format_;
 }; /* V4L2Queue */
@@ -76,13 +76,13 @@ class V4L2Queue : public RefCounted<V4L2Queue> {
 class V4L2BufferRefFactory {
  public:
   static V4L2WritableBufferRef CreateWritableRef(
-      const struct v4l2_buffer& v4l2_buffer, V4L2Queue* queue);
+      const struct v4l2_buffer& buffer, V4L2Queue* queue);
 
   static V4L2WritableBufferRef* CreateWritableRefPtr(
-      const struct v4l2_buffer& v4l2_buffer, V4L2Queue* queue);
+      const struct v4l2_buffer& buffer, V4L2Queue* queue);
 
   static ReadableBufferRef CreateReadableRef(
-      const struct v4l2_buffer& v4l2_buffer,
+      const struct v4l2_buffer& buffer,
       V4L2Queue* queue,
       scoped_refptr<VideoFrame> video_frame);
 };

@@ -40,7 +40,7 @@ V4L2VideoEncoder::InputFrameInfo::InputFrameInfo(
 
 V4L2VideoEncoder::V4L2VideoEncoder()
  : VideoEncoder(),
-   v4l2_device_(V4L2Device::Create(V4L2_ENCODER)),
+   device_(V4L2Device::Create(V4L2_ENCODER)),
    input_memory_type_(V4L2_MEMORY_MMAP),
    output_memory_type_(V4L2_MEMORY_MMAP),
    device_poll_thread_("V4L2EncoderDevicePollThread"),
@@ -72,7 +72,7 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
   if (!output_format_fourcc_)
     return false;
 
-  if (!v4l2_device_->Open(V4L2_ENCODER, output_format_fourcc_)) {
+  if (!device_->Open(V4L2_ENCODER, output_format_fourcc_)) {
     MCIL_ERROR_PRINT(" Failed to open device for profile=%s, format=%s",
                      GetProfileName(config->profile).c_str(),
                      FourccToString(output_format_fourcc_).c_str());
@@ -80,7 +80,7 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
   }
 
   Size max_res, min_res;
-  v4l2_device_->GetSupportedResolution(output_format_fourcc_, &min_res,
+  device_->GetSupportedResolution(output_format_fourcc_, &min_res,
                                        &max_res);
   if (config->width < min_res.width || config->height < min_res.height ||
       config->width > max_res.width || config->height > max_res.height) {
@@ -93,9 +93,9 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
   struct v4l2_encoder_cmd cmd;
   memset(&cmd, 0, sizeof(cmd));
   cmd.cmd = V4L2_ENC_CMD_STOP;
-  is_flush_supported_ =
-      (v4l2_device_->Ioctl(VIDIOC_TRY_ENCODER_CMD, &cmd) == 0);
-  if (!is_flush_supported_) {
+  is_flush_supported_state_ =
+      (device_->Ioctl(VIDIOC_TRY_ENCODER_CMD, &cmd) == 0);
+  if (!is_flush_supported_state_) {
     MCIL_DEBUG_PRINT(" V4L2_ENC_CMD_STOP is not supported.");
   }
 
@@ -108,8 +108,8 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
     return false;
   }
 
-  input_queue_ = v4l2_device_->GetQueue(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
-  output_queue_ = v4l2_device_->GetQueue(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
+  input_queue_ = device_->GetQueue(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
+  output_queue_ = device_->GetQueue(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
   if (!input_queue_ || !output_queue_) {
     MCIL_ERROR_PRINT(" Failed to get V4L2Queue.");
     NOTIFY_ERROR(kPlatformFailureError);
@@ -158,12 +158,12 @@ void V4L2VideoEncoder::Destroy() {
   DestroyInputBuffers();
   DestroyOutputBuffers();
 
-  v4l2_device_ = nullptr;
+  device_ = nullptr;
   start_time_ = ChronoTime();
 }
 
 bool V4L2VideoEncoder::IsFlushSupported() {
-  return is_flush_supported_;
+  return is_flush_supported_state_;
 }
 
 bool V4L2VideoEncoder::EncodeFrame(scoped_refptr<VideoFrame> frame,
@@ -210,7 +210,7 @@ bool V4L2VideoEncoder::UpdateEncodingParams(
 
   if (ShouldSetEncodingParams()) {
     if (current_bitrate_ != bitrate &&
-        !v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+        !device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                                V4L2_CID_MPEG_VIDEO_BITRATE, bitrate)) {
       MCIL_ERROR_PRINT(" Failed changing bitrate");
       NOTIFY_ERROR(kPlatformFailureError);
@@ -252,7 +252,7 @@ void V4L2VideoEncoder::RunEncodeBufferTask() {
   EnqueueBuffers();
 
   // Clear the interrupt fd.
-  if (!v4l2_device_->ClearDevicePollInterrupt())
+  if (!device_->ClearDevicePollInterrupt())
     return;
 
   bool poll_device = (input_queue_->QueuedBuffersCount() +
@@ -308,7 +308,7 @@ void V4L2VideoEncoder::EnqueueBuffers() {
       struct v4l2_encoder_cmd cmd;
       memset(&cmd, 0, sizeof(cmd));
       cmd.cmd = V4L2_ENC_CMD_STOP;
-      if (v4l2_device_->Ioctl(VIDIOC_ENCODER_CMD, &cmd) != 0) {
+      if (device_->Ioctl(VIDIOC_ENCODER_CMD, &cmd) != 0) {
         MCIL_ERROR_PRINT(" ioctl() failed: VIDIOC_ENCODER_CMD");
         NOTIFY_ERROR(kPlatformFailureError);
         client_->NotifyFlushIfNeeded(false);
@@ -327,7 +327,7 @@ void V4L2VideoEncoder::EnqueueBuffers() {
   }
 
   if (old_inputs_queued == 0 && input_queue_->QueuedBuffersCount() != 0) {
-    if (!v4l2_device_->SetDevicePollInterrupt())
+    if (!device_->SetDevicePollInterrupt())
       return;
     do_streamon = !input_queue_->IsStreaming();
   }
@@ -342,7 +342,7 @@ void V4L2VideoEncoder::EnqueueBuffers() {
       return;
   }
   if (old_outputs_queued == 0 && output_queue_->QueuedBuffersCount() != 0) {
-    if (!v4l2_device_->SetDevicePollInterrupt())
+    if (!device_->SetDevicePollInterrupt())
       return;
   }
 
@@ -420,12 +420,12 @@ bool V4L2VideoEncoder::SetFormats(VideoPixelFormat input_format,
 bool V4L2VideoEncoder::SetOutputFormat(VideoCodecProfile output_profile) {
   Optional<struct v4l2_format> format =
       output_queue_->SetFormat(output_format_fourcc_,
-                               input_visible_rect_.size(),
+                               input_visible_rect_.getSize(),
                                encoder_config_.outputBufferSize);
   if (!format) {
     MCIL_ERROR_PRINT(": Failed to set Output format [%s], input[%dx%d], \
         output[%lu]", FourccToString(output_format_fourcc_).c_str(),
-        input_visible_rect_.size().width, input_visible_rect_.size().height,
+        input_visible_rect_.getSize().width, input_visible_rect_.getSize().height,
         encoder_config_.outputBufferSize);
     return false;
   }
@@ -451,7 +451,7 @@ Optional<struct v4l2_format> V4L2VideoEncoder::SetInputFormat(
 
   pix_fmt_candidates.push_back(input_fourcc->ToV4L2PixFmt());
   for (auto preferred_format :
-       v4l2_device_->PreferredInputFormat(V4L2_ENCODER)) {
+       device_->PreferredInputFormat(V4L2_ENCODER)) {
     pix_fmt_candidates.push_back(preferred_format);
   }
 
@@ -502,7 +502,7 @@ bool V4L2VideoEncoder::ApplyCrop() {
   selection_arg.target = V4L2_SEL_TGT_CROP;
   selection_arg.r = visible_rect;
 
-  if (v4l2_device_->Ioctl(VIDIOC_S_SELECTION, &selection_arg) == 0) {
+  if (device_->Ioctl(VIDIOC_S_SELECTION, &selection_arg) == 0) {
     MCIL_DEBUG_PRINT(" VIDIOC_S_SELECTION is supported");
     visible_rect = selection_arg.r;
   } else {
@@ -543,9 +543,9 @@ bool V4L2VideoEncoder::InitControls(const EncoderConfig* config) {
       return false;
   }
 
-  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+  device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                         V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE, 1);
-  v4l2_device_->SetGOPLength(config->gopLength);
+  device_->SetGOPLength(config->gopLength);
 
   return true;
 }
@@ -553,7 +553,7 @@ bool V4L2VideoEncoder::InitControls(const EncoderConfig* config) {
 bool V4L2VideoEncoder::InitControlsH264(const EncoderConfig* config) {
   inject_sps_and_pps_ = ShouldInjectSpsPps();
 
-  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG, V4L2_CID_MPEG_VIDEO_B_FRAMES, 0);
+  device_->SetCtrl(V4L2_CTRL_CLASS_MPEG, V4L2_CID_MPEG_VIDEO_B_FRAMES, 0);
 
   int32_t profile_value =
       V4L2Device::VideoCodecProfileToV4L2H264Profile(config->profile);
@@ -563,48 +563,48 @@ bool V4L2VideoEncoder::InitControlsH264(const EncoderConfig* config) {
     return false;
   }
 
-  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+  device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                         V4L2_CID_MPEG_VIDEO_H264_PROFILE, profile_value);
 
   uint8_t h264_level = client_->GetH264LevelLimit(config);
   int32_t level_value = V4L2Device::H264LevelIdcToV4L2H264Level(h264_level);
-  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+  device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                         V4L2_CID_MPEG_VIDEO_H264_LEVEL, level_value);
-  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+  device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                         V4L2_CID_MPEG_VIDEO_HEADER_MODE,
                         V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME);
 
-  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG, V4L2_CID_MPEG_VIDEO_H264_I_PERIOD,
+  device_->SetCtrl(V4L2_CTRL_CLASS_MPEG, V4L2_CID_MPEG_VIDEO_H264_I_PERIOD,
                         0);
 
-  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+  device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                         V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE,
                         V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED);
 
   if (config->profile == H264PROFILE_MAIN ||
       config->profile == H264PROFILE_HIGH) {
-    v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+    device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                           V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE,
                           V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CABAC);
   }
 
   if (config->profile == H264PROFILE_HIGH) {
-    v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+    device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                           V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM, true);
   }
 
-  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+  device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                         V4L2_CID_MPEG_VIDEO_H264_MAX_QP, 42);
-  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+  device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                         V4L2_CID_MPEG_VIDEO_H264_MIN_QP, 24);
 
   return true;
 }
 
 void V4L2VideoEncoder::InitControlsVP8(const EncoderConfig* config) {
-  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+  device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                         V4L2_CID_MPEG_VIDEO_VPX_MIN_QP, 4);
-  v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+  device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                         V4L2_CID_MPEG_VIDEO_VPX_MAX_QP, 117);
 }
 
@@ -658,7 +658,7 @@ void V4L2VideoEncoder::DestroyOutputBuffers() {
 bool V4L2VideoEncoder::EnqueueInputBuffer(V4L2WritableBufferRef buffer) {
   InputFrameInfo frame_info = encoder_input_queue_.front();
   if (frame_info.force_keyframe) {
-    if (!v4l2_device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
+    if (!device_->SetCtrl(V4L2_CTRL_CLASS_MPEG,
                                V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME, 0)) {
       MCIL_ERROR_PRINT(" Failed requesting keyframe");
       NOTIFY_ERROR(kPlatformFailureError);
@@ -691,9 +691,9 @@ bool V4L2VideoEncoder::EnqueueInputBuffer(V4L2WritableBufferRef buffer) {
     switch (buffer.Memory()) {
       case V4L2_MEMORY_MMAP: {
         size_t plane_size = buffer.GetBufferSize(i);
-        size_t bytes_used = buffer.GetBytesUsed(i);
+        size_t buffer_bytes = buffer.GetBytesUsed(i);
         void* mapping = buffer.GetPlaneBuffer(i);
-        memcpy(reinterpret_cast<uint8_t*>(mapping) + bytes_used,
+        memcpy(reinterpret_cast<uint8_t*>(mapping) + buffer_bytes,
                frame->data[i], plane_size);
         break;
       }
@@ -808,12 +808,12 @@ bool V4L2VideoEncoder::StopDevicePoll() {
   if (!device_poll_thread_.IsRunning())
     return true;
 
-  if (!v4l2_device_->SetDevicePollInterrupt())
+  if (!device_->SetDevicePollInterrupt())
     return false;
 
   device_poll_thread_.Stop();
 
-  if (!v4l2_device_->ClearDevicePollInterrupt())
+  if (!device_->ClearDevicePollInterrupt())
     return false;
 
   // Tegra driver cannot call Streamoff() when the stream is off, so we check
@@ -837,7 +837,7 @@ bool V4L2VideoEncoder::StopDevicePoll() {
 
 void V4L2VideoEncoder::DevicePollTask(bool poll_device) {
   bool event_pending;
-  if (!v4l2_device_->Poll(poll_device, &event_pending)) {
+  if (!device_->Poll(poll_device, &event_pending)) {
     NOTIFY_ERROR(kPlatformFailureError);
     return;
   }

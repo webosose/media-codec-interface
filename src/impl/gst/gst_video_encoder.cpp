@@ -121,14 +121,14 @@ bool GstVideoEncoder::EncodeBuffer(const uint8_t* yBuf, size_t ySize,
   memcpy(feedBuffer + ySize, uBuf, uSize);
   memcpy(feedBuffer + ySize + uSize, vBuf, vSize);
 
-  GstBuffer *gstBuffer = gst_buffer_new_wrapped(feedBuffer, bufferSize);
-  if (!gstBuffer) {
+  GstBuffer *gstBufferWrap = gst_buffer_new_wrapped(feedBuffer, bufferSize);
+  if (!gstBufferWrap) {
     MCIL_ERROR_PRINT("Buffer wrapping error");
     return false;
   }
 
   GstFlowReturn gstReturn = gst_app_src_push_buffer((GstAppSrc*)source_,
-                                                    gstBuffer);
+                                                    gstBufferWrap);
   if (gstReturn < GST_FLOW_OK) {
     MCIL_ERROR_PRINT("gst_app_src_push_buffer errCode[ %d ]", gstReturn);
     return false;

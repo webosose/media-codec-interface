@@ -24,9 +24,6 @@
 #include "base/decoder_types.h"
 #include "resource/requestor.h"
 
-class UMSConnectorHandle;
-class UMSConnectorMessage;
-
 namespace mcil {
 
 class ResourceRequestor;
@@ -61,7 +58,7 @@ class VideoResource {
                  std::string& resources,
                  int32_t *resource_index);
 #endif
-  bool Release(DeviceType device_type,
+  bool ReleaseVideoResource(DeviceType device_type,
                std::string& resources,
                int32_t resource_index);
 

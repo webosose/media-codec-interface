@@ -100,12 +100,12 @@ class V4L2VideoEncoder : public VideoEncoder {
 
   EncoderConfig encoder_config_ = {0};
 
-  scoped_refptr<V4L2Device> v4l2_device_;
+  scoped_refptr<V4L2Device> device_;
 
   scoped_refptr<V4L2Queue> input_queue_;
   scoped_refptr<V4L2Queue> output_queue_;
 
-  bool is_flush_supported_ = false;
+  bool is_flush_supported_state_ = false;
   bool input_buffer_created_ = false;
 
   Size input_frame_size_;
@@ -142,7 +142,7 @@ class V4L2VideoEncoder : public VideoEncoder {
 
 #define IOCTL_OR_ERROR_RETURN_VALUE(type, arg, value, error_str) \
   do { \
-    if (v4l2_device_->Ioctl(type, arg) != 0) { \
+    if (device_->Ioctl(type, arg) != 0) { \
       MCIL_ERROR_PRINT(": ioctl() failed: %s", error_str); \
       NOTIFY_ERROR(kPlatformFailureError); \
       return value; \

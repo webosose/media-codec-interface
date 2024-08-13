@@ -26,7 +26,7 @@ Thread::Thread(const std::string& name)
 }
 
 Thread::~Thread() noexcept(false) {
-  if (is_running_)
+  if (is_thread_running_)
     Stop();
 }
 
@@ -42,32 +42,32 @@ void Thread::PostTask(std::function<void()> task) {
 }
 
 void Thread::Start() {
-  MCIL_DEBUG_PRINT(": %s running[%d]", thread_name_.c_str(), is_running_);
+  MCIL_DEBUG_PRINT(": %s running[%d]", thread_name_.c_str(), is_thread_running_);
 
   {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (is_running_)
+    if (is_thread_running_)
       return;
 
-    is_running_ = true;
+    is_thread_running_ = true;
   }
 
-  thread_ = std::thread(&Thread::RunInternal, this);
+  thread_object_ = std::thread(&Thread::RunInternal, this);
 }
 
 void Thread::Stop() {
-  MCIL_DEBUG_PRINT(": %s running[%d]", thread_name_.c_str(), is_running_);
+  MCIL_DEBUG_PRINT(": %s running[%d]", thread_name_.c_str(), is_thread_running_);
 
   {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (!is_running_)
+    if (!is_thread_running_)
       return;
 
-    is_running_ = false;
+    is_thread_running_ = false;
   }
 
   condition_.notify_all();
-  thread_.join();
+  thread_object_.join();
 }
 
 void Thread::RunInternal() {
@@ -76,10 +76,10 @@ void Thread::RunInternal() {
     {
       std::unique_lock<std::mutex> lock(mutex_);
       condition_.wait(lock, [&] {
-        return !task_queue_.empty() + !is_running_;
+        return !task_queue_.empty() + !is_thread_running_;
       });
 
-      if (!is_running_) {
+      if (!is_thread_running_) {
         for (auto& task : task_queue_)
           task();
 

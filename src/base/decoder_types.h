@@ -67,7 +67,7 @@ class DecoderConfig {
   uint32_t frameWidth;
   uint32_t frameHeight;
   VideoCodecProfile profile;
-  OutputMode outputMode;
+  OutputMode opMode;
 };
 
 /* DecoderClinet configure data structure */
