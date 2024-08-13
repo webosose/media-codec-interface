@@ -5,7 +5,7 @@
 #ifndef BASE_MCIL_REF_COUNTED_H_
 #define BASE_MCIL_REF_COUNTED_H_
 
-#include <stddef.h>
+#include <cstddef>
 
 #include <iostream>
 #include <utility>

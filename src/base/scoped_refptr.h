@@ -5,7 +5,7 @@
 #ifndef BASE_MCIL_SCOPED_REFPTR_H_
 #define BASE_MCIL_SCOPED_REFPTR_H_
 
-#include <stddef.h>
+#include <cstddef>
 
 #include <iosfwd>
 #include <type_traits>

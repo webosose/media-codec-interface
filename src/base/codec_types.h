@@ -5,7 +5,7 @@
 #ifndef SRC_BASE_CODEC_TYPES_H_
 #define SRC_BASE_CODEC_TYPES_H_
 
-#include <stdint.h>
+#include <cstdint>
 
 #include <chrono>
 #include <cstring>

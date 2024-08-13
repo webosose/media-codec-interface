@@ -5,7 +5,7 @@
 #include "v4l2_buffers.h"
 
 #include <memory>
-#include <string.h>
+#include <cstring>
 #include <sys/mman.h>
 #include <unistd.h>
 

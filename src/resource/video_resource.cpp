@@ -16,8 +16,8 @@
 
 #include "video_resource.h"
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include <glib.h>
 #include <cmath>
 #include <cstring>

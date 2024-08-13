@@ -6,7 +6,7 @@
 
 #include <libdrm/drm_fourcc.h>
 #include <poll.h>
-#include <string.h>
+#include <cstring>
 #include <sys/eventfd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>

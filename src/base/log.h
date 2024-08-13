@@ -20,7 +20,7 @@
 
 #include <PmLogLib.h>
 
-#include <assert.h>
+#include <cassert>
 #include <string>
 
 PmLogContext GetPmLogContext();

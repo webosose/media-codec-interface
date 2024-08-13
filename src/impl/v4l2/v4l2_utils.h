@@ -17,10 +17,10 @@
 #ifndef SRC_IMPL_V4L2_V4L2_UTILS_H_
 #define SRC_IMPL_V4L2_V4L2_UTILS_H_
 
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 #include <sys/ioctl.h>
 #include <unistd.h>
 

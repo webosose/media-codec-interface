@@ -5,7 +5,7 @@
 #include "v4l2_device.h"
 
 #include <libdrm/drm_fourcc.h>
-#include <string.h>
+#include <cstring>
 #include <sys/ioctl.h>
 
 #include <algorithm>

@@ -46,7 +46,7 @@ ResourceRequestor::ResourceRequestor(const std::string& connectionId)
           std::string(umsRMC_->getConnectionID()) : std::string()); // after registerPipeline
       if (connectionId_.empty()) {
         MCIL_ERROR_PRINT("Failed to get connection ID");
-        exit(0);
+       return;
       }
     } else {
       umsRMC_ = make_shared<uMediaServer::ResourceManagerClient> (connectionId);
@@ -54,7 +54,7 @@ ResourceRequestor::ResourceRequestor(const std::string& connectionId)
     }
   } catch (const std::exception &e) {
     MCIL_ERROR_PRINT("Failed to create ResourceRequestor [%s]", e.what());
-    exit(0);
+   return;
   }
 
   if (connectionId_.empty()) {
