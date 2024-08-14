@@ -31,7 +31,7 @@ class VideoEncoderAPI {
   VideoEncoderAPI(VideoEncoderClient* client);
   ~VideoEncoderAPI() noexcept(false);
 
-  bool Initialize(const EncoderConfig* configData,
+  bool Initialize(const EncoderConfig* encode_config,
                   EncoderClientConfig* client_config);
   void Destroy();
   bool IsFlushSupported();

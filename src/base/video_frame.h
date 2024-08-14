@@ -12,7 +12,7 @@ namespace mcil {
 class ColorPlane {
  public:
   ColorPlane() = default;
-  ColorPlane(int32_t stride, size_t offset, size_t size);
+  ColorPlane(int32_t plane_stride, size_t plane_offset, size_t plane_size);
   ColorPlane(const ColorPlane& other);
   ColorPlane& operator=(const ColorPlane& other);
   ~ColorPlane() = default;
@@ -37,7 +37,7 @@ class VideoFrame : public RefCounted<VideoFrame> {
     kMaxPlanes = 4,
   };
 
-  static size_t NumPlanes(VideoPixelFormat video_format);
+  static size_t NumPlanes(VideoPixelFormat pixel_format);
   static int32_t BytesPerElement(VideoPixelFormat format, size_t plane);
   static Size SampleSize(VideoPixelFormat format, size_t plane);
   static int32_t PlaneHorizontalBitsPerPixel(VideoPixelFormat format,
@@ -68,7 +68,7 @@ class VideoFrame : public RefCounted<VideoFrame> {
  private:
   friend class RefCounted<VideoFrame>;
 
-  VideoFrame(const Size& coded_size);
+  VideoFrame(const Size& size);
   ~VideoFrame() = default;
 };
 

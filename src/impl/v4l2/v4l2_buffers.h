@@ -33,7 +33,7 @@ class V4L2Buffer {
   virtual bool Query();
 
   virtual int64_t GetBufferPTS();
-  virtual void SetBufferPTS(int64_t buffer_pts);
+  virtual void SetBufferPTS(int64_t timestamp);
 
  protected:
   V4L2Buffer(scoped_refptr<V4L2Device> device,
@@ -87,7 +87,7 @@ class V4L2BufferRefBase {
   scoped_refptr<VideoFrame> GetVideoFrame();
 
   int64_t GetBufferPTS();
-  void SetBufferPTS(int64_t buffer_pts);
+  void SetBufferPTS(int64_t timestamp);
 
   struct v4l2_buffer buffer_;
   struct v4l2_plane v4l2_planes_[VIDEO_MAX_PLANES];
@@ -164,7 +164,7 @@ class V4L2WritableBufferRef : public WritableBufferRef {
   void SetBufferId(int32_t buffer_id);
 
   int64_t GetBufferPTS();
-  void SetBufferPTS(int64_t buffer_pts);
+  void SetBufferPTS(int64_t timestamp);
 
  private:
   V4L2WritableBufferRef(const struct v4l2_buffer& buffer,

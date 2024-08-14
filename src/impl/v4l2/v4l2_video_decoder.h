@@ -54,7 +54,7 @@ class V4L2VideoDecoder : public VideoDecoder {
   bool GetCurrentInputBufferId(int32_t* buffer_id) override;
   size_t GetFreeBuffersCount(QueueType queue_type) override;
   bool AllocateOutputBuffers(
-      uint32_t count, std::vector<WritableBufferRef*>& buffers) override;
+      uint32_t buffer_count, std::vector<WritableBufferRef*>& output_buffers) override;
   bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format) override;
   void OnEGLImagesCreationCompleted() override;
   void RunDecoderPostTask(PostTaskType task, bool value) override {}
@@ -96,7 +96,7 @@ class V4L2VideoDecoder : public VideoDecoder {
   virtual bool CreateBuffersForFormat(const struct v4l2_format& format,
                                       const Size& visible_size);
 
-  virtual void NotifyErrorState(DecoderError error);
+  virtual void NotifyErrorState(DecoderError error_code);
 
   virtual bool EnqueueInputBuffer(V4L2WritableBufferRef buffer);
   virtual bool DequeueInputBuffer();

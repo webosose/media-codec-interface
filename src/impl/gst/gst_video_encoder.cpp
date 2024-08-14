@@ -66,7 +66,7 @@ GstVideoEncoder::~GstVideoEncoder() {
     gst_element_set_state(pipeline_, GST_STATE_NULL);
 }
 
-bool GstVideoEncoder::Initialize(const EncoderConfig* config_data,
+bool GstVideoEncoder::Initialize(const EncoderConfig* config,
                                   VideoEncoderClient* client,
                                   EncoderClientConfig* client_config,
                                   int32_t venc_port_index) {
@@ -76,7 +76,7 @@ bool GstVideoEncoder::Initialize(const EncoderConfig* config_data,
     return false;
   }
 
-  if (!CreatePipeline(config_data)) {
+  if (!CreatePipeline(config)) {
     MCIL_ERROR_PRINT("CreatePipeline Failed");
     return false;
   }
@@ -84,8 +84,8 @@ bool GstVideoEncoder::Initialize(const EncoderConfig* config_data,
   bitrate_ = 0;
 
   if (client_config) {
-    client_config->input_frame_size = Size(config_data->width,
-                                           config_data->height);
+    client_config->input_frame_size = Size(config->width,
+                                           config->height);
     client_config->should_control_buffer_feed = true;
     client_config->should_inject_sps_and_pps = false;
   }
@@ -345,7 +345,8 @@ GstFlowReturn GstVideoEncoder::OnEncodedBuffer(
     GstElement* elt, gpointer* data) {
   GstVideoEncoder *encoder = reinterpret_cast<GstVideoEncoder*>(data);
   GstSample *sample;
-  GstBuffer *app_buffer, *buffer;
+  GstBuffer *app_buffer;
+  GstBuffer *buffer;
   GstElement *source;
   GstFlowReturn ret;
 

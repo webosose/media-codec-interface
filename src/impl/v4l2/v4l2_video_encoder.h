@@ -74,14 +74,14 @@ class V4L2VideoEncoder : public VideoEncoder {
 
   virtual bool SetOutputFormat(VideoCodecProfile output_profile);
   virtual Optional<struct v4l2_format> SetInputFormat(
-      VideoPixelFormat format, const Size& frame_size);
+      VideoPixelFormat pixel_format, const Size& frame_size);
   virtual bool ApplyCrop();
 
   virtual bool InitControls(const EncoderConfig* config);
   virtual bool InitControlsH264(const EncoderConfig* config);
   virtual void InitControlsVP8(const EncoderConfig* config);
 
-  virtual void NotifyErrorState(EncoderError error);
+  virtual void NotifyErrorState(EncoderError error_code);
 
   virtual bool CreateInputBuffers();
   virtual bool CreateOutputBuffers();

@@ -50,8 +50,9 @@ bool RequiresEvenSizeAllocation(VideoPixelFormat format) {
 
 }
 
-ColorPlane::ColorPlane(int32_t st, size_t os, size_t sz)
-  : stride(st), offset(os), size(sz) {}
+ColorPlane::ColorPlane(int32_t plane_stride, size_t plane_offset,
+                        size_t plane_size)
+    : stride(plane_stride), offset(plane_offset), size(plane_size) {}
 
 ColorPlane::ColorPlane(const ColorPlane& other)
   : stride(other.stride), offset(other.offset), size(other.size) {}

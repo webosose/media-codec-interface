@@ -26,9 +26,9 @@ namespace mcil {
 // media/video/video_decode_accelerator.h
 enum DecoderError {
   ILLEGAL_STATE = 1,
-  INVALID_ARGUMENT,
-  UNREADABLE_INPUT,
-  PLATFORM_FAILURE,
+  INVALID_ARGUMENT = 2,
+  UNREADABLE_INPUT = 3,
+  PLATFORM_FAILURE = 4,
   ERROR_MAX = PLATFORM_FAILURE,
 };
 

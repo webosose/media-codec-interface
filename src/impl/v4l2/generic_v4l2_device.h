@@ -35,7 +35,7 @@ class GenericV4L2Device : public V4L2Device {
   std::vector<int32_t> GetDmabufsForV4L2Buffer(
       int32_t index,
       size_t num_planes,
-      enum v4l2_buf_type buf_type) override;
+      enum v4l2_buf_type buffer_type) override;
 
   bool CanCreateEGLImageFrom(const Fourcc fourcc) const override;
   uint32_t GetTextureTarget() const override;

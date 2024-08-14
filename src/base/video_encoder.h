@@ -28,7 +28,7 @@ class VideoEncoder : public RefCounted<VideoEncoder> {
   static SupportedProfiles GetSupportedProfiles();
   static scoped_refptr<VideoEncoder> Create();
 
-  virtual bool Initialize(const EncoderConfig* configData,
+  virtual bool Initialize(const EncoderConfig* config,
                           VideoEncoderClient* client,
                           EncoderClientConfig* client_config,
                           int32_t venc_port_index) = 0;

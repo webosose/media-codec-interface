@@ -557,7 +557,8 @@ bool V4L2VideoDecoder::CheckConfig(const DecoderConfig* config) {
 
 bool V4L2VideoDecoder::SetupFormats() {
   size_t input_size;
-  Size max_resolution, min_resolution;
+  Size max_resolution;
+  Size min_resolution;
   device_->GetSupportedResolution(
       input_format_fourcc_, &min_resolution, &max_resolution);
   if (max_resolution.width > 1920 && max_resolution.height > 1088)

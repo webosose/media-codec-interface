@@ -79,7 +79,8 @@ bool V4L2VideoEncoder::Initialize(const EncoderConfig* config,
     return false;
   }
 
-  Size max_res, min_res;
+  Size max_res;
+  Size min_res;
   device_->GetSupportedResolution(output_format_fourcc_, &min_res,
                                        &max_res);
   if (config->width < min_res.width || config->height < min_res.height ||

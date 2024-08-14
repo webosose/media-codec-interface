@@ -24,7 +24,7 @@
 #include <string>
 
 PmLogContext GetPmLogContext();
-std::string BaseFile(const char* long_file);
+std::string BaseFile(const char* file_path);
 
 #define MCIL_LOG_CRITICAL(...) PmLogCritical(GetPmLogContext(), ##__VA_ARGS__)
 #define MCIL_LOG_WARNING(...)  PmLogWarning(GetPmLogContext(), ##__VA_ARGS__)

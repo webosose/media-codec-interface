@@ -22,17 +22,17 @@ namespace mcil {
  * Video Codec Type enum
  */
 enum VideoCodec {
-  VIDEO_CODEC_NONE,
-  VIDEO_CODEC_H264,
-  VIDEO_CODEC_VC1,
-  VIDEO_CODEC_MPEG2,
-  VIDEO_CODEC_MPEG4,
-  VIDEO_CODEC_THEORA,
-  VIDEO_CODEC_VP8,
-  VIDEO_CODEC_VP9,
-  VIDEO_CODEC_HEVC,
-  VIDEO_CODEC_DOLBYVISION,
-  VIDEO_CODEC_AV1,
+  VIDEO_CODEC_NONE = 0,
+  VIDEO_CODEC_H264 = 1,
+  VIDEO_CODEC_VC1 = 2,
+  VIDEO_CODEC_MPEG2 = 3,
+  VIDEO_CODEC_MPEG4 = 4,
+  VIDEO_CODEC_THEORA = 5,
+  VIDEO_CODEC_VP8 = 6,
+  VIDEO_CODEC_VP9 = 7,
+  VIDEO_CODEC_HEVC = 8,
+  VIDEO_CODEC_DOLBYVISION = 9,
+  VIDEO_CODEC_AV1 = 10,
   VIDEO_CODEC_MAX = VIDEO_CODEC_AV1,
 };
 
@@ -141,16 +141,16 @@ enum QueueType {
 // v4l2_video_decode_accelerator.h and v4l2_video_encode_accelerator.h
 enum CodecState {
   kUninitialized = 0,
-  kInitialized,
-  kDecoding,
-  kEncoding,
-  kFlushing,
-  kResetting,
-  kChangingResolution,
-  kAwaitingPictureBuffers,
-  kDecoderError,
-  kEncoderError,
-  kDestroying,
+  kInitialized = 1,
+  kDecoding = 2,
+  kEncoding = 3,
+  kFlushing = 4,
+  kResetting =5,
+  kChangingResolution = 6,
+  kAwaitingPictureBuffers = 7,
+  kDecoderError = 8,
+  kEncoderError= 9,
+  kDestroying = 10,
   kCodecStateMax = kDestroying,
 };
 
@@ -165,7 +165,7 @@ class Size {
   Size() = default;
   Size(uint32_t w, uint32_t h);
 
-  void SetSize(uint32_t width, uint32_t height);
+  void SetSize(uint32_t w, uint32_t h);
   uint32_t GetArea() const { return width * height; };
   bool IsEmpty() const { return !width || !height; }
 

@@ -44,17 +44,17 @@ VideoEncoderAPI::~VideoEncoderAPI() noexcept(false) {
   }
 }
 
-bool VideoEncoderAPI::Initialize(const EncoderConfig* encoder_config,
+bool VideoEncoderAPI::Initialize(const EncoderConfig* encode_config,
                                  EncoderClientConfig* client_config) {
-  MCIL_DEBUG_PRINT(" encoder_config = %p", encoder_config);
+  MCIL_DEBUG_PRINT(" encode_config = %p", encode_config);
 
   VideoCodec codec_type =
-      VideoCodecProfileToVideoCodec(encoder_config->profile);
+      VideoCodecProfileToVideoCodec(encode_config->profile);
   if (!VideoResource::GetInstance().Acquire(V4L2_ENCODER,
                                             codec_type,
-                                            encoder_config->width,
-                                            encoder_config->height,
-                                            encoder_config->frameRate,
+                                            encode_config->width,
+                                            encode_config->height,
+                                            encode_config->frameRate,
                                             resources_,
                                             &venc_port_index_)) {
     MCIL_ERROR_PRINT(" Failed to acquire resources");
@@ -67,7 +67,7 @@ bool VideoEncoderAPI::Initialize(const EncoderConfig* encoder_config,
     return false;
   }
   return encoder_->Initialize(
-      encoder_config, client_, client_config, venc_port_index_);
+      encode_config, client_, client_config, venc_port_index_);
 }
 
 void VideoEncoderAPI::Destroy() {

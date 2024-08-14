@@ -42,8 +42,8 @@ class VideoDecoder : public RefCounted<VideoDecoder> {
   virtual bool ResetDecodingBuffers(bool* reset_pending) = 0;
   virtual bool CanNotifyResetDone() = 0;
 
-  virtual bool DecodeBuffer(const void* buffer, size_t size,
-                            const int32_t id, int64_t buffer_pts) = 0;
+  virtual bool DecodeBuffer(const void* buffer, size_t buffer_size,
+                            const int32_t buffer_id, int64_t buffer_pts) = 0;
   virtual bool FlushInputBuffers() = 0;
   virtual bool DidFlushBuffersDone() = 0;
 
@@ -57,7 +57,8 @@ class VideoDecoder : public RefCounted<VideoDecoder> {
   virtual bool GetCurrentInputBufferId(int32_t* buffer_id) = 0;
   virtual size_t GetFreeBuffersCount(QueueType queue_type) = 0;
   virtual bool AllocateOutputBuffers(
-      uint32_t count, std::vector<WritableBufferRef*>& buffers) = 0;
+      uint32_t buffer_count,
+      std::vector<WritableBufferRef*> & output_buffers) = 0;
   virtual bool CanCreateEGLImageFrom(VideoPixelFormat pixel_format) = 0;
 
   virtual void RunDecoderPostTask(PostTaskType task, bool value) = 0;

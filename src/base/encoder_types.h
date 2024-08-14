@@ -26,9 +26,9 @@ namespace mcil {
 // Same as the enum Error defined in upstream Chromium file
 // media/video/video_encode_accelerator.h
 enum EncoderError {
-  kIllegalStateError,
-  kInvalidArgumentError,
-  kPlatformFailureError,
+  kIllegalStateError = 0,
+  kInvalidArgumentError = 1,
+  kPlatformFailureError = 2,
   kErrorMax = kPlatformFailureError
 };
 

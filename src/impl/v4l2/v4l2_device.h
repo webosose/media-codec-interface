@@ -76,7 +76,7 @@ class V4L2Device : public RefCounted<V4L2Device> {
  private:
   virtual bool Initialize() = 0;
 
-  void OnQueueDestroyed(enum v4l2_buf_type buffer_type);
+  void OnQueueDestroyed(enum v4l2_buf_type buf_type);
 
   DeviceType device_type_ = V4L2_DECODER;
 
