@@ -336,12 +336,12 @@ using IsAssignableFromOptional =
                 std::is_assignable<T&, const Optional<U>&&>>;
 
 namespace swappable_impl {
-using std::swap;
 
 struct IsSwappableImpl {
   template <typename T>
   static auto Check(int32_t)
-      -> decltype(swap(std::declval<T>(), std::declval<T>()), std::true_type());
+      -> decltype(std::swap(std::declval<T>(), std::declval<T>()),
+                  std::true_type());
 
   template <typename T>
   static std::false_type Check(...);

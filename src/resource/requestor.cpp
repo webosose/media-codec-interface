@@ -26,9 +26,7 @@
 
 #include "base/log.h"
 
-using namespace std;
 using mrc::ResourceCalculator;
-using namespace pbnjson;
 
 namespace mcil {
 
@@ -40,7 +38,7 @@ ResourceRequestor::ResourceRequestor(const std::string& connectionId)
     allowPolicy_(true) {
   try {
     if (connectionId.empty()) {
-      umsRMC_ = make_shared<uMediaServer::ResourceManagerClient> ();
+      umsRMC_ = std::make_shared<uMediaServer::ResourceManagerClient> ();
       umsRMC_->registerPipeline("media"); // only rmc case
       connectionId_ = (umsRMC_->getConnectionID() ?
           std::string(umsRMC_->getConnectionID()) : std::string()); // after registerPipeline
@@ -49,7 +47,8 @@ ResourceRequestor::ResourceRequestor(const std::string& connectionId)
        return;
       }
     } else {
-      umsRMC_ = make_shared<uMediaServer::ResourceManagerClient> (connectionId);
+      umsRMC_ =
+          std::make_shared<uMediaServer::ResourceManagerClient>(connectionId);
       connectionId_ = connectionId;
     }
   } catch (const std::exception &e) {
@@ -83,7 +82,7 @@ bool ResourceRequestor::AcquireResources(PortResource_t& resourceMMap,
 
   MCIL_DEBUG_PRINT("payload string = %s", payload.c_str());
 
-  string response;
+  std::string response;
   if (!umsRMC_->acquire(payload, response)) {
     MCIL_ERROR_PRINT("fail to acquire!!! response : %s", response.c_str());
     return false;
@@ -110,12 +109,12 @@ bool ResourceRequestor::ReacquireResources(PortResource_t& resourceMMap,
     return false;
   }
 
-  JValue reacquire_obj = pbnjson::Object();
+  pbnjson::JValue reacquire_obj = pbnjson::Object();
   reacquire_obj.put("new", request);
   reacquire_obj.put("old", resources);
 
-  JSchemaFragment input_schema("{}");
-  JGenerator serializer(nullptr);
+  pbnjson::JSchemaFragment input_schema("{}");
+  pbnjson::JGenerator serializer(nullptr);
 
   std::string payload;
   if (!serializer.toString(reacquire_obj, input_schema, payload)) {
@@ -250,13 +249,13 @@ std::string ResourceRequestor::GetSourceString(
         venc_resource[0].front().quantity);
   }
 
-  JSchemaFragment input_schema("{}");
-  JGenerator serializer(nullptr);
+  pbnjson::JSchemaFragment input_schema("{}");
+  pbnjson::JGenerator serializer(nullptr);
 
-  JValue objArray = pbnjson::Array();
+  pbnjson::JValue objArray = pbnjson::Array();
   for (auto& option : finalOptions) {
     for (auto const & it : option) {
-      JValue obj = pbnjson::Object();
+      pbnjson::JValue obj = pbnjson::Object();
       obj.put("resource", it.type);
       obj.put("qty", it.quantity);
       MCIL_DEBUG_PRINT("calculator return : %s, %d",
