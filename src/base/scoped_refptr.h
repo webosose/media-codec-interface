@@ -71,7 +71,7 @@ class scoped_refptr {
 
   constexpr scoped_refptr() = default;
 
-  constexpr scoped_refptr(std::nullptr_t) {}
+  explicit constexpr scoped_refptr(std::nullptr_t) {}
 
   scoped_refptr(T* p) : ptr_(p) {
     if (ptr_)
