@@ -89,11 +89,11 @@ scoped_refptr<V4L2Device> V4L2Device::Create(DeviceType device_type) {
 
 // static
 uint32_t V4L2Device::VideoCodecProfileToV4L2PixFmt(VideoCodecProfile profile) {
-  if (profile >= H264PROFILE_MIN && profile <= H264PROFILE_MAX) {
+  if ((profile >= H264PROFILE_MIN) && (profile <= H264PROFILE_MAX)) {
     return V4L2_PIX_FMT_H264;
-  } else if (profile >= VP8PROFILE_MIN && profile <= VP8PROFILE_MAX) {
+  } else if ((profile >= VP8PROFILE_MIN) && (profile <= VP8PROFILE_MAX)) {
     return V4L2_PIX_FMT_VP8;
-  } else if (profile >= VP9PROFILE_MIN && profile <= VP9PROFILE_MAX) {
+  } else if ((profile >= VP9PROFILE_MIN) && (profile <= VP9PROFILE_MAX)) {
     return V4L2_PIX_FMT_VP9;
   } else {
     MCIL_DEBUG_PRINT(": Unrecognized: %s", GetProfileName(profile).c_str());
@@ -145,14 +145,18 @@ Size V4L2Device::AllocatedSizeFromV4L2Format(const struct v4l2_format& format) {
   for (size_t i = 0; i < VideoFrame::NumPlanes(frame_format); ++i)
     total_bpp += VideoFrame::PlaneBitsPerPixel(frame_format, i);
 
-  if (sizeimage == 0 || bytesperline == 0 || plane_horiz_bits_per_pixel == 0 ||
-      total_bpp == 0 || (bytesperline * 8) % plane_horiz_bits_per_pixel != 0) {
+  if ((sizeimage == 0) || (bytesperline == 0) ||
+      (plane_horiz_bits_per_pixel == 0) || (total_bpp == 0) ||
+      (((bytesperline * 8) % plane_horiz_bits_per_pixel) != 0)) {
     MCIL_ERROR_PRINT(" Invalid format provided");
     return coded_size;
   }
 
-  int32_t coded_width = bytesperline * 8 / plane_horiz_bits_per_pixel;
-  std::div_t res = std::div(sizeimage * 8, coded_width * total_bpp);
+  int coded_width = static_cast<int32_t>(
+      (static_cast<int32_t>(bytesperline) * 8) / plane_horiz_bits_per_pixel);
+  std::div_t res =
+      std::div(static_cast<int32_t>(static_cast<int32_t>(sizeimage) * 8),
+               coded_width * total_bpp);
   int32_t coded_height = res.quot + std::min(res.rem, 1);
 
   coded_size.SetSize(coded_width, coded_height);
@@ -293,11 +297,11 @@ scoped_refptr<VideoFrame> V4L2Device::VideoFrameFromV4L2Format(
       case V4L2_PIX_FMT_NV12:
         video_frame->color_planes.emplace_back(
             y_stride, y_stride_abs * pix_mp.height,
-            y_stride_abs * pix_mp.height / 2);
+            (y_stride_abs * pix_mp.height) / 2);
         break;
       case V4L2_PIX_FMT_YUV420:
       case V4L2_PIX_FMT_YVU420: {
-        if (y_stride % 2 != 0 || pix_mp.height % 2 != 0) {
+        if (((y_stride % 2) != 0) || ((pix_mp.height % 2) != 0)) {
           MCIL_ERROR_PRINT(": Plane-Y stride and height should be even; \
                            stride: [%d], height:[%d]", y_stride, pix_mp.height);
           return nullptr;
@@ -352,37 +356,39 @@ void V4L2Device::GetSupportedResolution(uint32_t pixelformat,
   frame_size.pixel_format = pixelformat;
   for (; Ioctl(VIDIOC_ENUM_FRAMESIZES, &frame_size) == 0; ++frame_size.index) {
     if (frame_size.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
-      if (frame_size.discrete.width >=
-              static_cast<uint32_t>(max_resolution->width) &&
-          frame_size.discrete.height >=
-              static_cast<uint32_t>(max_resolution->height)) {
+      if ((frame_size.discrete.width >=
+           static_cast<uint32_t>(max_resolution->width)) &&
+          (frame_size.discrete.height >=
+           static_cast<uint32_t>(max_resolution->height))) {
         max_resolution->width = frame_size.discrete.width;
         max_resolution->height = frame_size.discrete.height;
       }
 
-      if ((!max_resolution->width || !max_resolution->height) ||
-          (frame_size.discrete.width <=
-               static_cast<uint32_t>(min_resolution->width) &&
-           frame_size.discrete.height <=
-               static_cast<uint32_t>(min_resolution->height))) {
+      if (((max_resolution->width == 0) || (max_resolution->height == 0)) ||
+          ((frame_size.discrete.width <=
+            static_cast<uint32_t>(min_resolution->width)) &&
+           (frame_size.discrete.height <=
+            static_cast<uint32_t>(min_resolution->height)))) {
         min_resolution->width = frame_size.discrete.width;
         min_resolution->height = frame_size.discrete.height;
       }
-    } else if (frame_size.type == V4L2_FRMSIZE_TYPE_STEPWISE ||
-               frame_size.type == V4L2_FRMSIZE_TYPE_CONTINUOUS) {
-      max_resolution->width = frame_size.stepwise.max_width;
-      max_resolution->height = frame_size.stepwise.max_height;
-      min_resolution->width = frame_size.stepwise.min_width;
-      min_resolution->height = frame_size.stepwise.min_height;
-      break;
+    } else {
+      if ((frame_size.type == V4L2_FRMSIZE_TYPE_STEPWISE) ||
+          (frame_size.type == V4L2_FRMSIZE_TYPE_CONTINUOUS)) {
+        max_resolution->width = frame_size.stepwise.max_width;
+        max_resolution->height = frame_size.stepwise.max_height;
+        min_resolution->width = frame_size.stepwise.min_width;
+        min_resolution->height = frame_size.stepwise.min_height;
+        break;
+      }
     }
   }
 
-  if (!max_resolution->width || !max_resolution->height) {
+  if ((max_resolution->width == 0) || (max_resolution->height == 0)) {
     max_resolution->width = 1920;
     max_resolution->height = 1080;
   }
-  if (!min_resolution->width || !min_resolution->height) {
+  if ((min_resolution->width == 0) || (min_resolution->height == 0)) {
     min_resolution->width = 16;
     min_resolution->height = 16;
   }
@@ -392,7 +398,7 @@ uint8_t V4L2Device::GetSupportedRateControlMode() {
   v4l2_queryctrl query_ctrl;
   memset(&query_ctrl, 0, sizeof(query_ctrl));
   query_ctrl.id = V4L2_CID_MPEG_VIDEO_BITRATE_MODE;
-  if (Ioctl(VIDIOC_QUERYCTRL, &query_ctrl)) {
+  if (Ioctl(VIDIOC_QUERYCTRL, &query_ctrl) != 0) {
     MCIL_DEBUG_PRINT("QUERYCTRL for bitrate mode failed");
     return kConstantMode;
   }
@@ -402,7 +408,7 @@ uint8_t V4L2Device::GetSupportedRateControlMode() {
   memset(&query_menu, 0, sizeof(query_menu));
   query_menu.id = query_ctrl.id;
   for (query_menu.index = query_ctrl.minimum;
-       static_cast<int32_t >(query_menu.index) <= query_ctrl.maximum;
+       static_cast<int32_t>(query_menu.index) <= query_ctrl.maximum;
        query_menu.index++) {
     if (Ioctl(VIDIOC_QUERYMENU, &query_menu) == 0) {
       switch (query_menu.index) {
@@ -480,7 +486,7 @@ std::vector<VideoCodecProfile> V4L2Device::V4L2PixFmtToVideoCodecProfiles(
     memset(&query_menu, 0, sizeof(query_menu));
     query_menu.id = query_ctrl.id;
     for (query_menu.index = query_ctrl.minimum;
-         static_cast<int32_t >(query_menu.index) <= query_ctrl.maximum;
+         static_cast<int32_t>(query_menu.index) <= query_ctrl.maximum;
          query_menu.index++) {
       if (Ioctl(VIDIOC_QUERYMENU, &query_menu) == 0) {
         const VideoCodecProfile profile =
@@ -595,8 +601,8 @@ bool V4L2Device::SetGOPLength(uint32_t gop_length) {
       if (Ioctl(VIDIOC_QUERY_EXT_CTRL, &queryctrl) == 0) {
         MCIL_DEBUG_PRINT(" Unable to set GOP to 0, instead using max[%lld]",
                          queryctrl.maximum);
-        return SetCtrl(V4L2_CTRL_CLASS_MPEG,
-                       V4L2_CID_MPEG_VIDEO_GOP_SIZE, queryctrl.maximum);
+        return SetCtrl(V4L2_CTRL_CLASS_MPEG, V4L2_CID_MPEG_VIDEO_GOP_SIZE,
+                       static_cast<uint32_t>(queryctrl.maximum));
       }
     }
     return false;
@@ -605,7 +611,7 @@ bool V4L2Device::SetGOPLength(uint32_t gop_length) {
 }
 
 bool V4L2Device::IsDecoder() {
-  return device_type_ == V4L2_DECODER || device_type_ == JPEG_DECODER;
+  return (device_type_ == V4L2_DECODER) || (device_type_ == JPEG_DECODER);
 }
 
 scoped_refptr<V4L2Queue> V4L2Device::GetQueue(enum v4l2_buf_type buffer_type) {

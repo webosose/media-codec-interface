@@ -51,7 +51,7 @@ bool V4L2VideoDecoder::Initialize(const DecoderConfig* config,
   MCIL_DEBUG_PRINT(": resource index received: %d", vdec_port_index);
 
   client_ = client;
-  if (!client_) {
+  if (client_ == nullptr) {
     NOTIFY_ERROR(INVALID_ARGUMENT);
     MCIL_ERROR_PRINT(" Delegate not provided");
     return false;
@@ -75,7 +75,7 @@ bool V4L2VideoDecoder::Initialize(const DecoderConfig* config,
 
   decoder_cmd_supported_ = IsDecoderCmdSupported();
 
-  if (client_config) {
+  if (client_config != nullptr) {
     if (egl_image_format_fourcc_) {
       client_config->output_pixel_format =
           egl_image_format_fourcc_->ToVideoPixelFormat();
@@ -117,9 +117,10 @@ bool V4L2VideoDecoder::ResetDecodingBuffers(bool* reset_pending) {
   if (!(StopDevicePoll() && StopOutputStream()))
     return false;
 
-  if (DequeueResolutionChangeEvent()) {
-    if (reset_pending)
+  if (DequeueResolutionChangeEvent() != 0) {
+    if (reset_pending != nullptr) {
       *reset_pending = true;
+    }
     StartResolutionChange();
     return false;
   }
@@ -148,9 +149,10 @@ bool V4L2VideoDecoder::DecodeBuffer(const void* buffer,
   if (current_input_buffer_) {
     size_t plane_size = current_input_buffer_->GetBufferSize(0);
     size_t bytes_used = current_input_buffer_->GetBytesUsed(0);
-    if (bytes_used + buffer_size > plane_size) {
-      if (!FlushInputBuffers())
+    if ((bytes_used + buffer_size) > plane_size) {
+      if (!FlushInputBuffers()) {
         return false;
+      }
     }
   }
 
@@ -179,14 +181,14 @@ bool V4L2VideoDecoder::DecodeBuffer(const void* buffer,
   size_t plane_size = current_input_buffer_->GetBufferSize(0);
   size_t bytes_used = current_input_buffer_->GetBytesUsed(0);
 
-  if (buffer_size > plane_size - bytes_used) {
+  if (buffer_size > (plane_size - bytes_used)) {
     MCIL_ERROR_PRINT(": over-size frame, erroring");
     NOTIFY_ERROR(UNREADABLE_INPUT);
     return false;
   }
 
   void* input_buffer = current_input_buffer_->GetPlaneBuffer(0);
-  if (!input_buffer) {
+  if (input_buffer == nullptr) {
     MCIL_ERROR_PRINT(": Error allocating input buffer");
     return false;
   }
@@ -207,8 +209,8 @@ bool V4L2VideoDecoder::FlushInputBuffers() {
   }
 
   const int32_t input_id = current_input_buffer_->GetBufferId();
-  if (input_id >= 0 &&
-      current_input_buffer_->GetBytesUsed(0) == 0) {
+  if ((input_id >= 0) &&
+      (current_input_buffer_->GetBytesUsed(0) == 0)) {
     current_input_buffer_.reset();
     return true;
   }
@@ -246,12 +248,13 @@ bool V4L2VideoDecoder::DidFlushBuffersDone() {
 }
 
 void V4L2VideoDecoder::EnqueueBuffers() {
-  if (client_->IsDestroyPending() || decoder_state_ == kChangingResolution) {
+  if (client_->IsDestroyPending() || (decoder_state_ == kChangingResolution)) {
     MCIL_DEBUG_PRINT(": state[%d]", static_cast<int32_t>(decoder_state_));
     return;
   }
 
-  const int32_t old_inputs_queued = input_queue_->QueuedBuffersCount();
+  const int32_t old_inputs_queued =
+      static_cast<int32_t>(input_queue_->QueuedBuffersCount());
   while (!input_ready_queue_.empty()) {
     bool flush_handled = false;
     int32_t input_id = input_ready_queue_.front().GetBufferId();
@@ -259,7 +262,7 @@ void V4L2VideoDecoder::EnqueueBuffers() {
       if (input_queue_->QueuedBuffersCount() > 0)
         break;
 
-      if (coded_size_.IsEmpty() || !input_queue_->IsStreaming()) {
+      if (coded_size_.IsEmpty() || (input_queue_->IsStreaming() == false)) {
         MCIL_DEBUG_PRINT(": Nothing to flush. Notify flush done directly");
         client_->NotifyFlushDone();
         flush_handled = true;
@@ -279,7 +282,7 @@ void V4L2VideoDecoder::EnqueueBuffers() {
     }
   }
 
-  if (old_inputs_queued == 0 && input_queue_->QueuedBuffersCount() != 0) {
+  if ((old_inputs_queued == 0) && (input_queue_->QueuedBuffersCount() != 0)) {
     if (!device_->SetDevicePollInterrupt()) {
       MCIL_ERROR_PRINT(": SetDevicePollInterrupt failed");
       NOTIFY_ERROR(PLATFORM_FAILURE);
@@ -296,7 +299,8 @@ void V4L2VideoDecoder::EnqueueBuffers() {
   if (!input_queue_->IsStreaming())
     return;
 
-  const int32_t old_outputs_queued = output_queue_->QueuedBuffersCount();
+  const int32_t old_outputs_queued =
+      static_cast<int32_t>(output_queue_->QueuedBuffersCount());
 
   client_->CheckGLFences();
   while (auto buffer_opt = output_queue_->GetFreeBuffer()) {
@@ -304,7 +308,7 @@ void V4L2VideoDecoder::EnqueueBuffers() {
       return;
   }
 
-  if (old_outputs_queued == 0 && output_queue_->QueuedBuffersCount() != 0) {
+  if ((old_outputs_queued == 0) && (output_queue_->QueuedBuffersCount() != 0)) {
     if (!device_->SetDevicePollInterrupt()) {
       MCIL_ERROR_PRINT(": SetDevicePollInterrupt failed");
       NOTIFY_ERROR(PLATFORM_FAILURE);
@@ -341,14 +345,16 @@ void V4L2VideoDecoder::RunDecodeBufferTask(bool event_pending, bool) {
   MCIL_DEBUG_PRINT(": event_pending[%d]", event_pending);
 
   bool resolution_change_pending = false;
-  if (event_pending)
-    resolution_change_pending = DequeueResolutionChangeEvent();
+  if (event_pending) {
+    resolution_change_pending =
+        static_cast<bool>(DequeueResolutionChangeEvent());
+  }
 
-  if (!resolution_change_pending && coded_size_.IsEmpty()) {
+  if ((resolution_change_pending == false) && coded_size_.IsEmpty()) {
     bool again;
     struct v4l2_format format;
     Size visible_size;
-    if (GetFormatInfo(&format, &visible_size, &again) && !again) {
+    if (GetFormatInfo(&format, &visible_size, &again) && (again == false)) {
       resolution_change_pending = true;
       DequeueResolutionChangeEvent();
     }
@@ -365,8 +371,8 @@ void V4L2VideoDecoder::RunDecodeBufferTask(bool event_pending, bool) {
   }
 
   bool poll_device = false;
-  if (input_queue_->QueuedBuffersCount() + output_queue_->QueuedBuffersCount() >
-      0) {
+  if ((input_queue_->QueuedBuffersCount() +
+       output_queue_->QueuedBuffersCount()) > 0) {
     poll_device = true;
   }
 
@@ -523,7 +529,7 @@ bool V4L2VideoDecoder::CheckConfig(const DecoderConfig* config) {
       V4L2Device::VideoCodecProfileToV4L2PixFmt(config->profile);
 
   if (!input_format_fourcc_ ||
-      !device_->Open(V4L2_DECODER, input_format_fourcc_)) {
+      (device_->Open(V4L2_DECODER, input_format_fourcc_) == false)) {
     MCIL_ERROR_PRINT(": Failed to open input device [%s]",
                      FourccToString(input_format_fourcc_).c_str());
     return false;
@@ -562,7 +568,7 @@ bool V4L2VideoDecoder::SetupFormats() {
   Size min_resolution;
   device_->GetSupportedResolution(
       input_format_fourcc_, &min_resolution, &max_resolution);
-  if (max_resolution.width > 1920 && max_resolution.height > 1088)
+  if ((max_resolution.width > 1920) && (max_resolution.height > 1088))
     input_size = kInputBufferMaxSizeFor4k;
   else
     input_size = kInputBufferMaxSizeFor1080p;
@@ -589,7 +595,7 @@ bool V4L2VideoDecoder::SetupFormats() {
   memset(&format, 0, sizeof(format));
   format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
   format.fmt.pix_mp.pixelformat = input_format_fourcc_;
-  format.fmt.pix_mp.plane_fmt[0].sizeimage = input_size;
+  format.fmt.pix_mp.plane_fmt[0].sizeimage = static_cast<uint32_t>(input_size);
   format.fmt.pix_mp.num_planes = 1;
   IOCTL_OR_ERROR_RETURN_FALSE(VIDIOC_S_FMT, &format);
 
@@ -646,7 +652,7 @@ bool V4L2VideoDecoder::UnsubscribeEvents() {
 int32_t V4L2VideoDecoder::DequeueResolutionChangeEvent() {
   while (Optional<struct v4l2_event> event = device_->DequeueEvent()) {
     if (event->type == V4L2_EVENT_SOURCE_CHANGE) {
-      if (event->u.src_change.changes & V4L2_EVENT_SRC_CH_RESOLUTION) {
+      if ((event->u.src_change.changes & V4L2_EVENT_SRC_CH_RESOLUTION) != 0) {
         MCIL_DEBUG_PRINT(": got resolution change event");
         return 1;
       }
@@ -757,7 +763,7 @@ Size V4L2VideoDecoder::GetVisibleSize(const Size& coded_size) {
   }
 
   // Chrome assume picture frame is coded at (0, 0).
-  if (!(rect.x == 0 && rect.y == 0)) {
+  if (!((rect.x == 0) && (rect.y == 0))) {
     MCIL_DEBUG_PRINT(": Unexpected: top-left is not !(0,0)");
     return coded_size;
   }
@@ -782,8 +788,9 @@ bool V4L2VideoDecoder::CreateBuffersForFormat(
 }
 
 void V4L2VideoDecoder::NotifyErrorState(DecoderError error_code) {
-  if(client_)
+  if(client_ != nullptr) {
       client_->NotifyDecoderError(error_code);
+  }
 }
 
 bool V4L2VideoDecoder::EnqueueInputBuffer(V4L2WritableBufferRef buffer) {
@@ -876,7 +883,7 @@ bool V4L2VideoDecoder::DequeueOutputBuffer() {
   ReadableBufferRef buffer(std::move(ret.second));
   if (buffer->GetBytesUsed(0) > 0) {
     size_t index = buffer->BufferIndex();
-    int32_t buffer_id = buffer->GetTimeStamp().tv_sec;
+    int32_t buffer_id = static_cast<int32_t>(buffer->GetTimeStamp().tv_sec);
     MCIL_DEBUG_PRINT(": Send buffer: index[%ld], id[%d]", index, buffer_id);
     client_->SendBufferToClient(index, buffer_id, buffer);
   }
@@ -941,8 +948,9 @@ bool V4L2VideoDecoder::StopDevicePoll() {
 }
 
 bool V4L2VideoDecoder::StopInputStream() {
-  if (!input_queue_ || !input_queue_->IsStreaming())
+  if ((input_queue_ == nullptr) || (input_queue_->IsStreaming() == false)) {
     return true;
+  }
 
   if (!input_queue_->StreamOff()) {
     MCIL_ERROR_PRINT(": Failed streaming off input queue");
@@ -958,8 +966,9 @@ bool V4L2VideoDecoder::StopInputStream() {
 }
 
 bool V4L2VideoDecoder::StopOutputStream() {
-  if (!output_queue_ || !output_queue_->IsStreaming())
+  if ((output_queue_ == nullptr) || (output_queue_->IsStreaming() == false)) {
     return true;
+  }
 
   if (!output_queue_->StreamOff()) {
     MCIL_ERROR_PRINT(": Failed streaming off output queue");
@@ -998,7 +1007,7 @@ void V4L2VideoDecoder::FinishResolutionChange() {
   bool again;
   Size visible_size;
   bool ret = GetFormatInfo(&format, &visible_size, &again);
-  if (!ret || again) {
+  if ((ret == false) || again) {
     MCIL_ERROR_PRINT(": Couldn't get format info after resolution change");
     NOTIFY_ERROR(PLATFORM_FAILURE);
     return;

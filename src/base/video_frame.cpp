@@ -60,7 +60,7 @@ ColorPlane::ColorPlane(const ColorPlane& other)
 ColorPlane& ColorPlane::operator=(const ColorPlane& other)  = default;
 
 bool ColorPlane::operator==(const ColorPlane& rhs) const {
-  return stride == rhs.stride && offset == rhs.offset && size == rhs.size;
+  return (stride == rhs.stride) && (offset == rhs.offset) && (size == rhs.size);
 }
 
 bool ColorPlane::operator!=(const ColorPlane& rhs) const {
@@ -248,8 +248,8 @@ Size VideoFrame::PlaneSizeInSamples(VideoPixelFormat format,
 
   if (RequiresEvenSizeAllocation(format)) {
     // Align to power of 2.
-    width = (width + 2 - 1) & ~(2 - 1);
-    height = (height + 2 - 1) & ~(2 - 1);
+    width = ((width + 2) - 1) & ~(2 - 1);
+    height = ((height + 2) - 1) & ~(2 - 1);
   }
 
   const Size subsample = SampleSize(format, plane);

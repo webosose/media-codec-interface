@@ -40,8 +40,9 @@ ResourceRequestor::ResourceRequestor(const std::string& connectionId)
     if (connectionId.empty()) {
       umsRMC_ = std::make_shared<uMediaServer::ResourceManagerClient> ();
       umsRMC_->registerPipeline("media"); // only rmc case
-      connectionId_ = (umsRMC_->getConnectionID() ?
-          std::string(umsRMC_->getConnectionID()) : std::string()); // after registerPipeline
+      connectionId_ = ((umsRMC_->getConnectionID() != nullptr)
+                          ? std::string(umsRMC_->getConnectionID())
+                          : std::string());  // after registerPipeline
       if (connectionId_.empty()) {
         MCIL_ERROR_PRINT("Failed to get connection ID");
        return;
@@ -285,7 +286,7 @@ bool ResourceRequestor::ParsePortInformation(const std::string& payload,
     throw std::runtime_error("payload must have \"resources key\"");
   }
 
-  int32_t res_arraysize = parsed["resources"].arraySize();
+  int32_t res_arraysize = static_cast<int32_t>(parsed["resources"].arraySize());
 
   for (int32_t i=0; i < res_arraysize; ++i) {
     std::string resourceName = parsed["resources"][i]["resource"].asString();
@@ -396,9 +397,9 @@ bool ResourceRequestor::SetSourceInfo(const source_info_t &sourceInfo) {
   videoResData_.height = video_stream_info.height;
   videoResData_.vencode = (VideoCodec)video_stream_info.encode;
   videoResData_.vdecode = (VideoCodec)video_stream_info.decode;
-  videoResData_.frameRate =
-  std::round(static_cast< float_t >(video_stream_info.frame_rate.num) /
-                 static_cast< float_t >(video_stream_info.frame_rate.den));
+  videoResData_.frameRate = static_cast<int32_t>(
+      std::round(static_cast<float>(video_stream_info.frame_rate.num) /
+                 static_cast<float>(video_stream_info.frame_rate.den)));
   videoResData_.escanType = 0;
 
   return true;

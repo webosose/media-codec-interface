@@ -74,8 +74,9 @@ class scoped_refptr {
   explicit constexpr scoped_refptr(std::nullptr_t) {}
 
   scoped_refptr(T* p) : ptr_(p) {
-    if (ptr_)
+    if (ptr_ != nullptr) {
       AddRef(ptr_);
+    }
   }
 
   scoped_refptr(const scoped_refptr& r) : scoped_refptr(r.ptr_) {}
@@ -95,8 +96,9 @@ class scoped_refptr {
   }
 
   ~scoped_refptr() {
-    if (ptr_)
+    if (ptr_ != nullptr) {
       ReleasePtr(ptr_);
+    }
   }
 
   T* get() const { return ptr_; }

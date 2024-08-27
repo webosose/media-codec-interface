@@ -210,15 +210,15 @@ bool VideoResource::AddToIndexList(PortResource_t resourceMMap,
      }
   }
 
-  if (dec_index != -1 &&
-      vdec_index_list_.find(dec_index) == vdec_index_list_.end()) {
+  if ((dec_index != -1) &&
+      (vdec_index_list_.find(dec_index) == vdec_index_list_.end())) {
     MCIL_DEBUG_PRINT(" Decoder resource acquired:%d", dec_index);
     vdec_index_list_.insert(dec_index);
     *resource_index = dec_index;
   }
 
-  if (enc_index != -1 &&
-      venc_index_list_.find(enc_index) == venc_index_list_.end()) {
+  if ((enc_index != -1) &&
+      (venc_index_list_.find(enc_index) == venc_index_list_.end())) {
     MCIL_DEBUG_PRINT(" Encoder resource acquired:%d", enc_index);
     venc_index_list_.insert(enc_index);
     *resource_index = enc_index;
@@ -229,10 +229,10 @@ bool VideoResource::AddToIndexList(PortResource_t resourceMMap,
 
 void VideoResource::RemoveFromIndexList(DeviceType device_type,
                                         int32_t resource_index) {
-  if (device_type == V4L2_DECODER && !vdec_index_list_.empty())
+  if ((device_type == V4L2_DECODER) && (vdec_index_list_.empty() == false))
     vdec_index_list_.erase(resource_index);
 
-  if (device_type == V4L2_ENCODER && !venc_index_list_.empty())
+  if ((device_type == V4L2_ENCODER) && (venc_index_list_.empty() == false))
     venc_index_list_.erase(resource_index);
 }
 

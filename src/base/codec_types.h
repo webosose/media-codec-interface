@@ -167,14 +167,14 @@ class Size {
 
   void SetSize(uint32_t w, uint32_t h);
   uint32_t GetArea() const { return width * height; };
-  bool IsEmpty() const { return !width || !height; }
+  bool IsEmpty() const { return (width == 0) || (height == 0); }
 
   uint32_t width = 0;
   uint32_t height = 0;
 };
 
 inline bool operator==(const Size& lhs, const Size& rhs) {
-  return lhs.width == rhs.width && lhs.height == rhs.height;
+  return (lhs.width == rhs.width) && (lhs.height == rhs.height);
 }
 
 inline bool operator!=(const Size& lhs, const Size& rhs) {
@@ -189,7 +189,7 @@ class Rect {
 
   const Size getSize() { return Size(width, height); }
   bool Contains(const Rect& bounded_rect) const;
-  bool IsEmpty() const { return !width || !height; }
+  bool IsEmpty() const { return (width == 0) || (height == 0); }
 
   int32_t x = 0;
   int32_t y = 0;
@@ -198,8 +198,8 @@ class Rect {
 };
 
 inline bool operator==(const Rect& lhs, const Rect& rhs) {
-  return (lhs.x == rhs.x && lhs.y == rhs.y) &&
-         (lhs.width == rhs.width && lhs.height == rhs.height);
+  return ((lhs.x == rhs.x) && (lhs.y == rhs.y)) &&
+         ((lhs.width == rhs.width) && (lhs.height == rhs.height));
 }
 
 inline bool operator!=(const Rect& lhs, const Rect& rhs) {

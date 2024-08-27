@@ -37,22 +37,24 @@ V4L2Buffer::V4L2Buffer(scoped_refptr<V4L2Device> device,
   memset(v4l2_planes_, 0, sizeof(v4l2_planes_));
   buffer_.m.planes = v4l2_planes_;
   // Just in case we got more planes than we want.
-  buffer_.length =
+  buffer_.length = static_cast<uint32_t>(
       std::min(static_cast<size_t>(format.fmt.pix_mp.num_planes),
-               ARRAY_SIZE(v4l2_planes_));
+               ARRAY_SIZE(v4l2_planes_)));
   buffer_.index = buffer_id;
   buffer_.type = buffer_type;
   buffer_.memory = memory;
   plane_mappings_.resize(buffer_.length);
 
   MCIL_DEBUG_PRINT(": %s index= %d, length=%d",
-      (buffer_type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ? "input" : "output"),
+      ((buffer_type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) ? "input" : "output"),
       buffer_.index, buffer_.length);
 }
 
 V4L2Buffer::~V4L2Buffer() noexcept(false) {
-  MCIL_DEBUG_PRINT(": %s index= %d",
-      (buffer_type_ == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ? "input" : "output"),
+  MCIL_DEBUG_PRINT(
+      ": %s index= %d",
+      ((buffer_type_ == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) ? "input"
+                                                           : "output"),
       buffer_.index);
 
   if (buffer_.memory == V4L2_MEMORY_MMAP) {
@@ -80,8 +82,9 @@ void* V4L2Buffer::GetPlaneBuffer(const size_t plane) {
   }
 
   void* p = plane_mappings_[plane];
-  if (p)
+  if (p != nullptr) {
     return p;
+  }
 
   if (buffer_.memory != V4L2_MEMORY_MMAP) {
     MCIL_ERROR_PRINT(": Cannot create mapping on non-MMAP buffer");
@@ -101,7 +104,7 @@ void* V4L2Buffer::GetPlaneBuffer(const size_t plane) {
 }
 
 bool V4L2Buffer::Query() {
-  if (device_->Ioctl(VIDIOC_QUERYBUF, &buffer_)) {
+  if (device_->Ioctl(VIDIOC_QUERYBUF, &buffer_) != 0) {
     MCIL_ERROR_PRINT(": VIDIOC_QUERYBUF failed");
     return false;
   }
@@ -200,7 +203,7 @@ V4L2BufferRefBase::~V4L2BufferRefBase() noexcept(false) {
 }
 
 void* V4L2BufferRefBase::GetPlaneBuffer(const size_t plane) {
-  if (!queue_) {
+  if (queue_ == nullptr) {
     MCIL_DEBUG_PRINT(": Failed: Queue is not set yet.");
     return nullptr;
   }
@@ -209,7 +212,7 @@ void* V4L2BufferRefBase::GetPlaneBuffer(const size_t plane) {
 }
 
 bool V4L2BufferRefBase::QueueBuffer(scoped_refptr<VideoFrame> video_frame) {
-  if (!queue_) {
+  if (queue_ == nullptr) {
     MCIL_DEBUG_PRINT(": Failed: Queue is not set yet.");
     return false;
   }
@@ -220,7 +223,7 @@ bool V4L2BufferRefBase::QueueBuffer(scoped_refptr<VideoFrame> video_frame) {
 
 scoped_refptr<VideoFrame> V4L2BufferRefBase::GetVideoFrame() {
   static const scoped_refptr<VideoFrame> null_videoframe;
-  if (!queue_) {
+  if (queue_ == nullptr) {
     MCIL_DEBUG_PRINT(": Failed: Queue is not set yet.");
     return null_videoframe;
   }
@@ -249,7 +252,8 @@ const void* V4L2ReadableBuffer::GetPlaneBuffer(const size_t plane) const {
 }
 
 bool V4L2ReadableBuffer::IsLast() const {
-  return buffer_data_->buffer_.flags & V4L2_BUF_FLAG_LAST;
+  return static_cast<bool>(buffer_data_->buffer_.flags &
+                           V4L2_BUF_FLAG_LAST);
 }
 
 size_t V4L2ReadableBuffer::GetBytesUsed(const size_t plane) const {
@@ -276,7 +280,8 @@ size_t V4L2ReadableBuffer::GetDataOffset(size_t plane) const {
 }
 
 bool V4L2ReadableBuffer::IsKeyframe() const {
-    return buffer_data_->buffer_.flags & V4L2_BUF_FLAG_KEYFRAME;
+  return static_cast<bool>(buffer_data_->buffer_.flags &
+                           V4L2_BUF_FLAG_KEYFRAME);
 }
 
 size_t V4L2ReadableBuffer::PlanesCount() const {
@@ -326,7 +331,8 @@ size_t V4L2WritableBufferRef::GetBufferSize(const size_t plane) const {
 void V4L2WritableBufferRef::SetBufferSize(const size_t plane,
                                           const size_t length) {
   if (plane < VIDEO_MAX_PLANES)
-    buffer_data_->buffer_.m.planes[plane].length = length;
+    buffer_data_->buffer_.m.planes[plane].length =
+        static_cast<uint32_t>(length);
 }
 
 size_t V4L2WritableBufferRef::GetBytesUsed(const size_t plane) const {
@@ -344,7 +350,8 @@ void V4L2WritableBufferRef::SetBytesUsed(const size_t plane,
     return;
   }
 
-  buffer_data_->buffer_.m.planes[plane].bytesused = bytes_used;
+  buffer_data_->buffer_.m.planes[plane].bytesused =
+      static_cast<uint32_t>(bytes_used);
 }
 
 struct timeval V4L2WritableBufferRef::GetTimeStamp() const {
@@ -413,7 +420,8 @@ size_t V4L2WritableBufferRef::PlanesCount() const {
 
 enum v4l2_memory V4L2WritableBufferRef::Memory() const {
   uint32_t memory_type = buffer_data_->buffer_.memory;
-  if (memory_type >= V4L2_MEMORY_MMAP && memory_type <= V4L2_MEMORY_DMABUF) {
+  if ((memory_type >= V4L2_MEMORY_MMAP) &&
+      (memory_type <= V4L2_MEMORY_DMABUF)) {
     return static_cast<enum v4l2_memory>(memory_type);
   }
 

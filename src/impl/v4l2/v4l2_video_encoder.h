@@ -138,7 +138,7 @@ class V4L2VideoEncoder : public VideoEncoder {
 #define NOTIFY_ERROR(x)                      \
   do {                                       \
     NotifyErrorState(x);                     \
-  } while (0)
+  } while (false)
 
 #define IOCTL_OR_ERROR_RETURN_VALUE(type, arg, value, error_str) \
   do { \
@@ -147,7 +147,7 @@ class V4L2VideoEncoder : public VideoEncoder {
       NOTIFY_ERROR(kPlatformFailureError); \
       return (value); \
     } \
-  } while (0)
+  } while (false)
 
 #define IOCTL_OR_ERROR_RETURN(type, arg) \
   IOCTL_OR_ERROR_RETURN_VALUE((type), (arg), ((void)0), #type)

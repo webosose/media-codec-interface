@@ -26,8 +26,9 @@ struct v4l2_format BuildV4L2Format(const enum v4l2_buf_type buffer_type,
   format.fmt.pix_mp.pixelformat = fourcc;
   format.fmt.pix_mp.width = size.width;
   format.fmt.pix_mp.height = size.height;
-  format.fmt.pix_mp.num_planes = V4L2Device::GetNumPlanesOfV4L2PixFmt(fourcc);
-  format.fmt.pix_mp.plane_fmt[0].sizeimage = buffer_size;
+  format.fmt.pix_mp.num_planes =
+      static_cast<uint8_t>(V4L2Device::GetNumPlanesOfV4L2PixFmt(fourcc));
+  format.fmt.pix_mp.plane_fmt[0].sizeimage = static_cast<uint32_t>(buffer_size);
 
   return format;
 }
@@ -126,8 +127,8 @@ Optional<struct v4l2_format> V4L2Queue::SetFormat(uint32_t fourcc,
                                                   size_t buffer_size) {
   struct v4l2_format format =
       BuildV4L2Format(buffer_type_, fourcc, size, buffer_size);
-  if (device_->Ioctl(VIDIOC_S_FMT, &format) != 0 ||
-      format.fmt.pix_mp.pixelformat != fourcc) {
+  if ((device_->Ioctl(VIDIOC_S_FMT, &format) != 0) ||
+      (format.fmt.pix_mp.pixelformat != fourcc)) {
     MCIL_DEBUG_PRINT(": Failed to set format fourcc [0x%x]", fourcc);
     return nullopt;
   }
@@ -140,9 +141,9 @@ bool V4L2Queue::StreamOn() {
   if (streaming_state_)
     return true;
 
-  int32_t  arg = static_cast<int32_t >(buffer_type_);
-  int32_t  ret = device_->Ioctl(VIDIOC_STREAMON, &arg);
-  if (ret) {
+  int32_t arg = static_cast<int32_t>(buffer_type_);
+  int32_t ret = device_->Ioctl(VIDIOC_STREAMON, &arg);
+  if (ret != 0) {
     MCIL_ERROR_PRINT(": VIDIOC_STREAMON Failed");
     return false;
   }
@@ -152,9 +153,9 @@ bool V4L2Queue::StreamOn() {
 }
 
 bool V4L2Queue::StreamOff() {
-  int32_t  arg = static_cast<int32_t >(buffer_type_);
+  int32_t arg = static_cast<int32_t>(buffer_type_);
   int32_t  ret = device_->Ioctl(VIDIOC_STREAMOFF, &arg);
-  if (ret) {
+  if (ret != 0) {
     MCIL_ERROR_PRINT(": VIDIOC_STREAMOFF Failed");
     return false;
   }
@@ -198,11 +199,11 @@ size_t V4L2Queue::AllocateBuffers(size_t count, enum v4l2_memory memory) {
   planes_count_ = format->fmt.pix_mp.num_planes;
   struct v4l2_requestbuffers reqbufs;
   memset(&reqbufs, 0, sizeof(reqbufs));
-  reqbufs.count = buffer_count;
+  reqbufs.count = static_cast<uint32_t>(buffer_count);
   reqbufs.type = buffer_type_;
   reqbufs.memory = memory;
 
-  int32_t  ret = device_->Ioctl(VIDIOC_REQBUFS, &reqbufs);
+  int32_t ret = device_->Ioctl(VIDIOC_REQBUFS, &reqbufs);
   if (ret) {
     MCIL_ERROR_PRINT(": VIDIOC_REQBUFS Failed, %s", strerror(errno));
     return 0;
@@ -218,7 +219,7 @@ size_t V4L2Queue::AllocateBuffers(size_t count, enum v4l2_memory memory) {
   for (size_t i = 0; i < buffer_count; i++) {
     auto buffer =
         V4L2Buffer::Create(device_, buffer_type_, memory_, *format, i);
-    if (buffer && !buffer->Query()) {
+    if (buffer && (buffer->Query() == false)) {
       DeallocateBuffers();
       return 0;
     }
@@ -248,7 +249,7 @@ bool V4L2Queue::DeallocateBuffers() {
   reqbufs.type = buffer_type_;
   reqbufs.memory = memory_;
 
-  int32_t  ret = device_->Ioctl(VIDIOC_REQBUFS, &reqbufs);
+  int32_t ret = device_->Ioctl(VIDIOC_REQBUFS, &reqbufs);
   if (ret) {
     MCIL_DEBUG_PRINT(": VIDIOC_REQBUFS errno(%d)", errno);
     return false;
@@ -317,17 +318,18 @@ std::pair<bool, ReadableBufferRef> V4L2Queue::DequeueBuffer() {
   read_v4l2_buf.type = buffer_type_;
   read_v4l2_buf.memory = memory_;
   read_v4l2_buf.m.planes = planes;
-  read_v4l2_buf.length = planes_count_;
+  read_v4l2_buf.length = static_cast<uint32_t>(planes_count_);
   int32_t ret = device_->Ioctl(VIDIOC_DQBUF, &read_v4l2_buf);
-  if (ret) {
+  if (ret != 0) {
     switch (errno) {
       case EAGAIN:
       case EPIPE:
         return std::make_pair(true, nullptr);
       default: {
-        MCIL_DEBUG_PRINT(": %s VIDIOC_DQBUF failed errno(%d)",
-            (buffer_type_ == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ?
-                "input" : "output"),
+        MCIL_DEBUG_PRINT(
+            ": %s VIDIOC_DQBUF failed errno(%d)",
+            ((buffer_type_ == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) ? "input"
+                                                                : "output"),
             errno);
         return std::make_pair(false, nullptr);
       }

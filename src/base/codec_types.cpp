@@ -23,8 +23,8 @@ Rect::Rect(const Size& size_config)
  : width(size_config.width), height(size_config.height) {}
 
 bool Rect::Contains(const Rect& bounded_rect) const {
-  return (bounded_rect.x >= x && bounded_rect.width <= width &&
-          bounded_rect.y >= y && bounded_rect.height <= height);
+  return ((bounded_rect.x >= x) && (bounded_rect.width <= width) &&
+          (bounded_rect.y >= y) && (bounded_rect.height <= height));
 }
 
 SupportedProfile::SupportedProfile(
@@ -171,24 +171,26 @@ std::string VideoPixelFormatToString(VideoPixelFormat format) {
 
 std::string FourccToString(uint32_t fourcc) {
   std::string result = "0000";
-  for (size_t i = 0; i < 4; ++i, fourcc >>= 8) {
+  for (size_t i = 0; i < 4; ++i) {
     const uint8_t c = static_cast<uint8_t>(fourcc & 0xFF);
-    if (c <= 0x1f || c >= 0x7f) {
+    if ((c <= static_cast<uint8_t>(0x1f)) ||
+        (c >= static_cast<uint8_t>(0x7f))) {
       std::ostringstream string_stream;
       string_stream << std::hex << "0x" << fourcc;
       return string_stream.str();
     }
     result[i] = c;
+    fourcc >>= 8;
   }
   return result;
 }
 
 VideoCodec VideoCodecProfileToVideoCodec(VideoCodecProfile profile) {
-  if (profile >= H264PROFILE_MIN && profile <= H264PROFILE_MAX) {
+  if ((profile >= H264PROFILE_MIN) && (profile <= H264PROFILE_MAX)) {
     return VIDEO_CODEC_H264;
-  } else if (profile >= VP8PROFILE_MIN && profile <= VP8PROFILE_MAX) {
+  } else if ((profile >= VP8PROFILE_MIN) && (profile <= VP8PROFILE_MAX)) {
     return VIDEO_CODEC_VP8;
-  } else if (profile >= VP9PROFILE_MIN && profile <= VP9PROFILE_MAX) {
+  } else if ((profile >= VP9PROFILE_MIN) && (profile <= VP9PROFILE_MAX)) {
     return VIDEO_CODEC_VP9;
   } else {
     return VIDEO_CODEC_NONE;

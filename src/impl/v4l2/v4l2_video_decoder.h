@@ -161,7 +161,7 @@ class V4L2VideoDecoder : public VideoDecoder {
 #define NOTIFY_ERROR(x)                      \
   do {                                       \
     NotifyErrorState(x);                     \
-  } while (0)
+  } while (false)
 
 #define IOCTL_OR_ERROR_RETURN_VALUE(type, arg, value, error_str) \
   do { \
@@ -170,7 +170,7 @@ class V4L2VideoDecoder : public VideoDecoder {
       NOTIFY_ERROR(PLATFORM_FAILURE); \
       return value; \
     } \
-  } while (0)
+  } while (false)
 
 #define IOCTL_OR_ERROR_RETURN_FALSE(type, arg) \
   IOCTL_OR_ERROR_RETURN_VALUE((type), (arg), false, #type)

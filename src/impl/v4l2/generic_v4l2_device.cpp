@@ -109,7 +109,7 @@ bool GenericV4L2Device::Poll(bool poll_device, bool* event_pending) {
     pollfds[nfds].fd = device_fd_;
     pollfds[nfds].events = POLLIN | POLLOUT | POLLERR | POLLPRI;
     pollfds[nfds].revents = 0;
-    poll_fd = nfds;
+    poll_fd = static_cast<uint32_t>(nfds);
     nfds++;
   }
 
@@ -118,7 +118,8 @@ bool GenericV4L2Device::Poll(bool poll_device, bool* event_pending) {
     return false;
   }
 
-  *event_pending = (poll_fd >= 0 && pollfds[poll_fd].revents & POLLPRI);
+  *event_pending =
+      ((poll_fd >= 0) && ((pollfds[poll_fd].revents & POLLPRI) != 0));
   return true;
 }
 
@@ -165,7 +166,7 @@ std::vector<int32_t> GenericV4L2Device::GetDmabufsForV4L2Buffer(
     memset(&expbuf, 0, sizeof(expbuf));
     expbuf.type = buffer_type;
     expbuf.index = index;
-    expbuf.plane = i;
+    expbuf.plane = static_cast<uint32_t>(i);
     expbuf.flags = O_CLOEXEC;
     if (Ioctl(VIDIOC_EXPBUF, &expbuf) != 0) {
       dmabuf_fds.clear();
@@ -188,11 +189,11 @@ bool GenericV4L2Device::CanCreateEGLImageFrom(const Fourcc fourcc) const {
     DRM_FORMAT_YVU420,
   };
 
-  return std::find(
-             kEGLImageDrmFmtsSupported,
-             kEGLImageDrmFmtsSupported + ARRAY_SIZE(kEGLImageDrmFmtsSupported),
-             V4L2PixFmtToDrmFormat(fourcc.ToV4L2PixFmt())) !=
-         kEGLImageDrmFmtsSupported + ARRAY_SIZE(kEGLImageDrmFmtsSupported);
+  return std::find(kEGLImageDrmFmtsSupported,
+                   kEGLImageDrmFmtsSupported +
+                       (ARRAY_SIZE(kEGLImageDrmFmtsSupported)),
+                   V4L2PixFmtToDrmFormat(fourcc.ToV4L2PixFmt())) !=
+         (kEGLImageDrmFmtsSupported + (ARRAY_SIZE(kEGLImageDrmFmtsSupported)));
 }
 
 uint32_t GenericV4L2Device::GetTextureTarget() const {
@@ -283,7 +284,7 @@ void GenericV4L2Device::EnumerateDevicesForType(DeviceType type) {
 
   // TODO(posciak): Remove this legacy unnumbered device once
   // all platforms are updated to use numbered devices.
-  candidate_paths.push_back(device_pattern);
+  candidate_paths.push_back(std::move(device_pattern));
 
   Devices devices;
   for (const auto& path : candidate_paths) {
