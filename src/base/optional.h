@@ -141,9 +141,9 @@ struct OptionalStorage : OptionalStorageBase<T> {
   }
 
   OptionalStorage(OptionalStorage&& other) noexcept(
-      std::is_nothrow_move_constructible<T>::value) {
+      ::std::is_nothrow_move_constructible<T>::value) {
     if (other.is_populated_)
-      Init(std::move(other.value_));
+      Init(::std::move(other.value_));
   }
 };
 
@@ -161,9 +161,9 @@ struct OptionalStorage<T,
   OptionalStorage(const OptionalStorage& other) = default;
 
   OptionalStorage(OptionalStorage&& other) noexcept(
-      std::is_nothrow_move_constructible<T>::value) {
+      ::std::is_nothrow_move_constructible<T>::value) {
     if (other.is_populated_)
-      Init(std::move(other.value_));
+      Init(::std::move(other.value_));
   }
 };
 
@@ -367,142 +367,141 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
                                       std::is_copy_assignable<T>::value>,
       public internal::MoveAssignable<std::is_move_constructible<T>::value &&
                                       std::is_move_assignable<T>::value> {
- private:
-
-  static_assert(
-      !std::is_same<internal::RemoveCvRefT<T>, internal::in_place_t>::value,
-      "instantiation of Optional with in_place_t is ill-formed");
-  static_assert(!std::is_same<internal::RemoveCvRefT<T>, nullopt_t>::value,
+private:
+  static_assert(!::std::is_same<::mcil::internal::RemoveCvRefT<T>,
+                                ::mcil::internal::in_place_t>::value,
+                "instantiation of Optional with in_place_t is ill-formed");
+  static_assert(!::std::is_same<::mcil::internal::RemoveCvRefT<T>,
+                                ::mcil::nullopt_t>::value,
                 "instantiation of Optional with nullopt_t is ill-formed");
   static_assert(
-      !std::is_reference<T>::value,
+      !::std::is_reference<T>::value,
       "instantiation of Optional with a reference type is ill-formed");
 
-  static_assert(std::is_destructible<T>::value,
+  static_assert(::std::is_destructible<T>::value,
                 "instantiation of Optional with a non-destructible type "
                 "is ill-formed");
 
-  static_assert(
-      !std::is_array<T>::value,
-      "instantiation of Optional with an array type is ill-formed");
+  static_assert(!::std::is_array<T>::value,
+                "instantiation of Optional with an array type is ill-formed");
 
- public:
+public:
 #undef OPTIONAL_DECLSPEC_EMPTY_BASES
   using value_type = T;
 
   constexpr Optional() = default;
   constexpr Optional(const Optional& other) = default;
   constexpr Optional(Optional&& other) noexcept(
-      std::is_nothrow_move_constructible<T>::value) = default;
+      ::std::is_nothrow_move_constructible<T>::value) = default;
 
-  constexpr Optional(nullopt_t) {}  // NOLINT(runtime/explicit)
+  constexpr Optional(::mcil::nullopt_t) {}  // NOLINT(runtime/explicit)
 
-  template <
-      typename U,
-      std::enable_if_t<std::is_constructible<T, const U&>::value &&
-                           !internal::IsConvertibleFromOptional<T, U>::value &&
-                           std::is_convertible<const U&, T>::value,
-                       bool> = false>
-  Optional(const Optional<U>& other) : internal::OptionalBase<T>(other) {}
+  template <typename U,
+            ::std::enable_if_t<
+                ::std::is_constructible<T, const U &>::value &&
+                    !::mcil::internal::IsConvertibleFromOptional<T, U>::value &&
+                    ::std::is_convertible<const U &, T>::value,
+                bool> = false>
+  Optional(const Optional<U> &other)
+      : ::mcil::internal::OptionalBase<T>(other) {}
 
-  template <
-      typename U,
-      std::enable_if_t<std::is_constructible<T, const U&>::value &&
-                           !internal::IsConvertibleFromOptional<T, U>::value &&
-                           !std::is_convertible<const U&, T>::value,
-                       bool> = false>
-  explicit Optional(const Optional<U>& other)
-      : internal::OptionalBase<T>(other) {}
+  template <typename U,
+            ::std::enable_if_t<
+                ::std::is_constructible<T, const U &>::value &&
+                    !::mcil::internal::IsConvertibleFromOptional<T, U>::value &&
+                    !::std::is_convertible<const U &, T>::value,
+                bool> = false>
+  explicit Optional(const Optional<U> &other)
+      : ::mcil::internal::OptionalBase<T>(other) {}
 
-  template <
-      typename U,
-      std::enable_if_t<std::is_constructible<T, U&&>::value &&
-                           !internal::IsConvertibleFromOptional<T, U>::value &&
-                           std::is_convertible<U&&, T>::value,
-                       bool> = false>
-  Optional(Optional<U>&& other) : internal::OptionalBase<T>(std::move(other)) {}
+  template <typename U,
+            ::std::enable_if_t<
+                ::std::is_constructible<T, U &&>::value &&
+                    !::mcil::internal::IsConvertibleFromOptional<T, U>::value &&
+                    ::std::is_convertible<U &&, T>::value,
+                bool> = false>
+  Optional(Optional<U> &&other)
+      : ::mcil::internal::OptionalBase<T>(::std::move(other)) {}
 
-  template <
-      typename U,
-      std::enable_if_t<std::is_constructible<T, U&&>::value &&
-                           !internal::IsConvertibleFromOptional<T, U>::value &&
-                           !std::is_convertible<U&&, T>::value,
-                       bool> = false>
-  explicit Optional(Optional<U>&& other)
-      : internal::OptionalBase<T>(std::move(other)) {}
+  template <typename U,
+            ::std::enable_if_t<
+                ::std::is_constructible<T, U &&>::value &&
+                    !::mcil::internal::IsConvertibleFromOptional<T, U>::value &&
+                    !::std::is_convertible<U &&, T>::value,
+                bool> = false>
+  explicit Optional(Optional<U> &&other)
+      : ::mcil::internal::OptionalBase<T>(::std::move(other)) {}
 
   template <class... Args>
-  constexpr explicit Optional(internal::in_place_t, Args&&... args)
-      : internal::OptionalBase<T>(internal::in_place,
-                                  std::forward<Args>(args)...) {}
+  constexpr explicit Optional(::mcil::internal::in_place_t, Args&&... args)
+      : ::mcil::internal::OptionalBase<T>(::mcil::internal::in_place,
+                                  ::std::forward<Args>(args)...) {}
 
-  template <
-      class U,
-      class... Args,
-      class = std::enable_if_t<std::is_constructible<value_type,
-                                                     std::initializer_list<U>&,
-                                                     Args...>::value>>
-  constexpr explicit Optional(internal::in_place_t,
-                              std::initializer_list<U> il,
-                              Args&&... args)
-      : internal::OptionalBase<T>(internal::in_place, il,
-                                  std::forward<Args>(args)...) {}
+  template <class U, class... Args,
+            class = ::std::enable_if_t<::std::is_constructible<
+                value_type, ::std::initializer_list<U> &, Args...>::value>>
+  constexpr explicit Optional(::mcil::internal::in_place_t,
+                              ::std::initializer_list<U> il, Args &&...args)
+      : ::mcil::internal::OptionalBase<T>(::mcil::internal::in_place, il,
+                                          ::std::forward<Args>(args)...) {}
 
-  template <
-      typename U = value_type,
-      std::enable_if_t<
-          std::is_constructible<T, U&&>::value &&
-              !std::is_same<internal::RemoveCvRefT<U>,
-                            internal::in_place_t>::value &&
-              !std::is_same<internal::RemoveCvRefT<U>, Optional<T>>::value &&
-              std::is_convertible<U&&, T>::value,
-          bool> = false>
-  constexpr Optional(U&& value)
-      : internal::OptionalBase<T>(internal::in_place, std::forward<U>(value)) {}
+  template <typename U = value_type,
+            ::std::enable_if_t<
+                ::std::is_constructible<T, U &&>::value &&
+                    !::std::is_same<::mcil::internal::RemoveCvRefT<U>,
+                                    ::mcil::internal::in_place_t>::value &&
+                    !::std::is_same<::mcil::internal::RemoveCvRefT<U>,
+                                    Optional<T>>::value &&
+                    ::std::is_convertible<U &&, T>::value,
+                bool> = false>
+  constexpr Optional(U &&value)
+      : ::mcil::internal::OptionalBase<T>(::mcil::internal::in_place,
+                                          ::std::forward<U>(value)) {}
 
-  template <
-      typename U = value_type,
-      std::enable_if_t<
-          std::is_constructible<T, U&&>::value &&
-              !std::is_same<internal::RemoveCvRefT<U>,
-                            internal::in_place_t>::value &&
-              !std::is_same<internal::RemoveCvRefT<U>, Optional<T>>::value &&
-              !std::is_convertible<U&&, T>::value,
-          bool> = false>
-  constexpr explicit Optional(U&& value)
-      : internal::OptionalBase<T>(internal::in_place, std::forward<U>(value)) {}
+  template <typename U = value_type,
+            ::std::enable_if_t<
+                ::std::is_constructible<T, U &&>::value &&
+                    !::std::is_same<::mcil::internal::RemoveCvRefT<U>,
+                                    ::mcil::internal::in_place_t>::value &&
+                    !::std::is_same<::mcil::internal::RemoveCvRefT<U>,
+                                    Optional<T>>::value &&
+                    !::std::is_convertible<U &&, T>::value,
+                bool> = false>
+  constexpr explicit Optional(U &&value)
+      : ::mcil::internal::OptionalBase<T>(::mcil::internal::in_place,
+                                          ::std::forward<U>(value)) {}
 
   ~Optional() = default;
 
   Optional& operator=(const Optional& other) = default;
   Optional& operator=(Optional&& other) noexcept(
-      std::is_nothrow_move_assignable<T>::value&&
-          std::is_nothrow_move_constructible<T>::value) = default;
+      ::std::is_nothrow_move_assignable<T>::value&&
+          ::std::is_nothrow_move_constructible<T>::value) = default;
 
-  Optional& operator=(nullopt_t) {
+  Optional& operator=(::mcil::nullopt_t) {
     FreeIfNeeded();
     return *this;
   }
 
   // Perfect-forwarded assignment.
   template <typename U>
-  std::enable_if_t<
-      !std::is_same<internal::RemoveCvRefT<U>, Optional<T>>::value &&
-          std::is_constructible<T, U>::value &&
-          std::is_assignable<T&, U>::value &&
-          (!std::is_scalar<T>::value ||
-           !std::is_same<std::decay_t<U>, T>::value),
+  ::std::enable_if_t<
+      !::std::is_same<::mcil::internal::RemoveCvRefT<U>, Optional<T>>::value &&
+          ::std::is_constructible<T, U>::value &&
+          ::std::is_assignable<T&, U>::value &&
+          (!::std::is_scalar<T>::value ||
+           !::std::is_same<::std::decay_t<U>, T>::value),
       Optional&>
   operator=(U&& value) {
-    InitOrAssign(std::forward<U>(value));
+    InitOrAssign(::std::forward<U>(value));
     return *this;
   }
 
   // Copy assign the state of other.
   template <typename U>
-  std::enable_if_t<!internal::IsAssignableFromOptional<T, U>::value &&
-                       std::is_constructible<T, const U&>::value &&
-                       std::is_assignable<T&, const U&>::value,
+  ::std::enable_if_t<!::mcil::internal::IsAssignableFromOptional<T, U>::value &&
+                       ::std::is_constructible<T, const U&>::value &&
+                       ::std::is_assignable<T&, const U&>::value,
                    Optional&>
   operator=(const Optional<U>& other) {
     CopyAssign(other);
@@ -511,21 +510,21 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
 
   // Move assign the state of other.
   template <typename U>
-  std::enable_if_t<!internal::IsAssignableFromOptional<T, U>::value &&
-                       std::is_constructible<T, U>::value &&
-                       std::is_assignable<T&, U>::value,
+  ::std::enable_if_t<!::mcil::internal::IsAssignableFromOptional<T, U>::value &&
+                       ::std::is_constructible<T, U>::value &&
+                       ::std::is_assignable<T&, U>::value,
                    Optional&>
   operator=(Optional<U>&& other) {
-    MoveAssign(std::move(other));
+    MoveAssign(::std::move(other));
     return *this;
   }
 
   constexpr const T* operator->() const {
-    return std::addressof(storage_.value_);
+    return ::std::addressof(storage_.value_);
   }
 
   constexpr T* operator->() {
-    return std::addressof(storage_.value_);
+    return ::std::addressof(storage_.value_);
   }
 
   constexpr const T& operator*() const & {
@@ -537,11 +536,11 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
   }
 
   constexpr const T&& operator*() const && {
-    return std::move(storage_.value_);
+    return ::std::move(storage_.value_);
   }
 
   constexpr T&& operator*() && {
-    return std::move(storage_.value_);
+    return ::std::move(storage_.value_);
   }
 
   constexpr explicit operator bool() const { return storage_.is_populated_; }
@@ -557,29 +556,29 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
   }
 
   constexpr T&& value() && {
-    return std::move(storage_.value_);
+    return ::std::move(storage_.value_);
   }
 
   constexpr const T&& value() const && {
-    return std::move(storage_.value_);
+    return ::std::move(storage_.value_);
   }
 
   template <class U>
   constexpr T value_or(U&& default_value) const& {
-    static_assert(std::is_convertible<U, T>::value,
+    static_assert(::std::is_convertible<U, T>::value,
                   "U must be convertible to T");
     return storage_.is_populated_
                ? storage_.value_
-               : static_cast<T>(std::forward<U>(default_value));
+               : static_cast<T>(::std::forward<U>(default_value));
   }
 
   template <class U>
   constexpr T value_or(U&& default_value) && {
-    static_assert(std::is_convertible<U, T>::value,
+    static_assert(::std::is_convertible<U, T>::value,
                   "U must be convertible to T");
     return storage_.is_populated_
-               ? std::move(storage_.value_)
-               : static_cast<T>(std::forward<U>(default_value));
+               ? ::std::move(storage_.value_)
+               : static_cast<T>(::std::forward<U>(default_value));
   }
 
   void swap(Optional& other) {
@@ -588,16 +587,16 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
 
     if (storage_.is_populated_ != other.storage_.is_populated_) {
       if (storage_.is_populated_) {
-        other.storage_.Init(std::move(storage_.value_));
+        other.storage_.Init(::std::move(storage_.value_));
         FreeIfNeeded();
       } else {
-        storage_.Init(std::move(other.storage_.value_));
+        storage_.Init(::std::move(other.storage_.value_));
         other.FreeIfNeeded();
       }
       return;
     }
 
-    using std::swap;
+    using ::std::swap;
     swap(**this, *other);
   }
 
@@ -606,26 +605,26 @@ class OPTIONAL_DECLSPEC_EMPTY_BASES Optional
   template <class... Args>
   T& emplace(Args&&... args) {
     FreeIfNeeded();
-    storage_.Init(std::forward<Args>(args)...);
+    storage_.Init(::std::forward<Args>(args)...);
     return storage_.value_;
   }
 
   template <class U, class... Args>
-  std::enable_if_t<
-      std::is_constructible<T, std::initializer_list<U>&, Args&&...>::value,
-      T&>
-  emplace(std::initializer_list<U> il, Args&&... args) {
+  ::std::enable_if_t<::std::is_constructible<T, ::std::initializer_list<U> &,
+                                             Args &&...>::value,
+                     T &>
+  emplace(::std::initializer_list<U> il, Args &&...args) {
     FreeIfNeeded();
-    storage_.Init(il, std::forward<Args>(args)...);
+    storage_.Init(il, ::std::forward<Args>(args)...);
     return storage_.value_;
   }
 
  private:
-  using internal::OptionalBase<T>::CopyAssign;
-  using internal::OptionalBase<T>::FreeIfNeeded;
-  using internal::OptionalBase<T>::InitOrAssign;
-  using internal::OptionalBase<T>::MoveAssign;
-  using internal::OptionalBase<T>::storage_;
+  using ::mcil::internal::OptionalBase<T>::CopyAssign;
+  using ::mcil::internal::OptionalBase<T>::FreeIfNeeded;
+  using ::mcil::internal::OptionalBase<T>::InitOrAssign;
+  using ::mcil::internal::OptionalBase<T>::MoveAssign;
+  using ::mcil::internal::OptionalBase<T>::storage_;
 };
 
 template <class T, class U>
