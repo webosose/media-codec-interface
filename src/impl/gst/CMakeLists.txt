@@ -14,21 +14,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-pkg_check_modules(GSTPLAYER gstreamer-player-1.0 REQUIRED)
-include_directories(${GSTPLAYER_INCLUDE_DIRS})
-link_directories(${GSTPLAYER_LIBRARY_DIRS})
-
-pkg_check_modules(GSTAPP gstreamer-app-1.0 REQUIRED)
-include_directories(${GSTAPP_INCLUDE_DIRS})
-link_directories(${GSTAPP_LIBRARY_DIRS})
-
-pkg_check_modules(GSTREAMER gstreamer-1.0 REQUIRED)
-include_directories(${GSTREAMER_INCLUDE_DIRS})
-link_directories(${GSTREAMER_LIBRARY_DIRS})
-
-pkg_check_modules(GSTPBUTIL gstreamer-pbutils-1.0 REQUIRED)
-include_directories(${GSTPBUTIL_INCLUDE_DIRS})
-link_directories(${GSTPBUTIL_LIBRARY_DIRS})
+find_package(PkgConfig REQUIRED)
 
 option(WEBOS_CLANG_BUILD "Build with clang" OFF)
 if(${WEBOS_CLANG_BUILD})
@@ -39,14 +25,12 @@ endif()
 include_directories(${PBNJSON_INCLUDE_DIRS})
 link_directories(${PBNJSON_LIBRARY_DIRS})
 
-set(GSTAPP_LIB gstapp-1.0)
+include_directories(${BUFFER_ENCODER_INCLUDE_DIRS})
+include_directories(${CMAKE_SYSROOT}/usr/include/mrp)
 
 list(APPEND MEDIA_IMPL_LIBRARIES
-    ${GSTPLAYER_LIBRARIES}
-    ${GSTREAMER_LIBRARIES}
-    ${GSTPBUTIL_LIBRARIES}
-    ${GSTAPP_LIBRARIES}
-    ${GSTAPP_LIB}
+    ${BUFFER_ENCODER_LIBRARIES}
+    buffer-encoder
 )
 
 list(APPEND MEDIA_IMPL_SRC

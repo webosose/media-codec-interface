@@ -18,9 +18,11 @@
 #define SRC_IMPL_GST_GST_VIDEO_ENCODER_H_
 
 #include "base/video_encoder.h"
+#include <buffer_encoder.h>
+#include <message.h>
 
-#include <gst/gst.h>
 
+namespace mrp { class BufferEncoder; }
 
 namespace mcil {
 
@@ -71,37 +73,12 @@ class GstVideoEncoder : public VideoEncoder {
     return true;
   }
 
-  static gboolean HandleBusMessage(
-      GstBus *bus_, GstMessage *message, gpointer user_data);
+  void OnEncodedBuffer(const uint8_t* data, size_t size,
+                       uint64_t timestamp, bool is_keyframe);
 
  private:
-  bool CreatePipeline(const EncoderConfig* configData);
-  bool CreateEncoder(VideoCodecProfile profile);
-  bool CreateSink();
-  bool LinkElements(const EncoderConfig* configData);
-
-  static GstFlowReturn OnEncodedBuffer(GstElement* elt, gpointer* data);
-
-  GstBus *bus_ = nullptr;
-  bool load_complete_ = false;
-  GstElement *pipeline_ = nullptr;
-  GstElement *source_ = nullptr;
-  GstElement *filter_YUY2_ = nullptr;
-  GstElement *parse_ = nullptr;
-  GstElement *converter_ = nullptr;
-  GstElement *filter_NV12_ = nullptr;
-  GstElement *encoder_ = nullptr;
-  GstElement *sink_ = nullptr;
-  GstCaps *caps_YUY2_ = nullptr;
-  GstCaps *caps_NV12_ = nullptr;
-
-  int32_t bitrate_ = 0;
-
+  mrp::BufferEncoder gst_pipeline_;
   VideoEncoderClient* client_ = nullptr;
-
-  ChronoTime start_time_;
-  uint32_t current_seconds_ = 0;
-  uint32_t buffers_per_sec_ = 0;
 };
 
 }  // namespace mcil
