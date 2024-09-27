@@ -523,7 +523,7 @@ bool V4L2VideoDecoder::CheckConfig(const DecoderConfig* config) {
   decoder_config_.frameWidth = config->frameWidth;
   decoder_config_.frameHeight = config->frameHeight;
   decoder_config_.profile = config->profile;
-  decoder_config_.opMode = config->opMode;
+  decoder_config_.outputMode = config->outputMode;
 
   input_format_fourcc_ =
       V4L2Device::VideoCodecProfileToV4L2PixFmt(config->profile);
@@ -545,7 +545,7 @@ bool V4L2VideoDecoder::CheckConfig(const DecoderConfig* config) {
     return false;
   }
 
-  output_mode_ = config->opMode;
+  output_mode_ = config->outputMode;
 
   input_queue_ = device_->GetQueue(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
   if (!input_queue_) {
