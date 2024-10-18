@@ -72,15 +72,15 @@ bool GstVideoEncoder::Initialize(const EncoderConfig* config,
                   config->width, config->height, config->frameRate);
 
   // Cast config to the expected type
-  const mrp::EncoderConfig* mrp_config =
-      reinterpret_cast<const mrp::EncoderConfig*>(config);
+  const mrf::EncoderConfig* mrf_config =
+      reinterpret_cast<const mrf::EncoderConfig*>(config);
 
   auto buffer_callback = [this](const uint8_t* data, size_t size,
                                 uint64_t timestamp, bool is_keyframe) {
     this->OnEncodedBuffer(data, size, timestamp, is_keyframe);
   };
 
-  if (!gst_pipeline_.Initialize(mrp_config, buffer_callback)) {
+  if (!gst_pipeline_.Initialize(mrf_config, buffer_callback)) {
     MCIL_ERROR_PRINT("Gst Pipeline Initialize Failed");
     return false;
   }

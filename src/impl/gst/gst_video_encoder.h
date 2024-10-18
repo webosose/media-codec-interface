@@ -19,10 +19,9 @@
 
 #include "base/video_encoder.h"
 #include <buffer_encoder.h>
-#include <message.h>
 
 
-namespace mrp { class BufferEncoder; }
+namespace mrf { class BufferEncoder; }
 
 namespace mcil {
 
@@ -77,7 +76,7 @@ class GstVideoEncoder : public VideoEncoder {
                        uint64_t timestamp, bool is_keyframe);
 
  private:
-  mrp::BufferEncoder gst_pipeline_;
+  mrf::BufferEncoder gst_pipeline_;
   VideoEncoderClient* client_ = nullptr;
 };
 

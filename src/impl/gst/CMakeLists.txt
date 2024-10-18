@@ -25,12 +25,16 @@ endif()
 include_directories(${PBNJSON_INCLUDE_DIRS})
 link_directories(${PBNJSON_LIBRARY_DIRS})
 
-include_directories(${BUFFER_ENCODER_INCLUDE_DIRS})
-include_directories(${CMAKE_SYSROOT}/usr/include/mrp)
+option(WEBOS_CLANG_BUILD "Build with clang" OFF)
+if(${WEBOS_CLANG_BUILD})
+  pkg_check_modules(GST-VIDEO-ENCODER REQUIRED gst-video-encoder-clang)
+else()
+  pkg_check_modules(GST-VIDEO-ENCODER REQUIRED gst-video-encoder)
+endif()
+include_directories(${GST-VIDEO-ENCODER_INCLUDE_DIRS})
 
 list(APPEND MEDIA_IMPL_LIBRARIES
-    ${BUFFER_ENCODER_LIBRARIES}
-    buffer-encoder
+    ${GST-VIDEO-ENCODER_LIBRARIES}
 )
 
 list(APPEND MEDIA_IMPL_SRC
