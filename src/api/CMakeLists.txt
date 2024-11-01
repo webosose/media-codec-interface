@@ -16,11 +16,14 @@
 
 find_package(Threads REQUIRED)
 
+option(ENABLE_WRAPPER "Enable C wrapper" OFF)
 option(WEBOS_CLANG_BUILD "Build with clang" OFF)
-if(${WEBOS_CLANG_BUILD})
+if(${WEBOS_CLANG_BUILD} AND NOT ${ENABLE_WRAPPER})
   pkg_check_modules(RESOURCE-CALCULATOR REQUIRED media-resource-calculator-clang)
+  pkg_check_modules(PBNJSON pbnjson_cpp_clang REQUIRED)
 else()
   pkg_check_modules(RESOURCE-CALCULATOR REQUIRED media-resource-calculator)
+  pkg_check_modules(PBNJSON pbnjson_cpp REQUIRED)
 endif()
 include_directories(${RESOURCE-CALCULATOR_INCLUDE_DIRS})
 
@@ -44,12 +47,17 @@ set(MEDIA_CODEC_INTERFACE_SRC
 
 set(MEDIA_CODEC_INTERFACE_LIBRARIES
     ${RESOURCE-CALCULATOR_LDFLAGS}
+    ${PBNJSON_LIBRARIES}
     resource_mgr_client
     resource_mgr_client_c
 )
 
 add_library(${MEDIA_CODEC_INTERFACE_LIB} SHARED ${MEDIA_CODEC_INTERFACE_SRC})
 set_target_properties (${MEDIA_CODEC_INTERFACE_LIB} PROPERTIES VERSION 1.0 SOVERSION 1)
+if(${ENABLE_WRAPPER})
+  set_target_properties (${MEDIA_CODEC_INTERFACE_LIB} PROPERTIES LINK_FLAGS "-Wl,-z,defs -lmedia-codec-interface-wrapper")
+endif()
+
 if(${WEBOS_CLANG_BUILD})
   target_link_libraries(${MEDIA_CODEC_INTERFACE_LIB} ${MEDIA_CODEC_INTERFACE_LIBRARIES} media-codec-impl-clang)
 else()

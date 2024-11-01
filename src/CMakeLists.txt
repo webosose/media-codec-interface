@@ -61,9 +61,21 @@ set(MEDIA_CODEC_BASE_SRC
     base/video_frame.cpp
 )
 
+option(ENABLE_WRAPPER "Enable C wrapper" OFF)
+if(${ENABLE_WRAPPER})
+  set(MEDIA_CODEC_RESOURCE_WRAPPER_SRC
+      resource/resource_wrapper/resource_calculator_type_converter.cpp
+      resource/resource_wrapper/resource_calculator_wrapper.cpp
+      resource/resource_wrapper/resource_manager_client_wrapper.cpp
+  )
+
+  add_definitions(-DENABLE_WRAPPER)
+endif()
+
 set(MEDIA_CODEC_RESOURCE_SRC
     resource/requestor.cpp
     resource/video_resource.cpp
+    ${MEDIA_CODEC_RESOURCE_WRAPPER_SRC}
 )
 
 include(api/CMakeLists.txt)

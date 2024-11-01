@@ -22,15 +22,19 @@
 #include <memory>
 #include <map>
 
-#include <pbnjson.hpp>
-#include <resource_calculator.h>
+#include <pbnjson.h>
 
 #include "base/decoder_types.h"
 #include "base/fourcc.h"
 
+#include "resource_wrapper/resource_calculator_wrapper.h"
+#include "resource_wrapper/resource_manager_client_wrapper.h"
+
+#if !defined(ENABLE_WRAPPER)
 namespace mrc { class ResourceCalculator; }
 
 namespace uMediaServer {   class ResourceManagerClient; }
+#endif
 
 namespace mcil {
 

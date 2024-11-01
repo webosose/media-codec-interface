@@ -18,10 +18,11 @@
 #define SRC_IMPL_GST_GST_VIDEO_ENCODER_H_
 
 #include "base/video_encoder.h"
-#include <buffer_encoder.h>
+#include "gst_wrapper/buffer_encoder_wrapper.h"
 
-
+#if !defined(ENABLE_WRAPPER)
 namespace mrf { class BufferEncoder; }
+#endif
 
 namespace mcil {
 

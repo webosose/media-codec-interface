@@ -47,5 +47,40 @@ set(GSTREAMER_LIBRARIES ${GSTPLAYER_LIBRARIES} ${GSTREAMER_LIBRARIES})
 
 include_directories(${GSTREAMER_INCLUDE_DIRS})
 link_directories(${GSTREAMER_LIBRARIES})
+option(WRAPPER_BUILD "Build C wrapper" OFF)
+if(${WRAPPER_BUILD})
+  include_directories(./resource/resource_wrapper)
+  set(WRAPPER_SRC
+      src/resource/resource_wrapper/stdlibcpp/buffer_encoder_lib.cpp
+      src/resource/resource_wrapper/stdlibcpp/buffer_encoder_lib_impl.cpp
+      src/resource/resource_wrapper/stdlibcpp/res_calculator.cpp
+      src/resource/resource_wrapper/stdlibcpp/resource_manager_client.cpp
+      src/resource/resource_wrapper/stdlibcpp/resource_manager_client_impl.cpp
+  )
+  set(WRAPPER_HEADERS
+      src/resource/resource_wrapper/stdlibcpp/buffer_encoder_lib.h
+      src/resource/resource_wrapper/stdlibcpp/res_calculator.h
+      src/resource/resource_wrapper/stdlibcpp/resource_manager_client.h
+  )
 
-add_subdirectory(src)
+  set(WRAPPER_LIB media-codec-interface-wrapper)
+
+  add_library(${WRAPPER_LIB} SHARED ${WRAPPER_SRC})
+
+  set_target_properties (${WRAPPER_LIB} PROPERTIES VERSION 1.0 SOVERSION 1)
+
+  pkg_check_modules(GST-VIDEO-ENCODER REQUIRED gst-video-encoder)
+  include_directories(${GST-VIDEO-ENCODER_INCLUDE_DIRS})
+
+  set(WRAPPER_LIBRARIES "-lresource_mgr_client -lmedia-resource-calculator -lgst-video-encoder")
+
+  set_target_properties (${WRAPPER_LIB} PROPERTIES LINK_FLAGS "-Wl,-z,defs ${WRAPPER_LIBRARIES}")
+
+  target_link_libraries(${WRAPPER_LIB})
+
+  install(TARGETS ${WRAPPER_LIB} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(FILES ${WRAPPER_HEADERS} DESTINATION include)
+else()
+  add_subdirectory(src)
+endif()
+

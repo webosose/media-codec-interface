@@ -16,8 +16,9 @@
 
 find_package(PkgConfig REQUIRED)
 
+option(ENABLE_WRAPPER "Enable C wrapper" OFF)
 option(WEBOS_CLANG_BUILD "Build with clang" OFF)
-if(${WEBOS_CLANG_BUILD})
+if(${WEBOS_CLANG_BUILD} AND NOT ${ENABLE_WRAPPER})
   pkg_check_modules(PBNJSON pbnjson_cpp_clang REQUIRED)
 else()
   pkg_check_modules(PBNJSON pbnjson_cpp REQUIRED)
@@ -26,17 +27,27 @@ include_directories(${PBNJSON_INCLUDE_DIRS})
 link_directories(${PBNJSON_LIBRARY_DIRS})
 
 option(WEBOS_CLANG_BUILD "Build with clang" OFF)
-if(${WEBOS_CLANG_BUILD})
-  pkg_check_modules(GST-VIDEO-ENCODER REQUIRED gst-video-encoder-clang)
-else()
-  pkg_check_modules(GST-VIDEO-ENCODER REQUIRED gst-video-encoder)
-endif()
-include_directories(${GST-VIDEO-ENCODER_INCLUDE_DIRS})
+if(NOT ${ENABLE_WRAPPER})
+  if(${WEBOS_CLANG_BUILD})
+    pkg_check_modules(GST-VIDEO-ENCODER REQUIRED gst-video-encoder-clang)
+  else()
+    pkg_check_modules(GST-VIDEO-ENCODER REQUIRED gst-video-encoder)
+  endif()
+  include_directories(${GST-VIDEO-ENCODER_INCLUDE_DIRS})
 
-list(APPEND MEDIA_IMPL_LIBRARIES
-    ${GST-VIDEO-ENCODER_LIBRARIES}
-)
+  list(APPEND MEDIA_IMPL_LIBRARIES
+      ${GST-VIDEO-ENCODER_LIBRARIES}
+  )
+endif()
 
 list(APPEND MEDIA_IMPL_SRC
     impl/gst/gst_video_encoder.cpp
 )
+
+if(${ENABLE_WRAPPER})
+  list(APPEND MEDIA_IMPL_SRC
+      impl/gst/gst_wrapper/buffer_encoder_wrapper.cpp
+  )
+
+  add_definitions(-DENABLE_WRAPPER)
+endif()

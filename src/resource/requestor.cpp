@@ -22,11 +22,12 @@
 #include <set>
 #include <utility>
 #include <cmath>
-#include <ResourceManagerClient.h>
 
 #include "base/log.h"
 
+#if !defined(ENABLE_WRAPPER)
 using mrc::ResourceCalculator;
+#endif
 
 namespace mcil {
 
@@ -109,19 +110,22 @@ bool ResourceRequestor::ReacquireResources(PortResource_t& resourceMMap,
     MCIL_ERROR_PRINT("Fail to getSourceString");
     return false;
   }
-
-  pbnjson::JValue reacquire_obj = pbnjson::Object();
-  reacquire_obj.put("new", request);
-  reacquire_obj.put("old", resources);
-
-  pbnjson::JSchemaFragment input_schema("{}");
-  pbnjson::JGenerator serializer(nullptr);
+  jvalue_ref obj = jobject_create_var(
+      jkeyval(J_CSTR_TO_JVAL("new"), jstring_create(request.c_str())),
+      jkeyval(J_CSTR_TO_JVAL("old"), jstring_create(resources.c_str())),
+      J_END_OBJ_DECL);
 
   std::string payload;
-  if (!serializer.toString(reacquire_obj, input_schema, payload)) {
-    MCIL_ERROR_PRINT("[%s], fail to serializer to string", __func__);
+  const char* pload = jvalue_stringify(obj);
+  if (!pload) {
+    MCIL_ERROR_PRINT("fail to acquire!!!");
+    j_release(&obj);
     return false;
   }
+
+  payload = pload;
+
+  j_release(&obj);
 
   MCIL_DEBUG_PRINT("payload string = %s", payload.c_str());
 
@@ -250,49 +254,69 @@ std::string ResourceRequestor::GetSourceString(
         venc_resource[0].front().quantity);
   }
 
-  pbnjson::JSchemaFragment input_schema("{}");
-  pbnjson::JGenerator serializer(nullptr);
-
-  pbnjson::JValue objArray = pbnjson::Array();
+  jvalue_ref arr = jarray_create(NULL);
   for (auto& option : finalOptions) {
-    for (auto const & it : option) {
-      pbnjson::JValue obj = pbnjson::Object();
-      obj.put("resource", it.type);
-      obj.put("qty", it.quantity);
-      MCIL_DEBUG_PRINT("calculator return : %s, %d",
-                       it.type.c_str(), it.quantity);
-      objArray << obj;
+    for (auto const& it : option) {
+      jvalue_ref arr_obj = jobject_create_var(
+          jkeyval(J_CSTR_TO_JVAL("resource"), jstring_create(it.type.c_str())),
+          jkeyval(J_CSTR_TO_JVAL("qty"), jnumber_create_i32(it.quantity)),
+          J_END_OBJ_DECL);
+      jarray_append(arr, arr_obj);
+      MCIL_DEBUG_PRINT("calculator return : %s, %d", it.type.c_str(),
+                       it.quantity);
     }
   }
 
-  if (!serializer.toString(objArray, input_schema, payload)) {
-    MCIL_ERROR_PRINT("[%s], fail to serializer to string", __func__);
+  payload = (jvalue_stringify(arr) != NULL) ? jvalue_stringify(arr) : "";
+  if (payload.empty()) {
+    MCIL_ERROR_PRINT("Failed to set source info!");
+    j_release(&arr);
     return payload;
   }
+
+  j_release(&arr);
 
   return payload;
 }
 
 bool ResourceRequestor::ParsePortInformation(const std::string& payload,
                                              PortResource_t& resourceMMap) {
-  pbnjson::JDomParser parser;
-  pbnjson::JSchemaFragment input_schema("{}");
-  if (!parser.parse(payload, input_schema)) {
+  JSchemaInfo schema_info;
+  jvalue_ref resources_obj = NULL;
+  jschema_info_init(&schema_info, jschema_all(), NULL, NULL);
+
+  jvalue_ref payload_json =
+      jdom_parse(j_cstr_to_buffer(payload.c_str()), DOMOPT_NOOPT, &schema_info);
+  jschema_release(&schema_info.m_schema);
+
+  if (payload_json == jinvalid()) {
     throw std::runtime_error(" : payload parsing failure");
   }
 
-  pbnjson::JValue parsed = parser.getDom();
-  if (!parsed.hasKey("resources")) {
+  if (!jobject_get_exists(payload_json, J_CSTR_TO_BUF("resources"),
+                          &resources_obj)) {
+    j_release(&payload_json);
     throw std::runtime_error("payload must have \"resources key\"");
   }
 
-  int32_t res_arraysize = static_cast<int32_t>(parsed["resources"].arraySize());
+  for (ssize_t i = 0; i < jarray_size(resources_obj); ++i) {
+    jvalue_ref item = jarray_get(resources_obj, i);
+    jvalue_ref resource;
+    jobject_get_exists(item, J_CSTR_TO_BUF("resource"), &resource);
 
-  for (int32_t i=0; i < res_arraysize; ++i) {
-    std::string resourceName = parsed["resources"][i]["resource"].asString();
-    int32_t value = parsed["resources"][i]["index"].asNumber<int32_t>();
-    resourceMMap.insert(std::make_pair(resourceName, value));
+    raw_buffer resource_string = jstring_get(resource);
+    std::string res(resource_string.m_str, resource_string.m_len);
+    jstring_free_buffer(resource_string);
+
+    jvalue_ref index;
+    jobject_get_exists(item, J_CSTR_TO_BUF("index"), &index);
+    int32_t ind(0);
+    jnumber_get_i32(index, &ind);
+
+    resourceMMap.insert<>(std::make_pair(res, ind));
   }
+
+  j_release(&payload_json);
 
   for (auto& it : resourceMMap) {
     MCIL_DEBUG_PRINT("port Resource- %s, : [%d] ", it.first.c_str(), it.second);
@@ -305,30 +329,50 @@ bool ResourceRequestor::ParseResources(const std::string& payload,
                                        std::string& resources) {
   resources = std::string();
 
-  pbnjson::JDomParser parser;
-  pbnjson::JSchemaFragment input_schema("{}");
-  pbnjson::JGenerator serializer(nullptr);
+  JSchemaInfo schema_info;
+  jvalue_ref resources_obj = NULL;
+  jschema_info_init(&schema_info, jschema_all(), NULL, NULL);
 
-  if (!parser.parse(payload, input_schema)) {
+  jvalue_ref payload_json =
+      jdom_parse(j_cstr_to_buffer(payload.c_str()), DOMOPT_NOOPT, &schema_info);
+  jschema_release(&schema_info.m_schema);
+
+  if (payload_json == jinvalid()) {
     throw std::runtime_error(" : payload parsing failure");
   }
 
-  pbnjson::JValue parsed = parser.getDom();
-  if (!parsed.hasKey("resources")) {
+  if (!jobject_get_exists(payload_json, J_CSTR_TO_BUF("resources"),
+                          &resources_obj)) {
+    j_release(&payload_json);
     throw std::runtime_error("payload must have \"resources key\"");
   }
 
-  pbnjson::JValue objArray = pbnjson::Array();
-  for (int32_t i=0; i < parsed["resources"].arraySize(); ++i) {
-    pbnjson::JValue obj = pbnjson::Object();
-    obj.put("resource", parsed["resources"][i]["resource"].asString());
-    obj.put("index", parsed["resources"][i]["index"].asNumber<int32_t>());
-    objArray << obj;
+  jvalue_ref arr = jarray_create(NULL);
+  for (ssize_t i = 0; i < jarray_size(resources_obj); ++i) {
+    jvalue_ref item = jarray_get(resources_obj, i);
+    jvalue_ref resource;
+    jobject_get_exists(item, J_CSTR_TO_BUF("resource"), &resource);
+
+    raw_buffer resource_string = jstring_get(resource);
+    std::string res(resource_string.m_str, resource_string.m_len);
+    jstring_free_buffer(resource_string);
+
+    jvalue_ref index;
+    jobject_get_exists(item, J_CSTR_TO_BUF("index"), &index);
+    int32_t ind(0);
+    jnumber_get_i32(index, &ind);
+
+    jvalue_ref arr_obj = jobject_create_var(
+        jkeyval(J_CSTR_TO_JVAL("index"), jnumber_create_i32(ind)),
+        jkeyval(J_CSTR_TO_JVAL("resource"), jstring_create(res.c_str())),
+        J_END_OBJ_DECL);
+    jarray_append(arr, arr_obj);
   }
 
-  if (!serializer.toString(objArray, input_schema, resources)) {
-    throw std::runtime_error("failed to serializer toString");
-  }
+  resources = (jvalue_stringify(arr) != NULL) ? jvalue_stringify(arr) : "";
+
+  j_release(&arr);
+  j_release(&payload_json);
 
   return true;
 }
