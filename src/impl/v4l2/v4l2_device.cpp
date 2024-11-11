@@ -354,7 +354,7 @@ void V4L2Device::GetSupportedResolution(uint32_t pixelformat,
   v4l2_frmsizeenum frame_size;
   memset(&frame_size, 0, sizeof(frame_size));
   frame_size.pixel_format = pixelformat;
-  for (; Ioctl(VIDIOC_ENUM_FRAMESIZES, &frame_size) == 0; ++frame_size.index) {
+  while (Ioctl(VIDIOC_ENUM_FRAMESIZES, &frame_size) == 0) {
     if (frame_size.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
       if ((frame_size.discrete.width >=
            static_cast<uint32_t>(max_resolution->width)) &&
@@ -382,6 +382,7 @@ void V4L2Device::GetSupportedResolution(uint32_t pixelformat,
         break;
       }
     }
+    ++frame_size.index;
   }
 
   if ((max_resolution->width == 0) || (max_resolution->height == 0)) {
@@ -446,10 +447,11 @@ std::vector<uint32_t> V4L2Device::EnumerateSupportedPixelformats(
   memset(&fmtdesc, 0, sizeof(fmtdesc));
   fmtdesc.type = buf_type;
 
-  for (; Ioctl(VIDIOC_ENUM_FMT, &fmtdesc) == 0; ++fmtdesc.index) {
+  while (Ioctl(VIDIOC_ENUM_FMT, &fmtdesc) == 0) {
     MCIL_DEBUG_PRINT(": buf_type[%d] => Found %s (0x%x)",
                      buf_type, fmtdesc.description, fmtdesc.pixelformat);
     pixelformats.push_back(fmtdesc.pixelformat);
+    ++fmtdesc.index;
   }
 
   return pixelformats;

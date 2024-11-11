@@ -71,7 +71,7 @@ void Thread::Stop() {
 }
 
 void Thread::RunInternal() {
-  for (;;) {
+  while (true) {
     decltype(task_queue_) local_queue;
     {
       std::unique_lock<std::mutex> lock(mutex_);
